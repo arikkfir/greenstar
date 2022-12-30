@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  {{- if .Values.accounts.serviceAccount }}
+  {{- with .Values.accounts.serviceAccount.annotations }}
+  annotations:
+  {{- toYaml . | nindent 8 }}
+  {{- end }}
+  {{- end }}
+  labels:
+    app: {{ .Release.Name | quote }}
+    app.kubernetes.io/component: accounts
+  name: {{ printf "%s-accounts" .Release.Name | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Release.Name | quote }}
+    app.kubernetes.io/component: accounts
+  name: {{ printf "%s-accounts" .Release.Name | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    app: {{ .Release.Name | quote }}
+    app.kubernetes.io/component: accounts
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Release.Name | quote }}
+    app.kubernetes.io/component: accounts
+  name: {{ printf "%s-accounts" .Release.Name | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name | quote }}
+      app.kubernetes.io/component: accounts
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name | quote }}
+        app.kubernetes.io/component: accounts
+    spec:
+      containers:
+        - image: {{ printf "%s:%s" .Values.accounts.image.repository (.Values.accounts.image.tag | default .Chart.AppVersion | replace "+" "_") | quote }}
+          name: accounts
+          env:
+            - name: REDIS_HOST
+              value: {{ printf "%s-redis" .Release.Name | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.accounts.logLevel | quote }}
+            {{- if eq .Values.accounts.devMode true }}
+            - name: DEV_MODE
+              value: "true"
+            {{- end }}
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            limits:
+              cpu: {{ .Values.accounts.resources.limits.cpu | quote }}
+              memory: {{ .Values.accounts.resources.limits.memory | quote }}
+            requests:
+              cpu: {{ .Values.accounts.resources.requests.cpu | quote }}
+              memory: {{ .Values.accounts.resources.requests.memory | quote }}
+      serviceAccountName: {{ printf "%s-accounts" .Release.Name | quote }}
+      {{- with .Values.accounts.deployment.nodeSelector }}
+      nodeSelector:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.accounts.deployment.tolerations }}
+      tolerations:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}

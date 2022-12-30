@@ -1,0 +1,24 @@
+ingress:
+  enabled: true
+  disableRedirectToHTTPS: true
+  hosts:
+    redis: redis.greenstar.test
+    neo4j: neo4j.greenstar.test
+    api:
+      accounts: accounts.api.greenstar.test
+
+accounts:
+  devMode: true
+  logLevel: trace
+
+txprocessor:
+  devMode: true
+  logLevel: trace
+
+xlsconverter:
+  devMode: true
+  logLevel: trace
+
+xlsxprocessor:
+  devMode: true
+  logLevel: trace

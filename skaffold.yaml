@@ -1,0 +1,52 @@
+# nonk8s
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: greenstar
+build:
+  local:
+    push: false
+    concurrency: 2
+    useBuildkit: true
+  artifacts:
+  - image: accounts
+    docker:
+      dockerfile: Dockerfile.accounts
+  - image: txprocessor
+    docker:
+      dockerfile: Dockerfile.txprocessor
+  - image: xlsconverter
+    docker:
+      dockerfile: Dockerfile.xlsconverter
+  - image: xlsxprocessor
+    docker:
+      dockerfile: Dockerfile.xlsxprocessor
+portForward:
+  - resourceType: service
+    resourceName: greenstar-redis
+    port: 6379
+  - resourceType: service
+    resourceName: greenstar-neo4j
+    port: 7687
+deploy:
+  helm:
+    releases:
+    - name: greenstar
+      chartPath: chart
+      createNamespace: true
+      repo: https://arikkfir.github.io/charts
+      valuesFiles:
+      - chart/values.dev.yaml
+      wait: true
+      packaged:
+        version: 0.0.0
+        appVersion: 0.0.0
+      setValueTemplates:
+        accounts.image.repository: "{{.IMAGE_REPO_accounts}}"
+        accounts.image.tag: "{{.IMAGE_TAG_accounts}}"
+        txprocessor.image.repository: "{{.IMAGE_REPO_txprocessor}}"
+        txprocessor.image.tag: "{{.IMAGE_TAG_txprocessor}}"
+        xlsconverter.image.repository: "{{.IMAGE_REPO_xlsconverter}}"
+        xlsconverter.image.tag: "{{.IMAGE_TAG_xlsconverter}}"
+        xlsxprocessor.image.repository: "{{.IMAGE_REPO_xlsxprocessor}}"
+        xlsxprocessor.image.tag: "{{.IMAGE_TAG_xlsxprocessor}}"

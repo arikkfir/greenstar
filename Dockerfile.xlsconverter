@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+ARG SKAFFOLD_GO_GCFLAGS
+
+### Build executable
+FROM golang:1.19 as builder
+WORKDIR /workspace
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg go mod download
+COPY common ./common
+COPY xlsconverter ./xlsconverter
+COPY xlsxprocessor ./xlsxprocessor
+ENV CGO_ENABLED="0"
+ENV GO111MODULE="on"
+RUN --mount=type=cache,target=/go/pkg go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o server ./xlsconverter/cmd/main.go && chmod +x server
+
+### Target layer
+FROM ubuntu:22.10
+RUN --mount=type=cache,target=/var/cache/apt \
+      apt-get update && \
+      apt-get install -yqq --no-install-recommends libreoffice && \
+      rm -rf /var/lib/apt/lists/*
+COPY --from=builder /workspace/server /usr/local/bin/server
+ENV GOTRACEBACK=all
+ENTRYPOINT ["/usr/local/bin/server"]

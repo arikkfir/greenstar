@@ -1,0 +1,121 @@
+ingress:
+  enabled: false
+  disableRedirectToHTTPS: false
+  hosts:
+    redis: ""
+    neo4j: ""
+    api:
+      accounts: ""
+
+accounts:
+  deployment: {}
+  devMode: false
+  image:
+    repository: ghcr.io/arikkfir/greenstar/accounts
+    tag: "" # defaults to chart appVersion
+    pullPolicy: IfNotPresent
+  logLevel: warn
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  serviceAccount: {}
+
+redis:
+  deployment: {}
+  image:
+    repository: redis/redis-stack
+    tag: 6.2.6-v0
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  serviceAccount: {}
+
+neo4j:
+  deployment: {}
+  image:
+    repository: neo4j
+    tag: 5.3-enterprise
+    pullPolicy: IfNotPresent
+  serviceAccount: {}
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  heap:
+    initialSize: 256m
+    maxSize: 256m
+  offHeap:
+    maxSize: 256m
+  pageCache:
+    size: 128m
+  extraEnv: []
+  persistence:
+    enabled: true
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 1Gi
+    storageClass: ""
+
+txprocessor:
+  deployment: {}
+  devMode: false
+  image:
+    repository: ghcr.io/arikkfir/greenstar/txprocessor
+    tag: "" # defaults to chart appVersion
+    pullPolicy: IfNotPresent
+  logLevel: warn
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  serviceAccount: {}
+
+xlsconverter:
+  deployment: {}
+  devMode: false
+  image:
+    repository: ghcr.io/arikkfir/greenstar/xlsconverter
+    tag: "" # defaults to chart appVersion
+    pullPolicy: IfNotPresent
+  logLevel: warn
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  serviceAccount: {}
+
+xlsxprocessor:
+  deployment: {}
+  devMode: false
+  image:
+    repository: ghcr.io/arikkfir/greenstar/xlsxprocessor
+    tag: "" # defaults to chart appVersion
+    pullPolicy: IfNotPresent
+  logLevel: warn
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  serviceAccount: {}

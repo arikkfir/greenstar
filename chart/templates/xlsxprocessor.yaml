@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  {{- if .Values.xlsxprocessor.serviceAccount }}
+  {{- with .Values.xlsxprocessor.serviceAccount.annotations }}
+  annotations:
+  {{- toYaml . | nindent 8 }}
+  {{- end }}
+  {{- end }}
+  labels:
+    app: {{ .Release.Name | quote }}
+    app.kubernetes.io/component: xlsxprocessor
+  name: {{ printf "%s-xlsxprocessor" .Release.Name | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Release.Name | quote }}
+    app.kubernetes.io/component: xlsxprocessor
+  name: {{ printf "%s-xlsxprocessor" .Release.Name | quote }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name | quote }}
+      app.kubernetes.io/component: xlsxprocessor
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name | quote }}
+        app.kubernetes.io/component: xlsxprocessor
+    spec:
+      containers:
+        - image: {{ printf "%s:%s" .Values.xlsxprocessor.image.repository (.Values.xlsxprocessor.image.tag | default .Chart.AppVersion | replace "+" "_") | quote }}
+          name: xlsxprocessor
+          env:
+            - name: REDIS_HOST
+              value: {{ printf "%s-redis" .Release.Name | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.xlsxprocessor.logLevel | quote }}
+            {{- if eq .Values.xlsxprocessor.devMode true }}
+            - name: DEV_MODE
+              value: "true"
+            {{- end }}
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            limits:
+              cpu: {{ .Values.xlsxprocessor.resources.limits.cpu | quote }}
+              memory: {{ .Values.xlsxprocessor.resources.limits.memory | quote }}
+            requests:
+              cpu: {{ .Values.xlsxprocessor.resources.requests.cpu | quote }}
+              memory: {{ .Values.xlsxprocessor.resources.requests.memory | quote }}
+      serviceAccountName: {{ printf "%s-xlsxprocessor" .Release.Name | quote }}
+      {{- with .Values.xlsxprocessor.deployment.nodeSelector }}
+      nodeSelector:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.xlsxprocessor.deployment.tolerations }}
+      tolerations:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
