@@ -11,19 +11,18 @@ metadata:
   name: {{ printf "%s-ingress" .Release.Name | quote }}
 spec:
   rules:
-    - http:
+    - host: {{ .Values.ingress.hosts.api | quote }}
+      http:
         paths:
           - pathType: Prefix
             path: /
             backend:
               service:
-                name: {{ printf "%s-accounts" .Release.Name | quote }}
+                name: {{ printf "%s-api" .Release.Name | quote }}
                 port:
                   name: http
-      {{- if .Values.ingress.hosts.api.accounts }}
-      host: {{ .Values.ingress.hosts.api.accounts | quote }}
-      {{- end}}
-    - http:
+    - host: {{ .Values.ingress.hosts.redis | quote }}
+      http:
         paths:
           - pathType: Prefix
             path: /
@@ -32,10 +31,8 @@ spec:
                 name: {{ printf "%s-redis" .Release.Name | quote }}
                 port:
                   name: http
-      {{- if .Values.ingress.hosts.redis }}
-      host: {{ .Values.ingress.hosts.redis | quote }}
-      {{- end}}
-    - http:
+    - host: {{ .Values.ingress.hosts.neo4j | quote }}
+      http:
         paths:
           - pathType: Prefix
             path: /
@@ -44,7 +41,4 @@ spec:
                 name: {{ printf "%s-neo4j" .Release.Name | quote }}
                 port:
                   name: http
-      {{- if .Values.ingress.hosts.neo4j }}
-      host: {{ .Values.ingress.hosts.neo4j | quote }}
-      {{- end}}
   {{- end }}

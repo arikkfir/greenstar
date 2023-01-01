@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  {{- if .Values.accounts.serviceAccount }}
-  {{- with .Values.accounts.serviceAccount.annotations }}
+  {{- if .Values.api.serviceAccount }}
+  {{- with .Values.api.serviceAccount.annotations }}
   annotations:
   {{- toYaml . | nindent 8 }}
   {{- end }}
   {{- end }}
   labels:
     app: {{ .Release.Name | quote }}
-    app.kubernetes.io/component: accounts
-  name: {{ printf "%s-accounts" .Release.Name | quote }}
+    app.kubernetes.io/component: api
+  name: {{ printf "%s-api" .Release.Name | quote }}
   namespace: {{ .Release.Namespace | quote }}
 ---
 apiVersion: v1
@@ -18,8 +18,8 @@ kind: Service
 metadata:
   labels:
     app: {{ .Release.Name | quote }}
-    app.kubernetes.io/component: accounts
-  name: {{ printf "%s-accounts" .Release.Name | quote }}
+    app.kubernetes.io/component: api
+  name: {{ printf "%s-api" .Release.Name | quote }}
   namespace: {{ .Release.Namespace | quote }}
 spec:
   ports:
@@ -29,7 +29,7 @@ spec:
       targetPort: http
   selector:
     app: {{ .Release.Name | quote }}
-    app.kubernetes.io/component: accounts
+    app.kubernetes.io/component: api
   type: ClusterIP
 ---
 apiVersion: apps/v1
@@ -37,14 +37,14 @@ kind: Deployment
 metadata:
   labels:
     app: {{ .Release.Name | quote }}
-    app.kubernetes.io/component: accounts
-  name: {{ printf "%s-accounts" .Release.Name | quote }}
+    app.kubernetes.io/component: api
+  name: {{ printf "%s-api" .Release.Name | quote }}
   namespace: {{ .Release.Namespace | quote }}
 spec:
   selector:
     matchLabels:
       app: {{ .Release.Name | quote }}
-      app.kubernetes.io/component: accounts
+      app.kubernetes.io/component: api
   replicas: 1
   strategy:
     type: RollingUpdate
@@ -55,17 +55,19 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name | quote }}
-        app.kubernetes.io/component: accounts
+        app.kubernetes.io/component: api
     spec:
       containers:
-        - image: {{ printf "%s:%s" .Values.accounts.image.repository (.Values.accounts.image.tag | default .Chart.AppVersion | replace "+" "_") | quote }}
-          name: accounts
+        - image: {{ printf "%s:%s" .Values.api.image.repository (.Values.api.image.tag | default .Chart.AppVersion | replace "+" "_") | quote }}
+          name: api
           env:
             - name: REDIS_HOST
               value: {{ printf "%s-redis" .Release.Name | quote }}
+            - name: NEO4J_HOST
+              value: {{ printf "%s-neo4j" .Release.Name | quote }}
             - name: LOG_LEVEL
-              value: {{ .Values.accounts.logLevel | quote }}
-            {{- if eq .Values.accounts.devMode true }}
+              value: {{ .Values.api.logLevel | quote }}
+            {{- if eq .Values.api.devMode true }}
             - name: DEV_MODE
               value: "true"
             {{- end }}
@@ -74,17 +76,17 @@ spec:
               name: http
           resources:
             limits:
-              cpu: {{ .Values.accounts.resources.limits.cpu | quote }}
-              memory: {{ .Values.accounts.resources.limits.memory | quote }}
+              cpu: {{ .Values.api.resources.limits.cpu | quote }}
+              memory: {{ .Values.api.resources.limits.memory | quote }}
             requests:
-              cpu: {{ .Values.accounts.resources.requests.cpu | quote }}
-              memory: {{ .Values.accounts.resources.requests.memory | quote }}
-      serviceAccountName: {{ printf "%s-accounts" .Release.Name | quote }}
-      {{- with .Values.accounts.deployment.nodeSelector }}
+              cpu: {{ .Values.api.resources.requests.cpu | quote }}
+              memory: {{ .Values.api.resources.requests.memory | quote }}
+      serviceAccountName: {{ printf "%s-api" .Release.Name | quote }}
+      {{- with .Values.api.deployment.nodeSelector }}
       nodeSelector:
       {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.accounts.deployment.tolerations }}
+      {{- with .Values.api.deployment.tolerations }}
       tolerations:
       {{- toYaml . | nindent 8 }}
       {{- end }}

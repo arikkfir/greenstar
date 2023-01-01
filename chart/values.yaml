@@ -2,16 +2,15 @@ ingress:
   enabled: false
   disableRedirectToHTTPS: false
   hosts:
-    redis: ""
-    neo4j: ""
-    api:
-      accounts: ""
+    redis: redis.greenstar.test
+    neo4j: neo4j.greenstar.test
+    api: api.greenstar.test
 
-accounts:
+api:
   deployment: {}
   devMode: false
   image:
-    repository: ghcr.io/arikkfir/greenstar/accounts
+    repository: ghcr.io/arikkfir/greenstar/api
     tag: "" # defaults to chart appVersion
     pullPolicy: IfNotPresent
   logLevel: warn
@@ -69,45 +68,11 @@ neo4j:
       storage: 1Gi
     storageClass: ""
 
-txprocessor:
-  deployment: {}
-  devMode: false
-  image:
-    repository: ghcr.io/arikkfir/greenstar/txprocessor
-    tag: "" # defaults to chart appVersion
-    pullPolicy: IfNotPresent
-  logLevel: warn
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 512Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  serviceAccount: {}
-
 xlsconverter:
   deployment: {}
   devMode: false
   image:
     repository: ghcr.io/arikkfir/greenstar/xlsconverter
-    tag: "" # defaults to chart appVersion
-    pullPolicy: IfNotPresent
-  logLevel: warn
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 512Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  serviceAccount: {}
-
-xlsxprocessor:
-  deployment: {}
-  devMode: false
-  image:
-    repository: ghcr.io/arikkfir/greenstar/xlsxprocessor
     tag: "" # defaults to chart appVersion
     pullPolicy: IfNotPresent
   logLevel: warn

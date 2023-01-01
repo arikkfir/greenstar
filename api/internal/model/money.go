@@ -1,4 +1,4 @@
-package common
+package model
 
 import (
 	"fmt"
@@ -6,15 +6,17 @@ import (
 	"strings"
 )
 
-type Currency uint64
+type Money uint64
 
-func (m Currency) Secondary() uint64 { return uint64(m) % 100 }
-func (m Currency) Primary() uint64   { return uint64(m) / 100 }
+func (m Money) Secondary() uint64 { return uint64(m) % 100 }
 
-func NewCurrency(primary, secondary uint64) Currency {
-	return Currency((primary * 100) + secondary)
+func (m Money) Primary() uint64 { return uint64(m) / 100 }
+
+func NewMoney(primary, secondary uint64) Money {
+	return Money((primary * 100) + secondary)
 }
-func ParseCurrency(s string) (Currency, error) {
+
+func ParseMoney(s string) (Money, error) {
 	if s == "" {
 		return 0, nil
 	}
@@ -36,5 +38,5 @@ func ParseCurrency(s string) (Currency, error) {
 		return 0, fmt.Errorf("failed to parse secondary currency: %w", err)
 	}
 
-	return NewCurrency(primary, secondary), nil
+	return NewMoney(primary, secondary), nil
 }

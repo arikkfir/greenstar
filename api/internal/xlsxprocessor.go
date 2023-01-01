@@ -4,78 +4,64 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/arikkfir/greenstar/common"
-	txPkg "github.com/arikkfir/greenstar/txprocessor/pkg"
-	"github.com/arikkfir/greenstar/xlsxprocessor/pkg"
-	"github.com/go-redis/redis/v8"
-	"github.com/rs/zerolog"
+	"github.com/arikkfir/greenstar/api/internal/model"
+	"github.com/arikkfir/greenstar/xlsconverter/pkg"
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
+	"github.com/rueian/rueidis"
 	"github.com/xuri/excelize/v2"
 	"regexp"
 	"time"
 )
 
 const (
-	transactionsSheetName        = "תנועות עו\"ש"
-	holdingTransactionsSheetName = "תנועות זמניות בהמתנה"
+	InputXLSXChannel = "xlsxprocessor"
 )
 
-var (
-	expectedCellContents = map[string]string{
-		"F2": "תנועות בחשבון עו\"ש",
-		"F3": "תנועות עו\"ש",
-		"I4": "חשבון",
-		"I5": "מועד הפקת הדוח",
-		"A6": "יתרה משוערכת(₪)",
-		"B6": "זכות(₪)",
-		"C6": "חובה(₪)",
-		"D6": "תיאור פעולה",
-		"E6": "אסמכתא",
-		"H6": "תאריך ערך",
-		"J6": "תאריך",
-	}
-	accountFormatRE = regexp.MustCompile("^([0-9]{2})-([0-9]{3})-([0-9]{6})$")
-)
+type XLSXProcessor struct{ *Resolver }
 
-type Server struct {
-	Config Config
-	Redis  *redis.Client
-}
-
-func NewServer(config Config, Redis *redis.Client) *Server {
-	return &Server{
-		Config: config,
-		Redis:  Redis,
+func (p *XLSXProcessor) Run(ctx context.Context) {
+	err := p.Redis.Receive(ctx, p.Redis.B().Subscribe().Channel(InputXLSXChannel).Build(), func(msg rueidis.PubSubMessage) {
+		res := pkg.ConvertXLSFileToXLSXResponse{}
+		if err := json.Unmarshal([]byte(msg.Message), &res); err != nil {
+			log.Error().Err(err).Msg("failed to process message")
+		} else if err := p.processFile(ctx, res.Data); err != nil {
+			log.Error().Err(err).Msg("failed to process message")
+		}
+	})
+	if err != nil && !errors.Is(err, rueidis.ErrClosing) {
+		log.Ctx(ctx).Fatal().Err(err).Msg("Failed to subscribe to Redis queue")
 	}
 }
 
-func (s *Server) Run(ctx context.Context) error {
-	logger := *zerolog.Ctx(ctx)
-	subscriber := s.Redis.Subscribe(ctx, pkg.InputChannelName)
-	for {
-		msg, err := subscriber.ReceiveMessage(ctx)
-		if err != nil {
-			logger.Fatal().Err(err).Msg("Failed to receive message from Redis")
+func (p *XLSXProcessor) processFile(ctx context.Context, data []byte) error {
+	const (
+		transactionsSheetName        = "תנועות עו\"ש"
+		holdingTransactionsSheetName = "תנועות זמניות בהמתנה"
+	)
+	var (
+		expectedCellContents = map[string]string{
+			"F2": "תנועות בחשבון עו\"ש",
+			"F3": "תנועות עו\"ש",
+			"I4": "חשבון",
+			"I5": "מועד הפקת הדוח",
+			"A6": "יתרה משוערכת(₪)",
+			"B6": "זכות(₪)",
+			"C6": "חובה(₪)",
+			"D6": "תיאור פעולה",
+			"E6": "אסמכתא",
+			"H6": "תאריך ערך",
+			"J6": "תאריך",
 		}
+		accountFormatRE = regexp.MustCompile("^([0-9]{2})-([0-9]{3})-([0-9]{6})$")
+	)
 
-		req := pkg.ProcessXLSXRequest{}
-		if err := json.Unmarshal([]byte(msg.Payload), &req); err != nil {
-			logger.Fatal().Err(err).Msg("Failed to unmarshal message")
-		}
-
-		if err := s.processXLSXFile(ctx, &req); err != nil {
-			logger.Fatal().Err(err).Msg("Failed to process conversion request")
-		}
-	}
-}
-
-func (s *Server) processXLSXFile(ctx context.Context, req *pkg.ProcessXLSXRequest) error {
-	f, err := excelize.OpenReader(bytes.NewReader(req.Data))
+	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
-		return fmt.Errorf("failed to open Excel file: %w", err)
-	}
-
-	if f.SheetCount != 2 {
+		return fmt.Errorf("failed to open uploaded Excel file: %w", err)
+	} else if f.SheetCount != 2 {
 		return fmt.Errorf("expected 2 sheets, got %d", f.SheetCount)
 	}
 
@@ -120,12 +106,12 @@ func (s *Server) processXLSXFile(ctx context.Context, req *pkg.ProcessXLSXReques
 	} else {
 		for _, row := range rows[6:] {
 			if len(row) == 10 {
-				credit, err := common.ParseCurrency(row[1])
+				credit, err := model.ParseMoney(row[1])
 				if err != nil {
 					return fmt.Errorf("failed to parse credit amount '%s': %w", row[1], err)
 				}
 
-				debit, err := common.ParseCurrency(row[2])
+				debit, err := model.ParseMoney(row[2])
 				if err != nil {
 					return fmt.Errorf("failed to parse debit amount '%s': %w", row[2], err)
 				}
@@ -139,7 +125,7 @@ func (s *Server) processXLSXFile(ctx context.Context, req *pkg.ProcessXLSXReques
 				}
 
 				var sourceAccountID, targetAccountID string
-				var amount common.Currency
+				var amount model.Money
 				if credit > 0 {
 					sourceAccountID = "external"
 					targetAccountID = fmt.Sprintf("04-%s-%s", branch, account)
@@ -149,19 +135,15 @@ func (s *Server) processXLSXFile(ctx context.Context, req *pkg.ProcessXLSXReques
 					targetAccountID = "external"
 					amount = debit
 				}
-				tx := txPkg.Transaction{
-					Date:            valueDate.Format("2006-01-02"),
-					SourceAccountID: sourceAccountID,
-					TargetAccountID: targetAccountID,
-					Amount:          amount,
-					Description:     description,
-					ReferenceID:     id,
+				tx := model.Transaction{
+					ID:          uuid.NewString(),
+					Date:        valueDate,
+					ReferenceID: id,
+					Amount:      amount,
+					Description: description,
 				}
-				if payload, err := json.Marshal(&tx); err != nil {
-					return fmt.Errorf("failed to marshal transaction: %w", err)
-				} else if err := s.Redis.Publish(ctx, pkg.TargetChannelName, payload).Err(); err != nil {
-					return fmt.Errorf("failed to publish transaction to Redis: %w", err)
-				}
+				log.Ctx(ctx).Info().Msgf("Found transaction: %+v", tx)
+				_, _, _, _ = sourceAccountID, targetAccountID, tx, ctx // TODO: remove this
 			}
 		}
 		return nil

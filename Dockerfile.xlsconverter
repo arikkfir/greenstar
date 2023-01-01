@@ -8,7 +8,6 @@ COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg go mod download
 COPY common ./common
 COPY xlsconverter ./xlsconverter
-COPY xlsxprocessor ./xlsxprocessor
 ENV CGO_ENABLED="0"
 ENV GO111MODULE="on"
 RUN --mount=type=cache,target=/go/pkg go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o server ./xlsconverter/cmd/main.go && chmod +x server

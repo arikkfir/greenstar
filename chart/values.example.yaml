@@ -1,4 +1,4 @@
-accounts:
+api:
   deployment:
     nodeSelector:
       a: b
@@ -9,13 +9,14 @@ accounts:
         effect: NoSchedule
   devMode: true
   image:
-    repository: ghcr.io/arikkfir/greenstar_fork/accounts
+    repository: ghcr.io/arikkfir/greenstar_fork/api
     tag: v3+forked
     pullPolicy: Always
   logLevel: info
   serviceAccount:
     annotations:
       a: b
+
 redis:
   deployment:
     nodeSelector:
@@ -32,6 +33,7 @@ redis:
   serviceAccount:
     annotations:
       a: b
+
 neo4j:
   deployment:
     nodeSelector:
@@ -55,24 +57,7 @@ neo4j:
       value: 3s
     - name: NEO4J_server_logs_gc_enabled
       value: "true"
-txprocessor:
-  deployment:
-    nodeSelector:
-      a: b
-    tolerations:
-      - key: TaintKey
-        operator: Equal
-        value: TaintValue
-        effect: NoSchedule
-  devMode: true
-  image:
-    repository: ghcr.io/arikkfir/greenstar_fork/txprocessor
-    tag: v3+forked
-    pullPolicy: Always
-  logLevel: info
-  serviceAccount:
-    annotations:
-      a: b
+
 xlsconverter:
   deployment:
     nodeSelector:
@@ -85,24 +70,6 @@ xlsconverter:
   devMode: true
   image:
     repository: ghcr.io/arikkfir/greenstar_fork/xlsconverter
-    tag: v3+forked
-    pullPolicy: Always
-  logLevel: info
-  serviceAccount:
-    annotations:
-      a: b
-xlsxprocessor:
-  deployment:
-    nodeSelector:
-      a: b
-    tolerations:
-      - key: TaintKey
-        operator: Equal
-        value: TaintValue
-        effect: NoSchedule
-  devMode: true
-  image:
-    repository: ghcr.io/arikkfir/greenstar_fork/xlsxprocessor
     tag: v3+forked
     pullPolicy: Always
   logLevel: info

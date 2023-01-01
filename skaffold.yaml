@@ -9,18 +9,15 @@ build:
     concurrency: 2
     useBuildkit: true
   artifacts:
-  - image: accounts
+  - image: api
     docker:
-      dockerfile: Dockerfile.accounts
-  - image: txprocessor
-    docker:
-      dockerfile: Dockerfile.txprocessor
+      dockerfile: Dockerfile.api
   - image: xlsconverter
     docker:
       dockerfile: Dockerfile.xlsconverter
-  - image: xlsxprocessor
-    docker:
-      dockerfile: Dockerfile.xlsxprocessor
+#  - image: integration-tests
+#    docker:
+#      dockerfile: Dockerfile.integration-tests
 portForward:
   - resourceType: service
     resourceName: greenstar-redis
@@ -42,11 +39,14 @@ deploy:
         version: 0.0.0
         appVersion: 0.0.0
       setValueTemplates:
-        accounts.image.repository: "{{.IMAGE_REPO_accounts}}"
-        accounts.image.tag: "{{.IMAGE_TAG_accounts}}"
-        txprocessor.image.repository: "{{.IMAGE_REPO_txprocessor}}"
-        txprocessor.image.tag: "{{.IMAGE_TAG_txprocessor}}"
+        api.image.repository: "{{.IMAGE_REPO_api}}"
+        api.image.tag: "{{.IMAGE_TAG_api}}"
         xlsconverter.image.repository: "{{.IMAGE_REPO_xlsconverter}}"
         xlsconverter.image.tag: "{{.IMAGE_TAG_xlsconverter}}"
-        xlsxprocessor.image.repository: "{{.IMAGE_REPO_xlsxprocessor}}"
-        xlsxprocessor.image.tag: "{{.IMAGE_TAG_xlsxprocessor}}"
+#verify:
+#  - name: integration-tests
+#    container:
+#      name: alpine-wget
+#      image: alpine:3.15.4
+#      command: [ "/bin/sh" ]
+#      args: [ "-c", "wget http://www.google.com" ]

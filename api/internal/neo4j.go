@@ -1,4 +1,4 @@
-package common
+package internal
 
 import (
 	"context"
@@ -6,11 +6,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
-
-type Neo4jConfig struct {
-	Host string `env:"HOST" value-name:"HOST" long:"host" description:"Neo4j host name" default:"localhost"`
-	Port int    `env:"PORT" value-name:"PORT" long:"port" description:"Neo4j port" default:"7687"`
-}
 
 type Neo4jZerologBoltLogger struct {
 	Logger *zerolog.Logger
