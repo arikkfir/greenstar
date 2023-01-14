@@ -58,6 +58,7 @@ func NewCreateTenantDBMiddleware(neo4jDriver neo4j.DriverWithContext) func(*gin.
 		})
 		defer session.Close(ctx)
 
+		//goland:noinspection SqlNoDataSourceInspection
 		const createTenantDBQuery = `CREATE DATABASE $tenant IF NOT EXISTS`
 		tenantSlug := GetTenantSlug(ctx)
 
@@ -87,6 +88,7 @@ func NewDropTenantDBHandler(neo4jDriver neo4j.DriverWithContext) func(*gin.Conte
 		})
 		defer session.Close(ctx)
 
+		//goland:noinspection SqlNoDataSourceInspection
 		const dropTenantDBQuery = `DROP DATABASE $tenant IF EXISTS`
 		tenantSlug := GetTenantSlug(ctx)
 
