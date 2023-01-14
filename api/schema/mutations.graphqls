@@ -1,48 +1,33 @@
 scalar Upload
 
-type KeyAndValue {
-  key: String!
-  value: String!
-}
-
-type Account {
-  id: ID!
-  displayName: String!
-  labels: [KeyAndValue!]!
-  annotations: [KeyAndValue!]!
-  children: [Account!]!
-  parent: Account
-}
-
-type Query {
-  roots: [Account!]!
-  account(id: ID!): Account
-}
-
-input KeyAndValueInput {
-    key: String!
-    value: String!
-}
-
 input NewAccount {
   id: String
   displayName: String!
   labels: [KeyAndValueInput!]
-  annotations: [KeyAndValueInput!]
   parentID: ID
 }
 
 input AccountUpdate {
   displayName: String
   labels: [KeyAndValueInput!]
-  annotations: [KeyAndValueInput!]
   parentID: ID
+}
+
+input NewTransaction {
+  Date: Time!
+  targetAccountID: ID!
+  sourceAccountID: ID!
+  referenceID: String!
+  amount: Money!
+  description: String!
 }
 
 type Mutation {
   createAccount(input: NewAccount!): Account!
   updateAccount(id: ID!, input: AccountUpdate!): Account!
   deleteAccount(id: ID!): ID!
+  createTransaction(input: NewTransaction!): Transaction!
+  createTransactions(inputs: [NewTransaction!]!): Int!
   uploadTransactionsXLSFile(file: Upload!): Boolean!
   uploadTransactionsXLSXFile(file: Upload!): Boolean!
 }

@@ -1,13 +1,17 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Skaffold" type="google-container-tools-skaffold-run-config" factoryName="google-container-tools-skaffold-run-config-dev" show_console_on_std_err="false" show_console_on_std_out="false">
+  <configuration default="false" name="Kubernetes" type="google-container-tools-skaffold-run-config" factoryName="google-container-tools-skaffold-run-config-dev" show_console_on_std_err="false" show_console_on_std_out="false">
     <option name="allowRunningInParallel" value="false" />
     <option name="buildEnvironment" value="Local" />
     <option name="cleanupDeployments" value="true" />
     <option name="deployToCurrentContext" value="false" />
     <option name="deployToMinikube" value="false" />
-    <option name="envVariables" />
+    <option name="envVariables">
+      <map>
+        <entry key="SKAFFOLD_LOAD_IMAGES" value="true" />
+      </map>
+    </option>
     <option name="imageRepositoryOverride" />
-    <option name="kubernetesContext" value="kind-kind" />
+    <option name="kubernetesContext" value="kind-local" />
     <option name="mappings">
       <list />
     </option>
@@ -19,15 +23,13 @@
     </option>
     <option name="skaffoldConfigurationFilePath" value="$PROJECT_DIR$/skaffold.yaml" />
     <option name="skaffoldModules">
-      <list>
-        <option value="greenstar" />
-      </list>
+      <list />
     </option>
     <option name="skaffoldNamespace" />
     <option name="skaffoldProfile" />
     <option name="skaffoldWatchMode" value="ON_DEMAND" />
     <option name="statusCheck" value="true" />
-    <option name="verbosity" value="WARN" />
+    <option name="verbosity" value="INFO" />
     <method v="2" />
   </configuration>
 </component>

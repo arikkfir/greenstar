@@ -1,14 +1,13 @@
 {
   "name": "API GraphQL Schema",
-  "schemaPath": "api/schema.graphqls",
   "extensions": {
     "endpoints": {
-      "GraphQL Endpoint": {
+      "API": {
         "url": "http://api.greenstar.test/",
         "headers": {
           "user-agent": "JS GraphQL"
         },
-        "introspect": false
+        "introspect": true
       }
     }
   }

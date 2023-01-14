@@ -1,0 +1,7 @@
+type Account {
+  id: ID!
+  displayName: String!
+  labels: [KeyAndValue!]!
+  children: [Account!]!
+  parent: Account
+}

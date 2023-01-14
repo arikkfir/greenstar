@@ -11,7 +11,7 @@ metadata:
   name: {{ printf "%s-ingress" .Release.Name | quote }}
 spec:
   rules:
-    - host: {{ .Values.ingress.hosts.api | quote }}
+    - host: {{ printf "*.%s" .Values.ingress.hosts.api | quote }}
       http:
         paths:
           - pathType: Prefix

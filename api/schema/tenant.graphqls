@@ -1,0 +1,5 @@
+type Tenant {
+    id: ID!
+    displayName: String!
+    slug: String!
+}

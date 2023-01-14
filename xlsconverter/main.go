@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/arikkfir/greenstar/common"
-	"github.com/arikkfir/greenstar/xlsconverter/pkg"
+	"github.com/google/uuid"
+	"github.com/jessevdk/go-flags"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog/pkgerrors"
 	"github.com/rueian/rueidis"
 	"io"
 	"os"
@@ -17,10 +19,15 @@ import (
 	"strings"
 )
 
+func init() {
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+}
+
 type Config struct {
-	General common.GeneralConfig
-	Redis   RedisConfig `group:"redis" namespace:"redis" env-namespace:"REDIS"`
-	WorkDir string      `env:"WORK_DIR" long:"work-dir" description:"Working directory for temporary files" default:"/tmp"`
+	LogLevel string      `env:"LOG_LEVEL" value-name:"LEVEL" long:"log-level" description:"Log level" default:"info" enum:"trace,debug,info,warn,error,fatal,panic"`
+	DevMode  bool        `env:"DEV_MODE" long:"dev-mode" description:"Development mode"`
+	Redis    RedisConfig `group:"redis" namespace:"redis" env-namespace:"REDIS"`
+	WorkDir  string      `env:"WORK_DIR" long:"work-dir" description:"Working directory for temporary files" default:"/tmp"`
 }
 
 type RedisConfig struct {
@@ -29,10 +36,29 @@ type RedisConfig struct {
 	PoolSize int    `env:"POOL_SIZE" value-name:"POOL_SIZE" long:"pool-size" description:"Redis connection pool size" default:"3"`
 }
 
+const (
+	convertXLSChannelName  = "convert-xls-to-xlsx"
+	processXLSXChannelName = "process-xlsx"
+)
+
 func main() {
 	config := Config{}
-	common.ReadConfig(&config)
-	config.General.Apply()
+	parser := flags.NewParser(&config, flags.HelpFlag|flags.PassDoubleDash)
+	if _, err := parser.Parse(); err != nil {
+		fmt.Printf("ERROR: %s\n\n", err)
+		parser.WriteHelp(os.Stderr)
+		os.Exit(1)
+	}
+	if config.DevMode {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		zerolog.DefaultContextLogger = &log.Logger
+	}
+	if level, err := zerolog.ParseLevel(config.LogLevel); err != nil {
+		log.Fatal().Err(err).Msg("Failed to parse config")
+	} else {
+		zerolog.SetGlobalLevel(level)
+	}
+	zerolog.DefaultContextLogger = &log.Logger
 
 	// Create a context which will be cancelled on termination
 	ctx, cancel := context.WithCancel(context.Background())
@@ -52,13 +78,14 @@ func main() {
 	defer redisClient.Close()
 
 	// Subscribe to Redis queue
-	err = redisClient.Receive(ctx, redisClient.B().Subscribe().Channel(pkg.ChannelName).Build(), func(msg rueidis.PubSubMessage) {
-		req := pkg.ConvertXLSFileToXLSXRequest{}
-		if err := json.Unmarshal([]byte(msg.Message), &req); err != nil {
+	cmd := redisClient.B().Subscribe().Channel(convertXLSChannelName).Build()
+	err = redisClient.Receive(ctx, cmd, func(msg rueidis.PubSubMessage) {
+		var data []byte
+		if err := json.Unmarshal([]byte(msg.Message), &data); err != nil {
 			logger.Fatal().Err(err).Msg("Failed to unmarshal message")
 		}
 
-		if err := processConversionRequest(ctx, &config, redisClient, &req); err != nil {
+		if err := processConversionRequest(ctx, &config, redisClient, data); err != nil {
 			logger.Fatal().Err(err).Msg("Failed to process conversion request")
 		}
 	})
@@ -67,10 +94,10 @@ func main() {
 	}
 }
 
-func processConversionRequest(ctx context.Context, config *Config, redisClient rueidis.Client, req *pkg.ConvertXLSFileToXLSXRequest) error {
+func processConversionRequest(ctx context.Context, config *Config, redisClient rueidis.Client, xlsData []byte) error {
 	logger := *zerolog.Ctx(ctx)
 
-	var fileName = req.FileName
+	var fileName = uuid.New().String() + ".xls"
 	if strings.Contains(fileName, "/") {
 		_, fileName = path.Split(fileName)
 	}
@@ -86,7 +113,7 @@ func processConversionRequest(ctx context.Context, config *Config, redisClient r
 	defer os.Remove(srcFile.Name())
 	defer srcFile.Close()
 
-	if _, err := srcFile.Write(req.Data); err != nil {
+	if _, err := srcFile.Write(xlsData); err != nil {
 		return fmt.Errorf("failed to write file data: %w", err)
 	}
 	logger = logger.With().Str("xlsFile", srcFile.Name()).Logger()
@@ -116,15 +143,14 @@ func processConversionRequest(ctx context.Context, config *Config, redisClient r
 		return fmt.Errorf("failed to read converted file: %w", err)
 	}
 
-	res := pkg.ConvertXLSFileToXLSXResponse{
-		FileName: path.Base(dstFile.Name()),
-		Data:     data,
-	}
-	if payload, err := json.Marshal(&res); err != nil {
+	payload, err := json.Marshal(data)
+	if err != nil {
 		return fmt.Errorf("failed to marshal response: %w", err)
-	} else if resp := redisClient.Do(ctx, redisClient.B().Publish().Channel(req.ReplyTo).Message(string(payload)).Build()); resp.Error() != nil {
-		return fmt.Errorf("failed to publish response to '%s': %w", req.ReplyTo, resp.Error())
-	} else {
-		return nil
 	}
+
+	redisCmd := redisClient.B().Publish().Channel(processXLSXChannelName).Message(string(payload)).Build()
+	if resp := redisClient.Do(ctx, redisCmd); resp.Error() != nil {
+		return fmt.Errorf("failed to publish response to '%s': %w", processXLSXChannelName, resp.Error())
+	}
+	return nil
 }

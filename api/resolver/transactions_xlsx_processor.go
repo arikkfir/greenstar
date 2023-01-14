@@ -1,4 +1,4 @@
-package internal
+package resolver
 
 import (
 	"bytes"
@@ -6,9 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/arikkfir/greenstar/api/internal/model"
-	"github.com/arikkfir/greenstar/xlsconverter/pkg"
-	"github.com/google/uuid"
+	"github.com/arikkfir/greenstar/api/model"
 	"github.com/rs/zerolog/log"
 	"github.com/rueian/rueidis"
 	"github.com/xuri/excelize/v2"
@@ -16,19 +14,14 @@ import (
 	"time"
 )
 
-const (
-	InputXLSXChannel = "xlsxprocessor"
-)
-
-type XLSXProcessor struct{ *Resolver }
-
-func (p *XLSXProcessor) Run(ctx context.Context) {
-	err := p.Redis.Receive(ctx, p.Redis.B().Subscribe().Channel(InputXLSXChannel).Build(), func(msg rueidis.PubSubMessage) {
-		res := pkg.ConvertXLSFileToXLSXResponse{}
-		if err := json.Unmarshal([]byte(msg.Message), &res); err != nil {
-			log.Error().Err(err).Msg("failed to process message")
-		} else if err := p.processFile(ctx, res.Data); err != nil {
-			log.Error().Err(err).Msg("failed to process message")
+func (r *transactionsXLSXProcessor) Run(ctx context.Context) {
+	cmd := r.Redis.B().Subscribe().Channel(processXLSXChannelName).Build()
+	err := r.Redis.Receive(ctx, cmd, func(msg rueidis.PubSubMessage) {
+		var data []byte
+		if err := json.Unmarshal([]byte(msg.Message), &data); err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to process XLSX message")
+		} else if err := r.processFile(ctx, data); err != nil {
+			log.Ctx(ctx).Error().Err(err).Msg("failed to process message")
 		}
 	})
 	if err != nil && !errors.Is(err, rueidis.ErrClosing) {
@@ -36,7 +29,7 @@ func (p *XLSXProcessor) Run(ctx context.Context) {
 	}
 }
 
-func (p *XLSXProcessor) processFile(ctx context.Context, data []byte) error {
+func (r *transactionsXLSXProcessor) processFile(ctx context.Context, data []byte) error {
 	const (
 		transactionsSheetName        = "תנועות עו\"ש"
 		holdingTransactionsSheetName = "תנועות זמניות בהמתנה"
@@ -98,54 +91,81 @@ func (p *XLSXProcessor) processFile(ctx context.Context, data []byte) error {
 		account = match[3]
 	}
 
-	if rows, err := f.GetRows(transactionsSheet.Name, excelize.Options{}); err != nil {
+	rows, err := f.GetRows(transactionsSheet.Name, excelize.Options{})
+	if err != nil {
 		return fmt.Errorf("failed to get rows from sheet '%s': %w", transactionsSheet.Name, err)
 	} else if len(rows) < 7 {
 		// no transactions
 		return nil
-	} else {
-		for _, row := range rows[6:] {
-			if len(row) == 10 {
-				credit, err := model.ParseMoney(row[1])
-				if err != nil {
-					return fmt.Errorf("failed to parse credit amount '%s': %w", row[1], err)
-				}
-
-				debit, err := model.ParseMoney(row[2])
-				if err != nil {
-					return fmt.Errorf("failed to parse debit amount '%s': %w", row[2], err)
-				}
-
-				description := row[3]
-				id := row[4]
-
-				valueDate, err := time.Parse("02/01/2006", row[7])
-				if err != nil {
-					return fmt.Errorf("failed to parse value date '%s': %w", row[7], err)
-				}
-
-				var sourceAccountID, targetAccountID string
-				var amount model.Money
-				if credit > 0 {
-					sourceAccountID = "external"
-					targetAccountID = fmt.Sprintf("04-%s-%s", branch, account)
-					amount = credit
-				} else if debit > 0 {
-					sourceAccountID = fmt.Sprintf("04-%s-%s", branch, account)
-					targetAccountID = "external"
-					amount = debit
-				}
-				tx := model.Transaction{
-					ID:          uuid.NewString(),
-					Date:        valueDate,
-					ReferenceID: id,
-					Amount:      amount,
-					Description: description,
-				}
-				log.Ctx(ctx).Info().Msgf("Found transaction: %+v", tx)
-				_, _, _, _ = sourceAccountID, targetAccountID, tx, ctx // TODO: remove this
-			}
-		}
-		return nil
 	}
+
+	var inputs []*model.NewTransaction
+	for _, row := range rows[6:] {
+		if len(row) == 10 {
+			credit, err := model.ParseMoney(row[1])
+			if err != nil {
+				return fmt.Errorf("failed to parse credit amount '%s': %w", row[1], err)
+			}
+
+			debit, err := model.ParseMoney(row[2])
+			if err != nil {
+				return fmt.Errorf("failed to parse debit amount '%s': %w", row[2], err)
+			}
+
+			description := row[3]
+			id := row[4]
+
+			valueDate, err := time.Parse("02/01/2006", row[7])
+			if err != nil {
+				return fmt.Errorf("failed to parse value date '%s': %w", row[7], err)
+			}
+
+			var sourceAccountID, targetAccountID string
+			var amount model.Money
+			if credit > 0 {
+				sourceAccountID = "external"
+				targetAccountID = fmt.Sprintf("04-%s-%s", branch, account)
+				amount = credit
+			} else if debit > 0 {
+				sourceAccountID = fmt.Sprintf("04-%s-%s", branch, account)
+				targetAccountID = "external"
+				amount = debit
+			}
+
+			inputs = append(inputs, &model.NewTransaction{
+				Date:            valueDate,
+				TargetAccountID: targetAccountID,
+				SourceAccountID: sourceAccountID,
+				ReferenceID:     id,
+				Amount:          amount,
+				Description:     description,
+			})
+
+			//if inputs != "" {
+			//	inputs += ", "
+			//}
+			//inputs += fmt.Sprintf(
+			//	`{date: "%s", targetAccountID: "%s", sourceAccountID: "%s", referenceID: "%s", amount: "%s", description: "%s"}`,
+			//	valueDate.Format("2006-01-02"),
+			//	targetAccountID,
+			//	sourceAccountID,
+			//	id,
+			//	amount,
+			//	description,
+			//)
+		}
+	}
+
+	//query := `{ mutation { createTransactions(inputs: [` + inputs + `]) } }`
+	_, err = r.Mutation().CreateTransactions(ctx, inputs)
+	if err != nil {
+		return fmt.Errorf("failed to create transactions: %w", err)
+	}
+	return nil
 }
+
+func (r *Resolver) TransactionsXLSXProcessor() *transactionsXLSXProcessor {
+	return &transactionsXLSXProcessor{r}
+}
+
+type transactionsXLSXProcessor struct{ *Resolver }

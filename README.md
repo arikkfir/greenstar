@@ -9,7 +9,7 @@ https://greenstar.app
 
 ### Prerequisite tools
 
-```bash
+```shell
 $ brew install jq yq
 $ brew install go node
 $ brew install kubernetes-cli kustomize helm kind
@@ -22,7 +22,7 @@ $ brew install postgresql redis neo4j
 Follow this article: https://allanphilipbarku.medium.com/setup-automatic-local-domains-with-dnsmasq-on-macos-ventura-b4cd460d8cb3
 Here's the gist of it:
 
-```bash
+```shell
 $ brew install dnsmasq
 $ mkdir -pv $(brew --prefix)/etc/
 $ echo 'address=/.greenstar.test/127.0.0.1' >> $(brew --prefix)/etc/dnsmasq.conf
@@ -39,7 +39,7 @@ $ curl -i --resolve api.localhost:80:127.0.0.1 http://api.localhost/ # verificat
 
 ### Create a `kind` cluster
 
-```bash
+```shell
 $ cat <<EOF > kind-config.yaml
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -60,4 +60,10 @@ nodes:
     protocol: TCP
 EOF
 $ kind create cluster --config kind-config.yaml
+```
+
+### Install NGINX Ingress Controller
+
+```shell
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 ```

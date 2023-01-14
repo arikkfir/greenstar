@@ -15,9 +15,6 @@ build:
   - image: xlsconverter
     docker:
       dockerfile: Dockerfile.xlsconverter
-#  - image: integration-tests
-#    docker:
-#      dockerfile: Dockerfile.integration-tests
 portForward:
   - resourceType: service
     resourceName: greenstar-redis
@@ -43,10 +40,3 @@ deploy:
         api.image.tag: "{{.IMAGE_TAG_api}}"
         xlsconverter.image.repository: "{{.IMAGE_REPO_xlsconverter}}"
         xlsconverter.image.tag: "{{.IMAGE_TAG_xlsconverter}}"
-#verify:
-#  - name: integration-tests
-#    container:
-#      name: alpine-wget
-#      image: alpine:3.15.4
-#      command: [ "/bin/sh" ]
-#      args: [ "-c", "wget http://www.google.com" ]

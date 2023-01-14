@@ -4,8 +4,8 @@ ingress:
 
 api:
   devMode: true
-  logLevel: trace
+  logLevel: debug
 
 xlsconverter:
   devMode: true
-  logLevel: trace
+  logLevel: debug
