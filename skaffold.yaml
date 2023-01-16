@@ -9,34 +9,32 @@ build:
     concurrency: 2
     useBuildkit: true
   artifacts:
-  - image: api
-    docker:
-      dockerfile: Dockerfile.api
-  - image: xlsconverter
-    docker:
-      dockerfile: Dockerfile.xlsconverter
+    - image: ghcr.io/arikkfir/greenstar/api
+      docker:
+        dockerfile: Dockerfile.api
+    - image: ghcr.io/arikkfir/greenstar/xlsconverter
+      docker:
+        dockerfile: Dockerfile.xlsconverter
 portForward:
+  - resourceType: service
+    resourceName: greenstar-api
+    port: 80
+    localPort: 8000
   - resourceType: service
     resourceName: greenstar-redis
     port: 6379
   - resourceType: service
+    resourceName: greenstar-redis
+    port: 80
+    localPort: 8001
+  - resourceType: service
     resourceName: greenstar-neo4j
     port: 7687
-deploy:
-  helm:
-    releases:
-    - name: greenstar
-      chartPath: chart
-      createNamespace: true
-      repo: https://arikkfir.github.io/charts
-      valuesFiles:
-      - chart/values.dev.yaml
-      wait: true
-      packaged:
-        version: 0.0.0
-        appVersion: 0.0.0
-      setValueTemplates:
-        api.image.repository: "{{.IMAGE_REPO_api}}"
-        api.image.tag: "{{.IMAGE_TAG_api}}"
-        xlsconverter.image.repository: "{{.IMAGE_REPO_xlsconverter}}"
-        xlsconverter.image.tag: "{{.IMAGE_TAG_xlsconverter}}"
+  - resourceType: service
+    resourceName: greenstar-neo4j
+    port: 80
+    localPort: 7474
+manifests:
+  kustomize:
+    paths:
+      - deploy/dev

@@ -30,25 +30,23 @@ func setTenantSlug(ctx context.Context, slug string) context.Context {
 func AddTenantSlugToContextMiddleware(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	matches := tenantRE.FindStringSubmatch(c.Request.Host)
-	if matches == nil {
+	tenant := c.Param("tenant")
+	if tenant == "" {
 		c.Negotiate(http.StatusBadRequest, gin.Negotiate{
 			Offered:  []string{gin.MIMEPlain, gin.MIMEHTML, gin.MIMEJSON, gin.MIMEYAML},
-			Data:     errors.New("hostname must start with a tenant, e.g. acme.api.greenstar.com"),
+			Data:     errors.New("tenant missing"),
 			HTMLName: strconv.Itoa(http.StatusBadRequest),
 		})
 		return
 	}
-
-	tenantSlug := matches[1]
 	// TODO: validate tenant exists
 
-	ctxWithTenantSlug := setTenantSlug(ctx, tenantSlug)
+	ctxWithTenantSlug := setTenantSlug(ctx, tenant)
 	c.Request = c.Request.WithContext(ctxWithTenantSlug)
 	c.Next()
 }
 
-func NewCreateTenantDBMiddleware(neo4jDriver neo4j.DriverWithContext) func(*gin.Context) {
+func NewCreateTenantHandler(neo4jDriver neo4j.DriverWithContext) func(*gin.Context) {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 
@@ -60,7 +58,7 @@ func NewCreateTenantDBMiddleware(neo4jDriver neo4j.DriverWithContext) func(*gin.
 
 		//goland:noinspection SqlNoDataSourceInspection
 		const createTenantDBQuery = `CREATE DATABASE $tenant IF NOT EXISTS`
-		tenantSlug := GetTenantSlug(ctx)
+		tenantSlug := c.Query("tenant")
 
 		log.Ctx(ctx).Debug().Str("tenant", tenantSlug).Msg("Creating tenant Neo4j database")
 		_, err := session.Run(c.Request.Context(), createTenantDBQuery, map[string]any{"tenant": tenantSlug})
@@ -74,11 +72,11 @@ func NewCreateTenantDBMiddleware(neo4jDriver neo4j.DriverWithContext) func(*gin.
 			return
 		}
 
-		c.Next()
+		c.Status(http.StatusOK)
 	}
 }
 
-func NewDropTenantDBHandler(neo4jDriver neo4j.DriverWithContext) func(*gin.Context) {
+func NewDeleteTenantHandler(neo4jDriver neo4j.DriverWithContext) func(*gin.Context) {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
 

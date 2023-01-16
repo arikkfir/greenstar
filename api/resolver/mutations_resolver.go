@@ -75,7 +75,11 @@ CREATE (account:Account {accountID: $accountID, displayName: $displayName})`
 
 		return r.readAccount(records[0].Values[0].(neo4j.Node)), nil
 	})
-	return v.(*model.Account), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.(*model.Account), err
+	}
 }
 
 // UpdateAccount is the resolver for the updateAccount field.

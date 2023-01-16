@@ -110,7 +110,9 @@ func main() {
 	gqlSchema := gql.NewExecutableSchema(gql.Config{Resolvers: gqlResolver})
 	gqlHandler := handler.NewDefaultServer(gqlSchema)
 	gqlHandler.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
+
 		if gqlErr, ok := e.(*gqlerror.Error); ok {
+			log.Ctx(ctx).Debug().Err(e).Msg("Presenting error")
 			return gqlErr
 		}
 
@@ -129,6 +131,7 @@ func main() {
 		}
 	})
 	gqlHandler.SetRecoverFunc(func(ctx context.Context, err interface{}) error {
+		log.Ctx(ctx).Debug().Interface("panic", err).Msg("Recovered from panic")
 		if e, ok := err.(error); ok {
 			return e
 		}
@@ -152,17 +155,20 @@ func main() {
 	}
 
 	// Setup routes
+	// TODO: add authentication to tenants router group
 	router := gin.New()
 	router.SetHTMLTemplate(template.Must(template.ParseFS(templates, "templates/*.html")))
 	router.MaxMultipartMemory = 8 << 20
-	// TODO: add authentication
 	router.Use(util.SetLoggerMiddleware)
 	router.Use(util.AccessLogMiddleware)
-	router.Use(util.AddTenantSlugToContextMiddleware)
-	router.Use(util.NewCreateTenantDBMiddleware(neo4jDriver))
-	router.GET("/playground", func(c *gin.Context) { gqlPlaygroundHandler(c.Writer, c.Request) })
-	router.POST("/", func(c *gin.Context) { gqlHandler.ServeHTTP(c.Writer, c.Request) })
-	router.DELETE("/tenant", util.NewDropTenantDBHandler(neo4jDriver))
+
+	tenants := router.Group("/tenants")
+	tenants.POST("/", util.NewCreateTenantHandler(neo4jDriver))
+	tenants.Group("/:tenant").
+		Use(util.AddTenantSlugToContextMiddleware).
+		DELETE("/", util.NewDeleteTenantHandler(neo4jDriver)).
+		GET("/playground", func(c *gin.Context) { gqlPlaygroundHandler(c.Writer, c.Request) }).
+		POST("/query", func(c *gin.Context) { gqlHandler.ServeHTTP(c.Writer, c.Request) })
 
 	// Setup HTTP server
 	httpServer := &http.Server{Addr: ":" + strconv.Itoa(config.HTTP.Port), Handler: router}
