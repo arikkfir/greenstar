@@ -8,14 +8,12 @@ import (
 	"github.com/rs/zerolog/log"
 	"math/rand"
 	"net/http"
-	"regexp"
 	"strconv"
 )
 
 const tenantKey = "###greenstar$tenantSlug"
 
 var (
-	tenantRE           = regexp.MustCompile(`([a-zA-Z0-9_-]+)\..*`)
 	tenantAllowedRunes = []rune("abcdefghijklmnopqrstuvwxyz")
 )
 
