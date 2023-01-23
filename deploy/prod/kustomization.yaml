@@ -15,18 +15,9 @@ patches:
         path: /spec/template/spec/containers/0/env/-
         value:
           name: LOG_LEVEL
-          value: debug
+          value: warn
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
           name: DEV_MODE
-          value: "true"
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: greenstar-frontend
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/ports/0/containerPort
-        value: 3000
+          value: "false"

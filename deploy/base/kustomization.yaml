@@ -9,3 +9,4 @@ resources:
   - neo4j.yaml
   - api.yaml
   - xlsconverter.yaml
+  - frontend.yaml

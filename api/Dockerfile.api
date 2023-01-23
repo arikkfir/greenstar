@@ -6,13 +6,18 @@ FROM golang:1.19 as builder
 WORKDIR /workspace
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg go mod download
-COPY api ./api
+COPY cmd/api ./cmd/api
+COPY gql ./gql
+COPY model ./model
+COPY resolver ./resolver
+COPY schema ./schema
+COPY util ./util
 ENV CGO_ENABLED="0"
 ENV GO111MODULE="on"
-RUN --mount=type=cache,target=/go/pkg go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o server api/main.go && chmod +x server
+RUN --mount=type=cache,target=/go/pkg go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o api cmd/api/main.go && chmod +x api
 
 ### Target layer
 FROM gcr.io/distroless/base-debian11
-COPY --from=builder /workspace/server /usr/local/bin/api
+COPY --from=builder /workspace/api /usr/local/bin/api
 ENV GOTRACEBACK=single
 ENTRYPOINT ["/usr/local/bin/api"]

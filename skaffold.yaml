@@ -10,31 +10,64 @@ build:
     useBuildkit: true
   artifacts:
     - image: ghcr.io/arikkfir/greenstar/api
+      context: api
       docker:
         dockerfile: Dockerfile.api
     - image: ghcr.io/arikkfir/greenstar/xlsconverter
+      context: api
       docker:
         dockerfile: Dockerfile.xlsconverter
-portForward:
-  - resourceType: service
-    resourceName: greenstar-api
-    port: 80
-    localPort: 8000
-  - resourceType: service
-    resourceName: greenstar-redis
-    port: 6379
-  - resourceType: service
-    resourceName: greenstar-redis
-    port: 80
-    localPort: 8001
-  - resourceType: service
-    resourceName: greenstar-neo4j
-    port: 7687
-  - resourceType: service
-    resourceName: greenstar-neo4j
-    port: 80
-    localPort: 7474
-manifests:
-  kustomize:
-    paths:
-      - deploy/dev
+    - image: ghcr.io/arikkfir/greenstar/frontend
+      context: frontend
+      docker:
+        dockerfile: Dockerfile
+profiles:
+  - name: prod
+    activation:
+      - env: SKAFFOLD_PROFILE=prod
+    manifests:
+      kustomize:
+        paths:
+          - deploy/prod
+  - name: dev
+    activation:
+      - env: SKAFFOLD_PROFILE=dev
+    manifests:
+      kustomize:
+        paths:
+          - deploy/dev
+    portForward:
+      - resourceType: service
+        resourceName: greenstar-api
+        port: 80
+        localPort: 8000
+      - resourceType: service
+        resourceName: greenstar-redis
+        port: 6379
+      - resourceType: service
+        resourceName: greenstar-redis
+        port: 80
+        localPort: 8001
+      - resourceType: service
+        resourceName: greenstar-neo4j
+        port: 7687
+      - resourceType: service
+        resourceName: greenstar-neo4j
+        port: 80
+        localPort: 7474
+      - resourceType: service
+        resourceName: greenstar-frontend
+        port: 80
+        localPort: 8080
+    patches:
+      - op: replace
+        path: /build/artifacts/2/docker/dockerfile
+        value: Dockerfile.debug
+      - op: add
+        path: /build/artifacts/2/sync
+        value:
+          manual:
+            - dest: /workspace/public
+              src: frontend/public/**/*
+            - dest: /workspace/src
+              src: frontend/src/**/*

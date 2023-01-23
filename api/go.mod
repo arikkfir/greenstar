@@ -1,4 +1,4 @@
-module github.com/arikkfir/greenstar
+module github.com/arikkfir/greenstar/api
 
 go 1.19
 

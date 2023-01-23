@@ -40,7 +40,7 @@ $ curl -i --resolve api.localhost:80:127.0.0.1 http://api.localhost/ # verificat
 ### Create a `kind` cluster
 
 ```shell
-$ cat <<EOF > kind-config.yaml
+$ cat <<EOF | kind create cluster --config=- --name=local
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -59,7 +59,6 @@ nodes:
     hostPort: 443
     protocol: TCP
 EOF
-$ kind create cluster --config kind-config.yaml
 ```
 
 ### Install NGINX Ingress Controller
