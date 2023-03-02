@@ -2,25 +2,21 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import {useAtomsDebugValue} from "jotai/devtools";
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import {App} from "./app/App";
 import reportWebVitals from './reportWebVitals';
 
-const DebugAtoms = () => {
-    useAtomsDebugValue()
-    return null
-}
-
-const root = ReactDOM.createRoot(
-    document.getElementById('root') as HTMLElement
-);
-
-root.render(
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
-        <DebugAtoms/>
-        <App/>
+        <App environment={process.env.NODE_ENV ?? "development"}
+             version={process.env.REACT_APP_VERSION ?? "local"}
+             userInfoURL={process.env.REACT_USER_INFO_URL ?? "http://localhost:8000/user"}
+             loginURL={process.env.REACT_LOGIN_URL ?? "http://localhost:8000/google/login"}
+             adminAPIURL={process.env.REACT_ADMIN_API_URL ?? "http://localhost:8002/playground"}
+             operationsAPIURL={process.env.REACT_OPERATIONS_API_URL ?? "http://localhost:8001/playground"}
+             publicAPIURL={process.env.REACT_PUBLIC_API_URL ?? "http://localhost:8003/playground"}
+        />
     </React.StrictMode>
 );
 

@@ -1,0 +1,5 @@
+type Query {
+    account(id: ID!): Account
+    accounts(roots: Boolean!): [Account!]!
+    transactions: [Transaction!]!
+}

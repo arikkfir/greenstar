@@ -9,6 +9,27 @@ patches:
       group: apps
       version: v1
       kind: Deployment
+      name: greenstar-auth
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AUTH_GOOGLE_CALLBACK_URL
+          value: "http://localhost:8000/google/callback"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: HTTP_APP_URL
+          value: "http://localhost:3000"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: HTTP_CORS_ALLOWED_ORIGINS
+          value: "http://localhost:3000"
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
       labelSelector: app.kubernetes.io/role=microservice
     patch: |-
       - op: add
@@ -25,8 +46,36 @@ patches:
       group: apps
       version: v1
       kind: Deployment
+      labelSelector: greenstar.kfirs.com/oauth-client=true
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AUTH_GOOGLE_CLIENT_ID
+          value: "8909046976-tfn00u99qs3t73u7k8ebhmllmdjti7eo.apps.googleusercontent.com"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AUTH_GOOGLE_CLIENT_SECRET
+          value: "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"
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
       name: greenstar-frontend
     patch: |-
       - op: replace
         path: /spec/template/spec/containers/0/ports/0/containerPort
         value: 3000
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 4Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 4Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 4000m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 2000m

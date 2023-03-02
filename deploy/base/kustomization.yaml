@@ -5,8 +5,10 @@ commonLabels:
   app.kubernetes.io/name: greenstar
   app.kubernetes.io/managed-by: kustomize
 resources:
-  - redis.yaml
-  - neo4j.yaml
-  - api.yaml
-  - xlsconverter.yaml
+  - admin.yaml
+  - auth.yaml
   - frontend.yaml
+  - neo4j.yaml
+  - operations.yaml
+  - public.yaml
+  - redis.yaml

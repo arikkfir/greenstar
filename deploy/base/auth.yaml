@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: auth
+  name: greenstar-auth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: auth
+  name: greenstar-auth
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    app.kubernetes.io/component: auth
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: auth
+    app.kubernetes.io/role: microservice
+    greenstar.kfirs.com/oauth-client: "true"
+  name: greenstar-auth
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: auth
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: auth
+    spec:
+      containers:
+        - image: ghcr.io/arikkfir/greenstar/backend/auth
+          name: auth
+          env: []
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            limits:
+              cpu: 200m
+              memory: 32Mi
+            requests:
+              cpu: 100m
+              memory: 16Mi
+      serviceAccountName: greenstar-auth

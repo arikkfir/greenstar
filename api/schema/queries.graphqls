@@ -1,4 +1,0 @@
-type Query {
-  roots: [Account!]!
-  account(id: ID!): Account
-}

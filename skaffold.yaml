@@ -1,73 +1,123 @@
 # nonk8s
-apiVersion: skaffold/v3
+apiVersion: skaffold/v4beta2
 kind: Config
 metadata:
   name: greenstar
 build:
   local:
-    push: false
-    concurrency: 2
+    concurrency: 0
     useBuildkit: true
   artifacts:
-    - image: ghcr.io/arikkfir/greenstar/api
-      context: api
+    - image: ghcr.io/arikkfir/greenstar/backend/admin
+      context: backend
       docker:
-        dockerfile: Dockerfile.api
-    - image: ghcr.io/arikkfir/greenstar/xlsconverter
-      context: api
+        dockerfile: Dockerfile.admin
+    - image: ghcr.io/arikkfir/greenstar/backend/auth
+      context: backend
       docker:
-        dockerfile: Dockerfile.xlsconverter
+        dockerfile: Dockerfile.auth
+    - image: ghcr.io/arikkfir/greenstar/backend/operations
+      context: backend
+      docker:
+        dockerfile: Dockerfile.operations
+    - image: ghcr.io/arikkfir/greenstar/backend/public
+      context: backend
+      docker:
+        dockerfile: Dockerfile.public
     - image: ghcr.io/arikkfir/greenstar/frontend
       context: frontend
       docker:
         dockerfile: Dockerfile
+#    - image: ghcr.io/arikkfir/greenstar/backend/public
+#      context: backend
+#      docker:
+#        dockerfile: Dockerfile.public
+#    - image: ghcr.io/arikkfir/greenstar/backend/xlsconverter
+#      context: backend
+#      docker:
+#        dockerfile: Dockerfile.xlsconverter
 profiles:
   - name: prod
     activation:
       - env: SKAFFOLD_PROFILE=prod
+    deploy:
+      statusCheckDeadlineSeconds: 120
+      statusCheck: true
     manifests:
       kustomize:
         paths:
           - deploy/prod
   - name: dev
     activation:
-      - env: SKAFFOLD_PROFILE=dev
+      - command: dev
+    deploy:
+      statusCheckDeadlineSeconds: 600
+      statusCheck: true
     manifests:
+      helm:
+        releases:
+          - name: greenstar-nats
+            repo: https://nats-io.github.io/k8s/helm/charts/
+            remoteChart: nats
+            namespace: default
+            wait: true
+            skipTests: true
       kustomize:
         paths:
           - deploy/dev
     portForward:
       - resourceType: service
-        resourceName: greenstar-api
-        port: 80
+        resourceName: greenstar-frontend
+        namespace: default
+        port: http
+        localPort: 3000
+      - resourceType: service
+        resourceName: greenstar-auth
+        namespace: default
+        port: http
         localPort: 8000
       - resourceType: service
+        resourceName: greenstar-operations
+        namespace: default
+        port: http
+        localPort: 8001
+      - resourceType: service
+        resourceName: greenstar-admin
+        namespace: default
+        port: http
+        localPort: 8002
+      - resourceType: service
+        resourceName: greenstar-public
+        namespace: default
+        port: http
+        localPort: 8003
+      - resourceType: service
         resourceName: greenstar-redis
+        namespace: default
         port: 6379
       - resourceType: service
         resourceName: greenstar-redis
-        port: 80
-        localPort: 8001
+        namespace: default
+        port: http
+        localPort: 9000
       - resourceType: service
         resourceName: greenstar-neo4j
+        namespace: default
         port: 7687
       - resourceType: service
         resourceName: greenstar-neo4j
-        port: 80
+        namespace: default
+        port: http
         localPort: 7474
-      - resourceType: service
-        resourceName: greenstar-frontend
-        port: 80
-        localPort: 8080
     patches:
       - op: replace
-        path: /build/artifacts/2/docker/dockerfile
+        path: /build/artifacts/4/docker/dockerfile
         value: Dockerfile.debug
       - op: add
-        path: /build/artifacts/2/sync
+        path: /build/artifacts/4/sync
         value:
           manual:
-            - dest: /workspace/public
-              src: frontend/public/**/*
-            - dest: /workspace/src
-              src: frontend/src/**/*
+            - dest: /workspace
+              src: public/**/*
+            - dest: /workspace
+              src: src/**/*

@@ -1,0 +1,11 @@
+{
+  "name": "Admin API",
+  "extensions": {
+    "endpoints": {
+      "API": {
+        "url": "http://localhost:8002/",
+        "introspect": true
+      }
+    }
+  }
+}

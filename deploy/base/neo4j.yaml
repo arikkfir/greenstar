@@ -25,21 +25,6 @@ spec:
     app.kubernetes.io/component: neo4j
   type: ClusterIP
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    app.kubernetes.io/component: neo4j
-  name: greenstar-neo4j
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    limits:
-      storage: 1Gi
-    requests:
-      storage: 1Gi
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -71,7 +56,7 @@ spec:
             - name: NEO4J_db_lock_acquisition_timeout
               value: 10s
             - name: NEO4J_initial_dbms_default__database
-              value: greenstar
+              value: global
             - name: NEO4J_server_panic_shutdown__on__panic
               value: "true"
             - name: NEO4J_server_memory_heap_initial__size
@@ -98,11 +83,4 @@ spec:
             requests:
               cpu: 500m
               memory: 1Gi
-          volumeMounts:
-            - mountPath: /data
-              name: data
       serviceAccountName: greenstar-neo4j
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: greenstar-neo4j

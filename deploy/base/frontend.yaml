@@ -26,6 +26,7 @@ kind: Deployment
 metadata:
   labels:
     app.kubernetes.io/component: frontend
+    greenstar.kfirs.com/oauth-client: "true"
   name: greenstar-frontend
 spec:
   selector:
@@ -45,14 +46,15 @@ spec:
       containers:
         - image: ghcr.io/arikkfir/greenstar/frontend
           name: frontend
+          env: []
           ports:
             - containerPort: 80
               name: http
           resources:
             limits:
               cpu: 1000m
-              memory: 2Gi
+              memory: 128Gi
             requests:
               cpu: 200m
-              memory: 512Mi
+              memory: 64Mi
       serviceAccountName: greenstar-frontend

@@ -1,0 +1,11 @@
+{
+  "name": "Operations API",
+  "extensions": {
+    "endpoints": {
+      "API": {
+        "url": "http://localhost:8001/",
+        "introspect": true
+      }
+    }
+  }
+}
