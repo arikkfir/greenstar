@@ -12,7 +12,7 @@ import (
 
 func CreateAuthGoogleUserInfoHandler() func(*gin.Context) {
 	return func(c *gin.Context) {
-		token := auth.GetToken(c)
+		token := auth.GetClaims(c)
 
 		response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?prettyPrint=true&oauth_token=" + token.AccessToken)
 		if err != nil {

@@ -19,7 +19,7 @@ type Resolver struct {
 }
 
 func (r *Resolver) getTenantID(ctx context.Context) string {
-	return auth.GetToken(ctx).Tenant
+	return auth.GetClaims(ctx).Tenant
 }
 
 func (r *Resolver) getNeo4jSession(ctx context.Context, mode neo4j.AccessMode) neo4j.SessionWithContext {

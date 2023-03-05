@@ -48,6 +48,7 @@ func main() {
 		AllowWebSockets:        true,
 		AllowWildcard:          true,
 	}))
+	router.Use(auth.CreateObtainTokenMiddleware(config.HTTP.ClaimsCookieName, googleOauthConfig.ClientSecret, config.HTTP.ShouldUseSecureCookies()))
 	router.GET("/google/login", CreateAuthGoogleLoginHandler(googleOauthConfig, config.HTTP.StateCookieName, config.HTTP.AppURL))
 	router.GET("/google/callback", CreateAuthGoogleCallbackHandler(googleOauthConfig, config.HTTP.StateCookieName, config.HTTP.ClaimsCookieName, config.HTTP.ShouldUseSecureCookies(), "greenstar.auth"))
 	router.GET("/google/logout", CreateAuthGoogleLogoutHandler(
@@ -58,11 +59,7 @@ func main() {
 	)
 	router.GET(
 		"/user",
-		auth.CreateVerifyTokenMiddleware(
-			config.HTTP.ClaimsCookieName,
-			googleOauthConfig.ClientSecret,
-			"greenstar.auth",
-			"greenstar.auth"),
+		auth.CreateVerifyTokenMiddleware("greenstar.auth", "greenstar.auth"),
 		CreateAuthGoogleUserInfoHandler(),
 	)
 

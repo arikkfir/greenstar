@@ -68,12 +68,7 @@ func main() {
 
 	// Setup routes
 	router := ginutil.NewGin(config.DevMode)
-	router.Use(auth.CreateVerifyTokenMiddleware(
-		config.HTTP.ClaimsCookieName,
-		config.Auth.Google.ClientSecret,
-		"greenstar.auth",
-		"greenstar.operations",
-	))
+	router.Use(auth.CreateVerifyTokenMiddleware("greenstar.auth", "greenstar.operations"))
 	router.GET("/playground", func(c *gin.Context) { graphPlaygroundHandler(c.Writer, c.Request) })
 	router.POST("/query", func(c *gin.Context) { graphHandler.ServeHTTP(c.Writer, c.Request) })
 

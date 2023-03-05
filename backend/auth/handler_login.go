@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	auth "github.com/arikkfir/greenstar/backend/auth/pkg"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 	"math/rand"
@@ -18,22 +19,32 @@ func CreateAuthGoogleLoginHandler(oauth *oauth2.Config, stateCookieName string, 
 	}
 
 	return func(c *gin.Context) {
+		consentNeeded := false
+		if token := auth.GetClaims(c); token != nil {
+			if token.RefreshToken == "" {
+				consentNeeded = true
+			} else if err := token.Valid(); err != nil {
+				consentNeeded = true
+			}
+		} else {
+			consentNeeded = true
+		}
+
 		b := make([]byte, 16)
 		rand.Read(b)
 
-		rurl, found := c.GetPostForm("rurl")
-		if !found || rurl == "" {
-			rurl = c.Query("rurl")
-		}
-		if rurl == "" {
-			rurl = defaultPostLoginURL
+		postLoginURL := c.Query("rurl")
+		if postLoginURL == "" {
+			postLoginURL = defaultPostLoginURL
 		}
 
-		state := base64.URLEncoding.EncodeToString(b) + "|" + base64.URLEncoding.EncodeToString([]byte(rurl))
-
+		state := base64.URLEncoding.EncodeToString(b) + "|" + base64.URLEncoding.EncodeToString([]byte(postLoginURL))
 		c.SetCookie(stateCookieName, state, int((5 * time.Minute).Seconds()), "/", "", curl.Scheme == "https", true)
 
-		// TODO: only send "oauth2.ApprovalForce" option if missing or partial cookie (esp. if missing refresh token)
-		c.Redirect(http.StatusTemporaryRedirect, oauth.AuthCodeURL(state, oauth2.AccessTypeOffline, oauth2.ApprovalForce))
+		authCodeOptions := []oauth2.AuthCodeOption{oauth2.AccessTypeOffline}
+		if consentNeeded {
+			authCodeOptions = append(authCodeOptions, oauth2.ApprovalForce)
+		}
+		c.Redirect(http.StatusTemporaryRedirect, oauth.AuthCodeURL(state, authCodeOptions...))
 	}
 }

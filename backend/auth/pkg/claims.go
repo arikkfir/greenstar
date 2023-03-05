@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -14,6 +15,15 @@ type Token struct {
 	RefreshToken string `json:"refreshToken,omitempty"`
 }
 
-func GetToken(ctx context.Context) *Token {
-	return ctx.Value(claimsKey).(*Token)
+func GetClaims(ctx context.Context) *Token {
+	v := ctx.Value(claimsKey)
+	if v == nil {
+		return nil
+	} else {
+		return v.(*Token)
+	}
+}
+
+func setClaims(c *gin.Context, token *Token) {
+	c.Set(claimsKey, token)
 }
