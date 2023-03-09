@@ -1,0 +1,168 @@
+package auth
+
+import (
+	"context"
+	"github.com/arikkfir/greenstar/backend/util/ginutil"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+)
+
+const defaultPostLoginURL = "https://test.com"
+const oauthStateCookieName = "oauth-state-test"
+const claimsCookieName = "claims-test"
+
+type mockStatePersister struct {
+	errToReturn error
+	state       string
+}
+
+func (m *mockStatePersister) saveState(ctx context.Context, id, state string) error {
+	if m.errToReturn != nil {
+		return m.errToReturn
+	} else {
+		m.state = state
+		return nil
+	}
+}
+
+func TestLoginWhenClaimsCookieMissing(t *testing.T) {
+	oauthConfig := &oauth2.Config{
+		RedirectURL:  "https://test.com/google/callback",
+		ClientID:     "test-client-id",
+		ClientSecret: "test-client-secret",
+		Scopes: []string{
+			"scope1",
+			"scope2",
+		},
+		Endpoint: google.Endpoint,
+	}
+
+	router := func(stateError error) *gin.Engine {
+		r := ginutil.NewGin(true)
+		r.Use(CreateObtainTokenMiddleware(claimsCookieName, oauthConfig.ClientSecret, false))
+		r.GET("/google/login", CreateAuthGoogleLoginHandler(oauthConfig, &mockStatePersister{errToReturn: stateError}, defaultPostLoginURL))
+		return r
+	}
+
+	t.Run("ClaimsCookieMissing", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/login", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		res := httptest.NewRecorder()
+		router(nil).ServeHTTP(res, req)
+
+		if res.Code != http.StatusTemporaryRedirect {
+			t.Errorf("Expected status code %d, got %d", http.StatusTemporaryRedirect, res.Code)
+		}
+
+		VerifyOAuthURL(t, res.Header().Get("Location"), oauthConfig, defaultPostLoginURL)
+		VerifyOAuthConsent(t, res.Header().Get("Location"), true)
+		VerifyCookieNotSpecified(t, res, claimsCookieName)
+	})
+
+	t.Run("ClaimsCookieInvalid", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/login", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.AddCookie(&http.Cookie{Name: claimsCookieName, Value: "invalid"})
+
+		res := httptest.NewRecorder()
+		router(nil).ServeHTTP(res, req)
+
+		if res.Code != http.StatusTemporaryRedirect {
+			t.Errorf("Expected status code %d, got %d", http.StatusTemporaryRedirect, res.Code)
+		}
+
+		VerifyOAuthURL(t, res.Header().Get("Location"), oauthConfig, defaultPostLoginURL)
+		VerifyOAuthConsent(t, res.Header().Get("Location"), true)
+		VerifyCookieCleared(t, res, claimsCookieName)
+	})
+
+	t.Run("ClaimsCookieExpired", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/login", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		token := CreateToken(t, oauthConfig, time.Now().Add(-1*time.Hour), "at", "rt")
+		req.AddCookie(&http.Cookie{Name: claimsCookieName, Value: token})
+
+		res := httptest.NewRecorder()
+		router(nil).ServeHTTP(res, req)
+
+		if res.Code != http.StatusTemporaryRedirect {
+			t.Errorf("Expected status code %d, got %d", http.StatusTemporaryRedirect, res.Code)
+		}
+
+		VerifyOAuthURL(t, res.Header().Get("Location"), oauthConfig, defaultPostLoginURL)
+		VerifyOAuthConsent(t, res.Header().Get("Location"), true)
+		VerifyCookieCleared(t, res, claimsCookieName)
+	})
+
+	t.Run("ClaimsCookieValid", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/login", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		token := CreateToken(t, oauthConfig, time.Now(), "at", "rt")
+		req.AddCookie(&http.Cookie{Name: claimsCookieName, Value: token})
+
+		res := httptest.NewRecorder()
+		router(nil).ServeHTTP(res, req)
+
+		if res.Code != http.StatusTemporaryRedirect {
+			t.Errorf("Expected status code %d, got %d", http.StatusTemporaryRedirect, res.Code)
+		}
+
+		VerifyOAuthURL(t, res.Header().Get("Location"), oauthConfig, defaultPostLoginURL)
+		VerifyOAuthConsent(t, res.Header().Get("Location"), false)
+		VerifyCookieNotSpecified(t, res, claimsCookieName)
+	})
+
+	t.Run("ClaimsCookieValidWithoutAccessToken", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/login", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		token := CreateToken(t, oauthConfig, time.Now(), "", "rt")
+		req.AddCookie(&http.Cookie{Name: claimsCookieName, Value: token})
+
+		res := httptest.NewRecorder()
+		router(nil).ServeHTTP(res, req)
+
+		if res.Code != http.StatusTemporaryRedirect {
+			t.Errorf("Expected status code %d, got %d", http.StatusTemporaryRedirect, res.Code)
+		}
+
+		VerifyOAuthURL(t, res.Header().Get("Location"), oauthConfig, defaultPostLoginURL)
+		VerifyOAuthConsent(t, res.Header().Get("Location"), true)
+		VerifyCookieCleared(t, res, claimsCookieName)
+	})
+
+	t.Run("ClaimsCookieValidWithoutRefreshToken", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/login", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		token := CreateToken(t, oauthConfig, time.Now(), "at", "")
+		req.AddCookie(&http.Cookie{Name: claimsCookieName, Value: token})
+
+		res := httptest.NewRecorder()
+		router(nil).ServeHTTP(res, req)
+
+		if res.Code != http.StatusTemporaryRedirect {
+			t.Errorf("Expected status code %d, got %d", http.StatusTemporaryRedirect, res.Code)
+		}
+
+		VerifyOAuthURL(t, res.Header().Get("Location"), oauthConfig, defaultPostLoginURL)
+		VerifyOAuthConsent(t, res.Header().Get("Location"), true)
+		VerifyCookieCleared(t, res, claimsCookieName)
+	})
+}

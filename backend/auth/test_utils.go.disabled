@@ -1,0 +1,144 @@
+package auth
+
+import (
+	"encoding/base64"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
+	"golang.org/x/oauth2"
+	"net/http/httptest"
+	"net/url"
+	"strings"
+	"testing"
+	"time"
+)
+
+func CreateToken(t *testing.T, oauthConfig *oauth2.Config, iat time.Time, accessToken, refreshToken string) string {
+	t.Helper()
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &Token{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.NewString(),
+			Issuer:    "greenstar.auth.test",
+			Subject:   "google|1234567890",
+			Audience:  []string{"greenstar.admin", "greenstar.auth", "greenstar.operations", "greenstar.public"},
+			IssuedAt:  jwt.NewNumericDate(iat),
+			NotBefore: jwt.NewNumericDate(iat),
+			ExpiresAt: jwt.NewNumericDate(iat.Add(5 * time.Minute)),
+		},
+		Tenant:       "test.com",
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	})
+	signedToken, err := jwtToken.SignedString([]byte(oauthConfig.ClientSecret))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return signedToken
+}
+
+func VerifyOAuthURL(t *testing.T, location string, oauthConfig *oauth2.Config, expectedID string, defaultPostLoginURL string) {
+	t.Helper()
+	if !strings.HasPrefix(location, oauthConfig.Endpoint.AuthURL) {
+		t.Errorf("Expected location to start with %s, got %s", oauthConfig.Endpoint.AuthURL, location)
+	}
+
+	locationURL, err := url.Parse(location)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if locationURL.Query().Get("access_type") != "offline" {
+		t.Errorf("Expected access_type=offline, got %s", locationURL.Query().Get("access_type"))
+	}
+	if locationURL.Query().Get("client_id") != oauthConfig.ClientID {
+		t.Errorf("Expected client_id=%s, got %s", oauthConfig.ClientID, locationURL.Query().Get("client_id"))
+	}
+	if locationURL.Query().Get("scope") != strings.Join(oauthConfig.Scopes, " ") {
+		t.Errorf("Expected scope=%s, got %s", strings.Join(oauthConfig.Scopes, " "), locationURL.Query().Get("scope"))
+	}
+	if locationURL.Query().Get("response_type") != "code" {
+		t.Errorf("Expected response_type=code, got %s", locationURL.Query().Get("response_type"))
+	}
+	if locationURL.Query().Get("redirect_uri") != oauthConfig.RedirectURL {
+		t.Errorf("Expected redirect_uri=%s, got %s", oauthConfig.RedirectURL, locationURL.Query().Get("redirect_uri"))
+	}
+
+	state := locationURL.Query().Get("state")
+	if state == "" {
+		t.Error("Expected state to not be empty")
+	}
+
+	encodedID, encodedPostLoginURL, found := strings.Cut(state, "|")
+	if !found {
+		t.Error("Expected state to contain |")
+	}
+
+	id, err := base64.URLEncoding.DecodeString(encodedID)
+	if err != nil {
+		t.Fatal(err)
+	} else if parsedUUID, err := uuid.Parse(string(id)); err != nil {
+		t.Errorf("invalid state ID: %s", id)
+	} else if expectedID != parsedUUID.String() {
+		t.Errorf("invalid state ID, expected '%s', got '%s'", expectedID, id)
+	}
+
+	postLoginURL, err := base64.URLEncoding.DecodeString(encodedPostLoginURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(postLoginURL) != defaultPostLoginURL {
+		t.Errorf("Expected post-login URL to be %s, got %s", defaultPostLoginURL, postLoginURL)
+	}
+}
+
+func VerifyOAuthConsent(t *testing.T, location string, consentRequested bool) {
+	t.Helper()
+	locationURL, err := url.Parse(location)
+	if err != nil {
+		t.Fatal(err)
+	} else if consentRequested && locationURL.Query().Get("prompt") != "consent" {
+		t.Errorf("Expected prompt=consent, got %s", locationURL.Query().Get("prompt"))
+	} else if !consentRequested && locationURL.Query().Get("prompt") != "" {
+		t.Errorf("Expected prompt to be empty, got %s", locationURL.Query().Get("prompt"))
+	}
+}
+
+func VerifyCookie(t *testing.T, res *httptest.ResponseRecorder, name, value, path string, maxAge int) {
+	t.Helper()
+	found := false
+	cookies := res.Result().Cookies()
+	for _, cookie := range cookies {
+		if cookie.Name == name {
+			found = true
+			if cookie.Value != value {
+				t.Errorf("Expected cookie %s to be %s, got %s", name, value, cookie.Value)
+			}
+			if cookie.Path != path {
+				t.Errorf("Expected cookie %s path to be %s, got %s", name, path, cookie.Path)
+			}
+			if cookie.MaxAge != maxAge {
+				t.Errorf("Expected cookie %s max age to be %d, got %d", name, maxAge, cookie.MaxAge)
+			}
+		}
+	}
+	if !found {
+		t.Errorf("Expected cookie %s to be set", name)
+	}
+}
+
+func VerifyCookieCleared(t *testing.T, res *httptest.ResponseRecorder, name string) {
+	t.Helper()
+	VerifyCookie(t, res, name, "", "/", 0)
+}
+
+func VerifyCookieNotSpecified(t *testing.T, res *httptest.ResponseRecorder, name string) {
+	t.Helper()
+	found := false
+	cookies := res.Result().Cookies()
+	for _, cookie := range cookies {
+		if cookie.Name == name {
+			found = true
+		}
+	}
+	if found {
+		t.Errorf("Expected cookie %s not to be set", name)
+	}
+}

@@ -2,7 +2,7 @@ package resolver
 
 import (
 	"context"
-	auth "github.com/arikkfir/greenstar/backend/auth/pkg"
+	"github.com/arikkfir/greenstar/backend/auth"
 	"github.com/arikkfir/greenstar/backend/util/neo4jutil"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/rs/zerolog/log"
@@ -18,14 +18,10 @@ type Resolver struct {
 	Neo4j neo4j.DriverWithContext
 }
 
-func (r *Resolver) getTenantID(ctx context.Context) string {
-	return auth.GetClaims(ctx).Tenant
-}
-
 func (r *Resolver) getNeo4jSession(ctx context.Context, mode neo4j.AccessMode) neo4j.SessionWithContext {
 	return r.Neo4j.NewSession(ctx, neo4j.SessionConfig{
 		AccessMode:   mode,
-		DatabaseName: r.getTenantID(ctx),
+		DatabaseName: auth.GetSession(ctx).Tenant,
 		BoltLogger:   &neo4jutil.Neo4jZerologBoltLogger{Logger: log.Ctx(ctx)},
 	})
 }

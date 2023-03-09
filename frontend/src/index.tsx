@@ -11,11 +11,11 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
         <App environment={process.env.NODE_ENV ?? "development"}
              version={process.env.REACT_APP_VERSION ?? "local"}
-             userInfoURL={process.env.REACT_USER_INFO_URL ?? "http://localhost:8000/user"}
-             loginURL={process.env.REACT_LOGIN_URL ?? "http://localhost:8000/google/login"}
-             adminAPIURL={process.env.REACT_ADMIN_API_URL ?? "http://localhost:8002/playground"}
-             operationsAPIURL={process.env.REACT_OPERATIONS_API_URL ?? "http://localhost:8001/playground"}
-             publicAPIURL={process.env.REACT_PUBLIC_API_URL ?? "http://localhost:8003/playground"}
+             userInfoURL={process.env.REACT_USER_INFO_URL ?? "http://localhost:8000/auth/user"}
+             loginURL={process.env.REACT_LOGIN_URL ?? "http://localhost:8000/auth/google/login"}
+             adminAPIURL={process.env.REACT_ADMIN_API_URL ?? "http://localhost:8000/admin/playground"}
+             operationsAPIURL={process.env.REACT_OPERATIONS_API_URL ?? "http://localhost:8000/operations/playground"}
+             publicAPIURL={process.env.REACT_PUBLIC_API_URL ?? "http://localhost:8000/public/playground"}
         />
     </React.StrictMode>
 );

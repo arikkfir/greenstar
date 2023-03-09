@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/arikkfir/greenstar/backend/auth"
 	"io"
 	"strconv"
 	"time"
@@ -271,7 +272,7 @@ func (r *mutationResolver) UploadTransactionsXLSFile(ctx context.Context, file g
 		return false, fmt.Errorf("failed to marshal XLS conversion request to JSON: %w", err)
 	}
 
-	cmd := r.Redis.B().Publish().Channel("convert-xls-to-xlsx").Message(r.getTenantID(ctx) + ":" + string(msg)).Build()
+	cmd := r.Redis.B().Publish().Channel("convert-xls-to-xlsx").Message(auth.GetSession(ctx).Tenant + ":" + string(msg)).Build()
 	if resp := r.Redis.Do(ctx, cmd); resp.Error() != nil {
 		return false, fmt.Errorf("failed to publish request: %w", resp.Error())
 	}
@@ -291,7 +292,7 @@ func (r *mutationResolver) UploadTransactionsXLSXFile(ctx context.Context, file 
 		return false, fmt.Errorf("failed to marshal XLS conversion request to JSON: %w", err)
 	}
 
-	cmd := r.Redis.B().Publish().Channel(processXLSXChannelName).Message(r.getTenantID(ctx) + ":" + string(msg)).Build()
+	cmd := r.Redis.B().Publish().Channel(processXLSXChannelName).Message(auth.GetSession(ctx).Tenant + ":" + string(msg)).Build()
 	if resp := r.Redis.Do(ctx, cmd); resp.Error() != nil {
 		return false, fmt.Errorf("failed to publish request: %w", resp.Error())
 	}

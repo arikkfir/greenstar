@@ -16,7 +16,9 @@ export function ProfileMenu({user}: ProfileMenuProps) {
     return (
         <>
             <IconButton size="large" edge="end" onClick={openProfileMenu}>
-                <Avatar alt={(user?.given_name || '?')[0] + (user?.family_name || '?')[0]} src={user.picture}></Avatar>
+                <Avatar imgProps={{referrerPolicy: "no-referrer"}}
+                        alt={(user?.given_name || '?')[0] + (user?.family_name || '?')[0]}
+                        src={user.picture}></Avatar>
             </IconButton>
             <Menu id={menuId}
                   keepMounted

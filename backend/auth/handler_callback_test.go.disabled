@@ -1,0 +1,99 @@
+package auth
+
+import (
+	"encoding/base64"
+	"github.com/arikkfir/greenstar/backend/util/ginutil"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func TestCreateAuthGoogleCallbackHandler(t *testing.T) {
+	oauthConfig := &oauth2.Config{
+		RedirectURL:  "https://test.com/google/callback",
+		ClientID:     "test-client-id",
+		ClientSecret: "test-client-secret",
+		Scopes: []string{
+			"scope1",
+			"scope2",
+		},
+		Endpoint: google.Endpoint,
+	}
+
+	router := ginutil.NewGin(true)
+	router.Use(CreateObtainTokenMiddleware(claimsCookieName, oauthConfig.ClientSecret, false))
+	router.GET("/google/callback", CreateAuthGoogleCallbackHandler(oauthConfig, oauthStateCookieName, claimsCookieName, false, "greenstar.auth"))
+
+	t.Run("StateCookieMissing", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/callback", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		res := httptest.NewRecorder()
+		router.ServeHTTP(res, req)
+
+		if res.Code != http.StatusBadRequest {
+			t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, res.Code)
+		}
+	})
+	t.Run("StateCookieMismatchWithStateQueryParam", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/callback?state=123", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.AddCookie(&http.Cookie{Name: oauthStateCookieName, Value: "abc"})
+
+		res := httptest.NewRecorder()
+		router.ServeHTTP(res, req)
+
+		if res.Code != http.StatusBadRequest {
+			t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, res.Code)
+		}
+	})
+	t.Run("StateCookieWithStateQueryParamMissingPipe", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/callback?state=123", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.AddCookie(&http.Cookie{Name: oauthStateCookieName, Value: "123"})
+
+		res := httptest.NewRecorder()
+		router.ServeHTTP(res, req)
+
+		if res.Code != http.StatusBadRequest {
+			t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, res.Code)
+		}
+	})
+	t.Run("StateCookieWithBadlyEncodedRedirectURL", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/google/callback?state=123|a%2001b", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.AddCookie(&http.Cookie{Name: oauthStateCookieName, Value: "123|a%2001b"})
+
+		res := httptest.NewRecorder()
+		router.ServeHTTP(res, req)
+
+		if res.Code != http.StatusBadRequest {
+			t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, res.Code)
+		}
+	})
+	t.Run("StateCookieWithMissingCodeQueryParam", func(t *testing.T) {
+		state := "123|" + base64.URLEncoding.EncodeToString([]byte("https://test.com"))
+		req, err := http.NewRequest("GET", "/google/callback?state="+state, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		req.AddCookie(&http.Cookie{Name: oauthStateCookieName, Value: state})
+
+		res := httptest.NewRecorder()
+		router.ServeHTTP(res, req)
+
+		if res.Code != http.StatusBadRequest {
+			t.Errorf("Expected status code %d, got %d", http.StatusBadRequest, res.Code)
+		}
+	})
+}

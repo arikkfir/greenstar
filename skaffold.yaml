@@ -8,45 +8,19 @@ build:
     concurrency: 0
     useBuildkit: true
   artifacts:
-    - image: ghcr.io/arikkfir/greenstar/backend/admin
-      context: backend
-      docker:
-        dockerfile: Dockerfile.admin
-    - image: ghcr.io/arikkfir/greenstar/backend/auth
-      context: backend
-      docker:
-        dockerfile: Dockerfile.auth
-    - image: ghcr.io/arikkfir/greenstar/backend/operations
-      context: backend
-      docker:
-        dockerfile: Dockerfile.operations
-    - image: ghcr.io/arikkfir/greenstar/backend/public
-      context: backend
-      docker:
-        dockerfile: Dockerfile.public
     - image: ghcr.io/arikkfir/greenstar/frontend
       context: frontend
       docker:
         dockerfile: Dockerfile
-#    - image: ghcr.io/arikkfir/greenstar/backend/public
-#      context: backend
-#      docker:
-#        dockerfile: Dockerfile.public
+    - image: ghcr.io/arikkfir/greenstar/backend
+      context: backend
+      docker:
+        dockerfile: Dockerfile
 #    - image: ghcr.io/arikkfir/greenstar/backend/xlsconverter
 #      context: backend
 #      docker:
 #        dockerfile: Dockerfile.xlsconverter
 profiles:
-  - name: prod
-    activation:
-      - env: SKAFFOLD_PROFILE=prod
-    deploy:
-      statusCheckDeadlineSeconds: 120
-      statusCheck: true
-    manifests:
-      kustomize:
-        paths:
-          - deploy/prod
   - name: dev
     activation:
       - command: dev
@@ -72,25 +46,10 @@ profiles:
         port: http
         localPort: 3000
       - resourceType: service
-        resourceName: greenstar-auth
+        resourceName: greenstar-backend
         namespace: default
         port: http
         localPort: 8000
-      - resourceType: service
-        resourceName: greenstar-operations
-        namespace: default
-        port: http
-        localPort: 8001
-      - resourceType: service
-        resourceName: greenstar-admin
-        namespace: default
-        port: http
-        localPort: 8002
-      - resourceType: service
-        resourceName: greenstar-public
-        namespace: default
-        port: http
-        localPort: 8003
       - resourceType: service
         resourceName: greenstar-redis
         namespace: default
@@ -111,10 +70,10 @@ profiles:
         localPort: 7474
     patches:
       - op: replace
-        path: /build/artifacts/4/docker/dockerfile
+        path: /build/artifacts/0/docker/dockerfile
         value: Dockerfile.debug
       - op: add
-        path: /build/artifacts/4/sync
+        path: /build/artifacts/0/sync
         value:
           manual:
             - dest: /workspace
