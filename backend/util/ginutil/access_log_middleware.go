@@ -45,6 +45,9 @@ func AccessLogMiddleware(c *gin.Context) {
 		Int("http:res:status", c.Writer.Status()).
 		Int("http:res:size", c.Writer.Size())
 	for name, values := range c.Writer.Header() {
+		if strings.HasPrefix(name, "sec-") {
+			continue
+		}
 		arr := zerolog.Arr()
 		for _, value := range values {
 			arr.Str(value)

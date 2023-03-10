@@ -24,19 +24,27 @@ func SetLoggerMiddleware(c *gin.Context) {
 	e = e.Array("http:req:transferEncoding", transferEncoding)
 
 	for name, values := range c.Request.Header {
+		name = strings.ToLower(name)
+		if strings.HasPrefix(name, "sec-") {
+			continue
+		}
 		arr := zerolog.Arr()
 		for _, value := range values {
 			arr.Str(value)
 		}
-		e = e.Array("http:req:header:"+strings.ToLower(name), arr)
+		e = e.Array("http:req:header:"+name, arr)
 	}
 
 	for name, values := range c.Request.Trailer {
+		name = strings.ToLower(name)
+		if strings.HasPrefix(name, "sec-") {
+			continue
+		}
 		arr := zerolog.Arr()
 		for _, value := range values {
 			arr.Str(value)
 		}
-		e = e.Array("http:req:trailer:"+strings.ToLower(name), arr)
+		e = e.Array("http:req:trailer:"+name, arr)
 	}
 
 	logger := e.Logger()
