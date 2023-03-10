@@ -57,8 +57,6 @@ func (a *Authenticator) CreateMiddlewareForFilteringUnauthenticated(audience str
 			c.AbortWithError(http.StatusForbidden, fmt.Errorf("issuedAt mismatch, expected '%s', got: %s", session.Claims.IssuedAt, claims.IssuedAt))
 		} else if session.Claims.ID != claims.ID {
 			c.AbortWithError(http.StatusForbidden, fmt.Errorf("id mismatch, expected '%s', got: %s", session.Claims.ID, claims.ID))
-		} else if !session.Token.Valid() {
-			c.AbortWithError(http.StatusForbidden, fmt.Errorf("token is not marked as valid"))
 		} else {
 			setSession(c, &session)
 			c.Next()
