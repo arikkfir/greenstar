@@ -120,10 +120,9 @@ func (r *queryResolver) Tenants(ctx context.Context) ([]*model.Tenant, error) {
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		const showDatabasesQuery = `// Get databases representing tenants
-SHOW DATABASES
-WHERE type = 'standard' AND name <> 'global'
-YIELD name
-RETURN name AS id`
+SHOW DATABASES YIELD type, name AS id
+WHERE type = 'standard' AND id <> 'global'
+RETURN id`
 
 		result, err := tx.Run(ctx, showDatabasesQuery, nil)
 		if err != nil {
