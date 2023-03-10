@@ -40,9 +40,9 @@ func (a *Authenticator) CreateMiddlewareForFilteringUnauthenticated(audience str
 		} else if !claims.VerifyNotBefore(time.Now(), true) {
 			c.AbortWithError(http.StatusForbidden, fmt.Errorf("token not yet active"))
 		} else if result := r.Do(c, r.B().Get().Key("session:"+claims.ID).Build()); result.Error() != nil {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed getting session '%s' from redis: %w", claims.ID, err))
+			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("failed getting session '%s' from redis: %w", claims.ID, err))
 		} else if err := result.DecodeJSON(&session); err != nil {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed decoding session from redis: %w", err))
+			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("failed decoding session from redis: %w", err))
 		} else if session.Claims.Issuer != claims.Issuer {
 			c.AbortWithError(http.StatusForbidden, fmt.Errorf("issuer mismatch, expected '%s', got: %s", session.Claims.Issuer, claims.Issuer))
 		} else if session.Claims.Subject != claims.Subject {
