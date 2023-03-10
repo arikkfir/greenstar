@@ -17,11 +17,13 @@ func SetLoggerMiddleware(c *gin.Context) {
 		Str("http:req:remoteAddr", c.Request.RemoteAddr).
 		Str("http:req:requestURI", c.Request.RequestURI)
 
-	transferEncoding := zerolog.Arr()
-	for _, encoding := range c.Request.TransferEncoding {
-		transferEncoding = transferEncoding.Str(encoding)
+	if len(c.Request.TransferEncoding) > 0 {
+		transferEncoding := zerolog.Arr()
+		for _, encoding := range c.Request.TransferEncoding {
+			transferEncoding = transferEncoding.Str(encoding)
+		}
+		e = e.Array("http:req:transferEncoding", transferEncoding)
 	}
-	e = e.Array("http:req:transferEncoding", transferEncoding)
 
 	for name, values := range c.Request.Header {
 		name = strings.ToLower(name)
