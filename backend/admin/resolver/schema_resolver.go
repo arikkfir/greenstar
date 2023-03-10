@@ -172,7 +172,11 @@ RETURN t.id, t.displayName`
 		}
 		return tenants, nil
 	})
-	return v.([]*model.Tenant), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.([]*model.Tenant), err
+	}
 }
 
 // Tenant is the resolver for the tenant field.
