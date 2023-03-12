@@ -63,7 +63,7 @@ export function App({
     const [loginStatus, setLoginStatus] = useState<LoginStatus>("pending")
     useEffect(() => {
         // TODO: try to prevent excessive (double) execution (might be due to devMode)
-        console.info("Requesting user information from server")
+        console.info("Requesting user information from server: ", userInfoURL)
         fetch(userInfoURL, {cache: 'no-store', credentials: 'include'})
             .then(response => {
                 if (response.status >= 200 && response.status <= 299) {
