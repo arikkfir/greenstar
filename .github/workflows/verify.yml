@@ -5,6 +5,8 @@ on:
 defaults:
   run:
     shell: bash -euxo pipefail {0}
+env:
+  REGISTRY: ghcr.io
 jobs:
   backend-unit-tests:
     runs-on: ubuntu-22.04
