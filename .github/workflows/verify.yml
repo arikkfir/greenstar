@@ -6,7 +6,7 @@ defaults:
   run:
     shell: bash -euxo pipefail {0}
 jobs:
-  verify:
+  backend-unit-tests:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
@@ -17,5 +17,16 @@ jobs:
           cache-dependency-path: backend/go.sum
       - run: go test ./...
         working-directory: backend
+
+  build-docker-images:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - run: |-
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v2.2.0/skaffold-linux-amd64 \
+            && chmod +x skaffold \
+            && sudo mv skaffold /usr/local/bin \
+            && skaffold version
       - name: Build Docker images
         run: skaffold build --tag=${GITHUB_SHA::7} --file-output=skaffold-tags.json
