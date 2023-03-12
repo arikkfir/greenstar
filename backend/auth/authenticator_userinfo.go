@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type GoogleAPIUserInfoResponse struct {
@@ -76,12 +78,12 @@ func (a *Authenticator) HandleUserInfo(c *gin.Context) {
 				Err:  fmt.Errorf("failed decoding google userinfo response: %w", err),
 				Type: gin.ErrorTypePrivate,
 			})
+		} else {
+			c.Negotiate(http.StatusOK, gin.Negotiate{
+				Offered: []string{gin.MIMEJSON},
+				Data:    userInfo,
+			})
 		}
-
-		c.Negotiate(http.StatusOK, gin.Negotiate{
-			Offered: []string{gin.MIMEJSON},
-			Data:    userInfo,
-		})
 	} else if userInfoResponse.StatusCode == http.StatusUnauthorized {
 		body, _ := io.ReadAll(userInfoResponse.Body)
 		c.AbortWithError(http.StatusUnauthorized, gin.Error{
