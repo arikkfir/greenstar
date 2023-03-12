@@ -122,12 +122,17 @@ func (a *Authenticator) HandleCallback(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed signing JWT token: %w", err))
 		return
 	}
-	// TODO: encrypt claims cookie
 
+	// TODO: encrypt claims cookie
+	// TODO: decide set of permissions from user repository
 	session := Session{
 		Claims: claims,
 		Token:  token,
 		Tenant: userInfo.HostedDomain,
+		Permissions: []string{
+			PermissionAuthUserInfo,
+			PermissionAdminCreateTenant,
+		},
 	}
 
 	r := redisutil.GetRedis(c)

@@ -11,9 +11,10 @@ import (
 const sessionContextKey = "$$$$____session____$$$$"
 
 type Session struct {
-	Claims jwt.RegisteredClaims `json:"claims"`
-	Token  *oauth2.Token        `json:"token"`
-	Tenant string               `json:"tenant"`
+	Claims      jwt.RegisteredClaims `json:"claims"`
+	Token       *oauth2.Token        `json:"token"`
+	Tenant      string               `json:"tenant"`
+	Permissions []string             `json:"permissions"`
 }
 
 func GetSession(ctx context.Context) *Session {
