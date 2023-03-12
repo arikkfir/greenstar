@@ -7,11 +7,16 @@ defaults:
     shell: bash -euxo pipefail {0}
 jobs:
   verify:
-    runs-on: ubuntu-22.10
-    container: ubuntu-22.10
-    timeout-minutes: 15
+    runs-on: ubuntu-22.04
+    container: ubuntu-22.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Build Docker images
-        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=skaffold-tags.json
+        uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - run: go test ./...
+        working-directory: backend
+#      - name: Build Docker images
+#        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=skaffold-tags.json
