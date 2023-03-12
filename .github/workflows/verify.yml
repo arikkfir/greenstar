@@ -9,8 +9,7 @@ jobs:
   backend-unit-tests:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
           go-version-file: backend/go.mod
@@ -20,13 +19,20 @@ jobs:
 
   build-docker-images:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - run: |-
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v2.2.0/skaffold-linux-amd64 \
             && chmod +x skaffold \
             && sudo mv skaffold /usr/local/bin \
             && skaffold version
       - name: Build Docker images
-        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=skaffold-tags.json
+        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=build-${GITHUB_SHA::7}.json
