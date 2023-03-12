@@ -17,5 +17,5 @@ jobs:
           cache-dependency-path: backend/go.sum
       - run: go test ./...
         working-directory: backend
-#      - name: Build Docker images
-#        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=skaffold-tags.json
+      - name: Build Docker images
+        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=skaffold-tags.json
