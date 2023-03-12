@@ -27,6 +27,18 @@ profiles:
     deploy:
       statusCheckDeadlineSeconds: 600
       statusCheck: true
+      kubectl:
+        hooks:
+          before:
+            - host:
+                command:
+                  - kubectl
+                  - create
+                  - secret
+                  - generic
+                  - greenstar-google-app
+                  - --from-env-file=google-client-app.env
+                os: [ darwin, linux ]
     manifests:
       helm:
         releases:

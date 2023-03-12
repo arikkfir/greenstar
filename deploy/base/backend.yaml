@@ -50,6 +50,18 @@ spec:
               value: greenstar-neo4j
             - name: REDIS_HOST
               value: greenstar-redis
+            - name: AUTH_GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: GOOGLE_CLIENT_ID
+                  name: greenstar-google-app
+                  optional: false
+            - name: AUTH_GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: GOOGLE_CLIENT_SECRET
+                  name: greenstar-google-app
+                  optional: false
           ports:
             - containerPort: 8000
               name: http

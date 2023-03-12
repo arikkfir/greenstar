@@ -34,16 +34,6 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
-          name: AUTH_GOOGLE_CLIENT_ID
-          value: "8909046976-tfn00u99qs3t73u7k8ebhmllmdjti7eo.apps.googleusercontent.com"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: AUTH_GOOGLE_CLIENT_SECRET
-          value: "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"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
           name: AUTH_GOOGLE_CALLBACK_URL
           value: "http://localhost:8000/auth/google/callback"
   - target:

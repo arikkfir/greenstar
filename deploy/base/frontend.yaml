@@ -46,7 +46,13 @@ spec:
       containers:
         - image: ghcr.io/arikkfir/greenstar/frontend
           name: frontend
-          env: []
+          env:
+            - name: AUTH_GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: GOOGLE_CLIENT_SECRET # "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"
+                  name: greenstar-google-app
+                  optional: false
           ports:
             - containerPort: 80
               name: http
