@@ -23,6 +23,34 @@ type GoogleAPIUserInfoResponse struct {
 func (a *Authenticator) HandleUserInfo(c *gin.Context) {
 	session := GetSession(c)
 
+	mock := c.Query("mock")
+	if mock != "" {
+		log.Ctx(c).Warn().Str("mock", mock).Msg("Mock user info provided!")
+		for _, p := range session.Permissions {
+			if p == PermissionAuthUserInfoMock {
+				userInfo := GoogleAPIUserInfoResponse{}
+				decoder := json.NewDecoder(strings.NewReader(mock))
+				if err := decoder.Decode(&userInfo); err != nil {
+					c.AbortWithError(http.StatusInternalServerError, gin.Error{
+						Err:  fmt.Errorf("failed decoding google userinfo response: %w", err),
+						Type: gin.ErrorTypePrivate,
+					})
+				} else {
+					c.Negotiate(http.StatusOK, gin.Negotiate{
+						Offered: []string{gin.MIMEJSON},
+						Data:    userInfo,
+					})
+				}
+				return
+			}
+		}
+		c.AbortWithError(http.StatusForbidden, gin.Error{
+			Err:  fmt.Errorf("insufficient permissions to use mock userinfo"),
+			Type: gin.ErrorTypePrivate,
+		})
+		return
+	}
+
 	httpClient := a.OAuth.Client(c, session.Token)
 	defer httpClient.CloseIdleConnections()
 
