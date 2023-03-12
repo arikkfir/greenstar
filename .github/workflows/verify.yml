@@ -1,0 +1,17 @@
+name: Verify
+on:
+  push:
+    branches: ["*"]
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+jobs:
+  verify:
+    runs-on: ubuntu-22.10
+    container: ubuntu-22.10
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build Docker images
+        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=skaffold-tags.json
