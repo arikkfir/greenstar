@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonLabels:
+  app.kubernetes.io/version: 0.0.0-local
+resources:
+  - ../dev
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: greenstar-frontend
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: REACT_APP_USER_INFO_URL
+          value: http://localhost:8000/auth/user?mock={"email":"jack@ryan.com","family_name":"Ryan","given_name":"Jack","hd":"test","id":"test|1","name":"Jack Ryan"}

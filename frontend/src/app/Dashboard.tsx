@@ -4,7 +4,7 @@ import React from "react";
 export function Dashboard() {
     return (
         <Stack>
-            <Typography>Dashboard here.</Typography>
+            <Typography data-testid="dashboard-title">Dashboard here.</Typography>
             <Typography>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
                 labore et dolore magna aliqua. Ut sem viverra aliquet eget sit. Adipiscing elit duis tristique
                 sollicitudin. Lectus quam id leo in vitae turpis. Sed augue lacus viverra vitae. Orci nulla pellentesque

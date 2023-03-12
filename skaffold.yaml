@@ -92,3 +92,8 @@ profiles:
               src: public/**/*
             - dest: /workspace
               src: src/**/*
+  - name: test
+    patches:
+      - op: replace
+        path: /manifests/kustomize/paths/0
+        value: deploy/test
