@@ -37,4 +37,33 @@ jobs:
             && sudo mv skaffold /usr/local/bin \
             && skaffold version
       - name: Build Docker images
-        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=build-${GITHUB_SHA::7}.json
+        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=build.json
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: build.json
+          if-no-files-found: error
+          retention-days: 7
+
+  e2e-tests:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+      - run: |-
+          curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v2.2.0/skaffold-linux-amd64 \
+            && chmod +x skaffold \
+            && sudo mv skaffold /usr/local/bin \
+            && skaffold version
+      - uses: actions/download-artifact@v3
+        with:
+          name: build
+      - uses: engineerd/setup-kind@v0.5.0
+        run: |-
+          kubectl cluster-info
+          kubectl get pods -A
+          echo "current-context:" $(kubectl config current-context)
+          echo "environment-kubeconfig:" ${KUBECONFIG}
+#      - run: skaffold build --tag=${GITHUB_SHA::7} --file-output=build.json
