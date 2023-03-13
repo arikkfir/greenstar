@@ -66,9 +66,6 @@ jobs:
           version: v0.17.0
           config: deploy/kind/cluster-config.yaml
           wait: 600s
-      - run: |-
-          kubectl cluster-info
-          kubectl get pods -A
-          echo "current-context:" $(kubectl config current-context)
-          echo "environment-kubeconfig:" ${KUBECONFIG}
-#      - run: skaffold build --tag=${GITHUB_SHA::7} --file-output=build.json
+      - run: skaffold deploy --build-artifacts=build.json
+      - run: kubectl get pod -A
+
