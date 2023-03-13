@@ -103,6 +103,20 @@ profiles:
   - name: ci
     activation:
       - env: CI=true
+    deploy:
+      kubectl:
+        hooks:
+          before:
+            - host:
+                command:
+                  - kubectl
+                  - create
+                  - secret
+                  - generic
+                  - greenstar-google-app
+                  - --from-literal=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+                  - --from-literal=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+                os: [ darwin, linux ]
     manifests:
       kustomize:
         paths:
