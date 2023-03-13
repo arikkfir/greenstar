@@ -20,37 +20,13 @@ build:
 #      context: backend
 #      docker:
 #        dockerfile: Dockerfile.xlsconverter
+deploy:
+  statusCheckDeadlineSeconds: 600
+  statusCheck: true
 profiles:
-  - name: dev
+  - name: port-forward
     activation:
       - command: dev
-    deploy:
-      statusCheckDeadlineSeconds: 600
-      statusCheck: true
-      kubectl:
-        hooks:
-          before:
-            - host:
-                command:
-                  - kubectl
-                  - create
-                  - secret
-                  - generic
-                  - greenstar-google-app
-                  - --from-env-file=google-client-app.env
-                os: [ darwin, linux ]
-    manifests:
-      helm:
-        releases:
-          - name: greenstar-nats
-            repo: https://nats-io.github.io/k8s/helm/charts/
-            remoteChart: nats
-            namespace: default
-            wait: true
-            skipTests: true
-      kustomize:
-        paths:
-          - deploy/dev
     portForward:
       - resourceType: service
         resourceName: greenstar-frontend
@@ -80,6 +56,38 @@ profiles:
         namespace: default
         port: http
         localPort: 7474
+  - name: nats
+    activation:
+      - command: dev
+    manifests:
+      helm:
+        releases:
+          - name: greenstar-nats
+            repo: https://nats-io.github.io/k8s/helm/charts/
+            remoteChart: nats
+            namespace: default
+            wait: true
+            skipTests: true
+  - name: dev
+    activation:
+      - command: dev
+    deploy:
+      kubectl:
+        hooks:
+          before:
+            - host:
+                command:
+                  - kubectl
+                  - create
+                  - secret
+                  - generic
+                  - greenstar-google-app
+                  - --from-env-file=google-client-app.env
+                os: [ darwin, linux ]
+    manifests:
+      kustomize:
+        paths:
+          - deploy/dev
     patches:
       - op: replace
         path: /build/artifacts/0/docker/dockerfile
@@ -92,8 +100,10 @@ profiles:
               src: public/**/*
             - dest: /workspace
               src: src/**/*
-  - name: test
-    patches:
-      - op: replace
-        path: /manifests/kustomize/paths/0
-        value: deploy/test
+  - name: ci
+    activation:
+      - env: CI=true
+    manifests:
+      kustomize:
+        paths:
+          - deploy/test
