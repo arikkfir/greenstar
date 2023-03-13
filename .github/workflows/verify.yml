@@ -61,7 +61,7 @@ jobs:
         with:
           name: build
       - uses: engineerd/setup-kind@v0.5.0
-        run: |-
+      - run: |-
           kubectl cluster-info
           kubectl get pods -A
           echo "current-context:" $(kubectl config current-context)
