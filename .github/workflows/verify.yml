@@ -47,6 +47,7 @@ jobs:
 
   e2e-tests:
     runs-on: ubuntu-22.04
+    needs: build-docker-images
     permissions:
       contents: read
       packages: write
