@@ -16,3 +16,15 @@ patches:
         value:
           name: REACT_APP_USER_INFO_URL
           value: http://localhost:8000/auth/user?mock={"email":"jack@ryan.com","family_name":"Ryan","given_name":"Jack","hd":"test","id":"test|1","name":"Jack Ryan"}
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: 3Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/memory
+        value: 3Gi
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: 1000m
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 1000m

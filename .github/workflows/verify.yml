@@ -68,3 +68,4 @@ jobs:
           wait: 600s
       - run: skaffold deploy --build-artifacts=build.json -p nats
       - run: kubectl get pod -A
+      - run: skaffold delete -p nats
