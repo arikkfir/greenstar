@@ -29,6 +29,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
 	"github.com/rueian/rueidis"
+	"github.com/tavsec/gin-healthcheck"
+	"github.com/tavsec/gin-healthcheck/config"
 	"golang.org/x/oauth2"
 	"math/rand"
 	"net/http"
@@ -61,23 +63,23 @@ func (c *Config) IsSecure() bool {
 }
 
 func main() {
-	config := Config{}
+	cfg := Config{}
 
 	// Ensure we have a random seed
 	rand.Seed(time.Now().UnixNano())
 
 	// Parse configuration
-	parser := flags.NewParser(&config, flags.HelpFlag|flags.PassDoubleDash)
+	parser := flags.NewParser(&cfg, flags.HelpFlag|flags.PassDoubleDash)
 	if _, err := parser.Parse(); err != nil {
 		fmt.Printf("ERROR: %s\n\n", err)
 		parser.WriteHelp(os.Stderr)
 		os.Exit(1)
 	}
-	if config.DevMode {
+	if cfg.DevMode {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 		zerolog.DefaultContextLogger = &log.Logger
 	}
-	if level, err := zerolog.ParseLevel(config.LogLevel); err != nil {
+	if level, err := zerolog.ParseLevel(cfg.LogLevel); err != nil {
 		log.Fatal().Err(err).Msg("Failed to parse config")
 	} else {
 		zerolog.SetGlobalLevel(level)
@@ -89,9 +91,9 @@ func main() {
 
 	// Create the Redis client
 	redisClient, err := rueidis.NewClient(rueidis.ClientOption{
-		InitAddress:      []string{config.Redis.Host + ":" + strconv.Itoa(config.Redis.Port)},
+		InitAddress:      []string{cfg.Redis.Host + ":" + strconv.Itoa(cfg.Redis.Port)},
 		ClientName:       "greenstar.operations",
-		BlockingPoolSize: config.Redis.PoolSize,
+		BlockingPoolSize: cfg.Redis.PoolSize,
 	})
 	if err != nil {
 		log.Ctx(ctx).Fatal().Err(err).Msg("Failed to connect to Redis")
@@ -99,7 +101,7 @@ func main() {
 	defer redisClient.Close()
 
 	// Create the Neo4j client
-	neo4jURL := fmt.Sprintf("neo4j://%s:%d", config.Neo4j.Host, config.Neo4j.Port)
+	neo4jURL := fmt.Sprintf("neo4j://%s:%d", cfg.Neo4j.Host, cfg.Neo4j.Port)
 	neo4jDriver, err := neo4j.NewDriverWithContext(neo4jURL, neo4j.NoAuth())
 	if err != nil {
 		log.Ctx(ctx).Fatal().Err(err).Msg("Failed to connect to Neo4j")
@@ -107,7 +109,7 @@ func main() {
 	defer neo4jDriver.Close(ctx)
 
 	// Connect to NATS
-	natsClient, err := nats.Connect(config.NATS.URL, nats.RetryOnFailedConnect(true))
+	natsClient, err := nats.Connect(cfg.NATS.URL, nats.RetryOnFailedConnect(true))
 	if err != nil {
 		log.Ctx(ctx).Fatal().Err(err).Msg("Failed to connect to NATS")
 	}
@@ -128,9 +130,9 @@ func main() {
 
 	// Setup Google OAuth
 	var googleOauthConfig = &oauth2.Config{
-		RedirectURL:  config.Auth.Google.CallbackURL,
-		ClientID:     config.Auth.Google.ClientID,
-		ClientSecret: config.Auth.Google.ClientSecret,
+		RedirectURL:  cfg.Auth.Google.CallbackURL,
+		ClientID:     cfg.Auth.Google.ClientID,
+		ClientSecret: cfg.Auth.Google.ClientSecret,
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile",
@@ -140,23 +142,23 @@ func main() {
 
 	// Authentication manager
 	authenticator := &auth.Authenticator{
-		Config:              &config.Auth,
-		SecureCookies:       config.IsSecure(),
-		DefaultPostLoginURL: config.AppURL,
+		Config:              &cfg.Auth,
+		SecureCookies:       cfg.IsSecure(),
+		DefaultPostLoginURL: cfg.AppURL,
 		OAuth:               googleOauthConfig,
 	}
 
 	// Setup routes
-	router := ginutil.NewGin(config.DevMode)
+	router := ginutil.NewGin(cfg.DevMode)
 	router.Use(redisutil.CreateSetRedisMiddleware(redisClient))
 	router.Use(cors.New(cors.Config{
 		AllowAllOrigins:        false,
-		AllowOrigins:           config.HTTP.CORS.AllowedOrigins,
-		AllowMethods:           config.HTTP.CORS.AllowMethods,
-		AllowHeaders:           config.HTTP.CORS.AllowHeaders,
-		AllowCredentials:       !config.HTTP.CORS.DisableCredentials,
-		ExposeHeaders:          config.HTTP.CORS.ExposeHeaders,
-		MaxAge:                 config.HTTP.CORS.MaxAge,
+		AllowOrigins:           cfg.HTTP.CORS.AllowedOrigins,
+		AllowMethods:           cfg.HTTP.CORS.AllowMethods,
+		AllowHeaders:           cfg.HTTP.CORS.AllowHeaders,
+		AllowCredentials:       !cfg.HTTP.CORS.DisableCredentials,
+		ExposeHeaders:          cfg.HTTP.CORS.ExposeHeaders,
+		MaxAge:                 cfg.HTTP.CORS.MaxAge,
 		AllowBrowserExtensions: false,
 		AllowFiles:             false,
 		AllowWebSockets:        true,
@@ -206,8 +208,13 @@ func main() {
 		GET("/playground", func(c *gin.Context) { publicGraphPlaygroundHandler(c.Writer, c.Request) }).
 		POST("/query", func(c *gin.Context) { publicGraphHandler.ServeHTTP(c.Writer, c.Request) })
 
+	// Setup health checks under "/healthz"
+	if err := gin_healthcheck.New(router, config.DefaultConfig(), nil); err != nil {
+		log.Ctx(ctx).Fatal().Err(err).Msg("Failed to setup health checks")
+	}
+
 	// Setup HTTP server
-	httpServer := &http.Server{Addr: ":" + strconv.Itoa(config.HTTP.Port), Handler: router}
+	httpServer := &http.Server{Addr: ":" + strconv.Itoa(cfg.HTTP.Port), Handler: router}
 
 	// Start server
 	log.Ctx(ctx).Info().Str("addr", httpServer.Addr).Msg("Starting HTTP server")
