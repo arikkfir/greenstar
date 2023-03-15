@@ -50,7 +50,7 @@ spec:
             - name: AUTH_GOOGLE_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  key: GOOGLE_CLIENT_SECRET # "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"
+                  key: GOOGLE_CLIENT_SECRET
                   name: greenstar-google-app
                   optional: false
           startupProbe:
