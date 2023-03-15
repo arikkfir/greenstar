@@ -39,7 +39,8 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ~/.skaffold/
-          key: |
+          key: skaffold-${{ github.sha }}
+          restore-keys: |
             skaffold-${{ github.sha }}
             skaffold-
       - name: Build Docker images
