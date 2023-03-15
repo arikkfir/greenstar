@@ -36,6 +36,12 @@ jobs:
             && chmod +x skaffold \
             && sudo mv skaffold /usr/local/bin \
             && skaffold version
+      - uses: actions/cache@v3
+        with:
+          path: ~/.skaffold/
+          key: |
+            skaffold-${{ github.sha }}
+            skaffold-
       - name: Build Docker images
         run: skaffold build --tag=${GITHUB_SHA::7} --file-output=build.json
       - uses: actions/upload-artifact@v3
