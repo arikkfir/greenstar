@@ -68,4 +68,6 @@ jobs:
           wait: 600s
       - run: skaffold deploy --build-artifacts=build.json -p nats
       - run: kubectl get pod -A
+      - run: curl -sSL http://localhost:8000/healthz
+      - run: curl -sSL http://localhost:3000/index.html
       - run: skaffold delete -p nats
