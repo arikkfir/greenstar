@@ -73,7 +73,7 @@ jobs:
           version: v0.17.0
           config: deploy/kind/cluster-config.yaml
           wait: 600s
-      - run: skaffold deploy --build-artifacts=build.json -p nats
+      - run: skaffold deploy --tolerate-failures-until-deadline=true --build-artifacts=build.json -p nats
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}

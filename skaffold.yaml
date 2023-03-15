@@ -20,6 +20,9 @@ build:
 #      context: backend
 #      docker:
 #        dockerfile: Dockerfile.xlsconverter
+deploy:
+  statusCheckDeadlineSeconds: 600
+  statusCheck: true
 profiles:
   - name: port-forward
     activation:
@@ -56,6 +59,7 @@ profiles:
   - name: nats
     activation:
       - command: dev
+      - env: CI=true
     manifests:
       helm:
         releases:
@@ -69,8 +73,6 @@ profiles:
     activation:
       - command: dev
     deploy:
-      statusCheckDeadlineSeconds: 60
-      statusCheck: true
       kubectl:
         hooks:
           before:
@@ -100,8 +102,6 @@ profiles:
     activation:
       - env: CI=true
     deploy:
-      statusCheckDeadlineSeconds: 600
-      statusCheck: true
       kubectl:
         hooks:
           before:
