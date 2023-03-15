@@ -69,7 +69,6 @@ spec:
             failureThreshold: 3
             initialDelaySeconds: 3
             periodSeconds: 5
-            successThreshold: 3
             terminationGracePeriodSeconds: 10
             timeoutSeconds: 3
           livenessProbe:
@@ -78,7 +77,6 @@ spec:
               path: /healthz
             failureThreshold: 3
             periodSeconds: 3
-            successThreshold: 3
             terminationGracePeriodSeconds: 10
             timeoutSeconds: 3
           ports:
