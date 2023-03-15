@@ -21,10 +21,10 @@ patches:
         value: 3Gi
       - op: replace
         path: /spec/template/spec/containers/0/resources/requests/memory
-        value: 3Gi
+        value: 1Gi
       - op: replace
         path: /spec/template/spec/containers/0/resources/limits/cpu
-        value: 1000m
+        value: 500m
       - op: replace
         path: /spec/template/spec/containers/0/resources/requests/cpu
-        value: 1000m
+        value: 100m
