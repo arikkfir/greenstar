@@ -43,9 +43,6 @@ patches:
       name: greenstar-frontend
     patch: |-
       - op: replace
-        path: /spec/template/spec/containers/0/ports/0/containerPort
-        value: 3000
-      - op: replace
         path: /spec/template/spec/containers/0/resources/limits/memory
         value: 6Gi
       - op: replace
