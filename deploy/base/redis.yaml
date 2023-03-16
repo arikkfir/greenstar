@@ -25,6 +25,21 @@ spec:
     app.kubernetes.io/component: redis
   type: ClusterIP
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/component: redis
+  name: greenstar-redis
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -58,4 +73,13 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
+          volumeMounts:
+            - mountPath: /data
+              name: data
+              readOnly: false
       serviceAccountName: greenstar-redis
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: greenstar-redis
+            readOnly: false
