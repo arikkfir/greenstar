@@ -73,11 +73,14 @@ jobs:
           version: v0.17.0
           config: deploy/kind/cluster-config.yaml
           wait: 600s
+      - run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+      - run: kubectl wait --for=condition=available -n ingress-nginx deploy/ingress-nginx-controller
       - run: skaffold deploy --tolerate-failures-until-deadline=true --build-artifacts=build.json -p nats
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       - run: kubectl get pod -A
-      - run: curl -sSL http://localhost:8000/healthz
-      - run: curl -sSL http://localhost:3000/index.html
+      - run: curl -i http://localhost/auth/google/login
+      - run: curl -i http://localhost/api/operations/
+      - run: curl -i http://localhost/index.html
       - run: skaffold delete -p nats

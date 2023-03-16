@@ -27,7 +27,6 @@ profiles:
   - name: port-forward
     activation:
       - command: dev
-      - env: CI=true
     portForward:
       - resourceType: service
         resourceName: greenstar-frontend
