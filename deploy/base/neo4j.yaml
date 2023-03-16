@@ -25,6 +25,96 @@ spec:
     app.kubernetes.io/component: neo4j
   type: ClusterIP
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/component: neo4j
+  name: greenstar-neo4j-backups
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/component: neo4j
+  name: greenstar-neo4j-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/component: neo4j
+  name: greenstar-neo4j-import
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/component: neo4j
+  name: greenstar-neo4j-logs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/component: neo4j
+  name: greenstar-neo4j-metrics
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/component: neo4j
+  name: greenstar-neo4j-plugins
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -83,4 +173,48 @@ spec:
             requests:
               cpu: 500m
               memory: 1Gi
+          volumeMounts:
+            - mountPath: /backups
+              name: backups
+              readOnly: false
+            - mountPath: /data
+              name: data
+              readOnly: false
+            - mountPath: /import
+              name: import
+              readOnly: false
+            - mountPath: /logs
+              name: logs
+              readOnly: false
+            - mountPath: /metrics
+              name: metrics
+              readOnly: false
+            - mountPath: /plugins
+              name: plugins
+              readOnly: false
       serviceAccountName: greenstar-neo4j
+      volumes:
+        - name: backups
+          persistentVolumeClaim:
+            claimName: greenstar-neo4j-backups
+            readOnly: false
+        - name: data
+          persistentVolumeClaim:
+            claimName: greenstar-neo4j-data
+            readOnly: false
+        - name: import
+          persistentVolumeClaim:
+            claimName: greenstar-neo4j-import
+            readOnly: false
+        - name: logs
+          persistentVolumeClaim:
+            claimName: greenstar-neo4j-logs
+            readOnly: false
+        - name: metrics
+          persistentVolumeClaim:
+            claimName: greenstar-neo4j-metrics
+            readOnly: false
+        - name: plugins
+          persistentVolumeClaim:
+            claimName: greenstar-neo4j-plugins
+            readOnly: false
