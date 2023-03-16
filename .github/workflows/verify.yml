@@ -75,6 +75,8 @@ jobs:
           wait: 600s
       - run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
       - run: kubectl wait --for=condition=available -n ingress-nginx deploy/ingress-nginx-controller
+      - run: kubectl wait -n ingress-nginx job/ingress-nginx-admission-create --for=condition=complete
+      - run: kubectl wait -n ingress-nginx job/ingress-nginx-admission-patch --for=condition=complete
       - run: skaffold deploy --tolerate-failures-until-deadline=true --build-artifacts=build.json -p nats
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
