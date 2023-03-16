@@ -44,7 +44,7 @@ jobs:
             skaffold-${{ github.sha }}
             skaffold-
       - name: Build Docker images
-        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=build.json
+        run: skaffold build --tag=${GITHUB_SHA::7} --file-output=build.json --build-concurrency=0 --detect-minikube=false
       - uses: actions/upload-artifact@v3
         with:
           name: build
