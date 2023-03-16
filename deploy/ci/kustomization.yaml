@@ -18,10 +18,10 @@ patches:
           value: http://localhost:8000/auth/user?mock={"email":"jack@ryan.com","family_name":"Ryan","given_name":"Jack","hd":"test","id":"test|1","name":"Jack Ryan"}
       - op: replace
         path: /spec/template/spec/containers/0/resources/limits/memory
-        value: 3Gi
+        value: 128Mi
       - op: replace
         path: /spec/template/spec/containers/0/resources/requests/memory
-        value: 1Gi
+        value: 64Mi
       - op: replace
         path: /spec/template/spec/containers/0/resources/limits/cpu
         value: 500m
