@@ -66,6 +66,26 @@ spec:
               name: redis
             - containerPort: 8001
               name: http
+          startupProbe:
+            exec:
+              command:
+                - bash
+                - -c
+                - '[[ "$(redis-cli PING)" == "PONG" ]]'
+            failureThreshold: 30
+            periodSeconds: 5
+            terminationGracePeriodSeconds: 60
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - bash
+                - -c
+                - '[[ "$(redis-cli PING)" == "PONG" ]]'
+            failureThreshold: 3
+            periodSeconds: 5
+            terminationGracePeriodSeconds: 60
+            timeoutSeconds: 5
           resources:
             limits:
               cpu: 500m
