@@ -114,4 +114,4 @@ profiles:
     manifests:
       kustomize:
         paths:
-          - deploy/test
+          - deploy/ci
