@@ -66,11 +66,10 @@ spec:
             httpGet:
               port: http
               path: /healthz
-            failureThreshold: 3
-            initialDelaySeconds: 3
-            periodSeconds: 5
+            failureThreshold: 30
+            periodSeconds: 10
             terminationGracePeriodSeconds: 10
-            timeoutSeconds: 3
+            timeoutSeconds: 1
           livenessProbe:
             httpGet:
               port: http
@@ -78,7 +77,7 @@ spec:
             failureThreshold: 3
             periodSeconds: 3
             terminationGracePeriodSeconds: 10
-            timeoutSeconds: 3
+            timeoutSeconds: 1
           ports:
             - containerPort: 8000
               name: http

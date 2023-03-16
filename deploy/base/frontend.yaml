@@ -57,11 +57,10 @@ spec:
             httpGet:
               port: http
               path: /index.html
-            failureThreshold: 10
-            initialDelaySeconds: 20
-            periodSeconds: 5
+            failureThreshold: 30
+            periodSeconds: 10
             terminationGracePeriodSeconds: 30
-            timeoutSeconds: 3
+            timeoutSeconds: 1
           livenessProbe:
             httpGet:
               port: http
@@ -69,7 +68,7 @@ spec:
             failureThreshold: 3
             periodSeconds: 3
             terminationGracePeriodSeconds: 10
-            timeoutSeconds: 3
+            timeoutSeconds: 1
           ports:
             - containerPort: 80
               name: http
