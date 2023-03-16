@@ -69,7 +69,7 @@ profiles:
             namespace: default
             wait: true
             skipTests: true
-  - name: dev
+  - name: local-dev
     activation:
       - command: dev
     deploy:
