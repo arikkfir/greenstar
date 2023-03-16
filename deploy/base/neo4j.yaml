@@ -166,6 +166,26 @@ spec:
               name: neo4j
             - containerPort: 7474
               name: http
+          startupProbe:
+            exec:
+              command:
+                - /var/lib/neo4j/bin/cypher-shell
+                - --non-interactive
+                - SHOW DATABASES
+            failureThreshold: 30
+            periodSeconds: 10
+            terminationGracePeriodSeconds: 60
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - /var/lib/neo4j/bin/cypher-shell
+                - --non-interactive
+                - SHOW DATABASES
+            failureThreshold: 3
+            periodSeconds: 10
+            terminationGracePeriodSeconds: 60
+            timeoutSeconds: 5
           resources:
             limits:
               cpu: 2000m
