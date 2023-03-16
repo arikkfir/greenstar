@@ -24,38 +24,6 @@ deploy:
   statusCheckDeadlineSeconds: 600
   statusCheck: true
 profiles:
-  - name: port-forward
-    activation:
-      - command: dev
-    portForward:
-      - resourceType: service
-        resourceName: greenstar-frontend
-        namespace: default
-        port: http
-        localPort: 3000
-      - resourceType: service
-        resourceName: greenstar-backend
-        namespace: default
-        port: http
-        localPort: 8000
-      - resourceType: service
-        resourceName: greenstar-redis
-        namespace: default
-        port: 6379
-      - resourceType: service
-        resourceName: greenstar-redis
-        namespace: default
-        port: http
-        localPort: 9000
-      - resourceType: service
-        resourceName: greenstar-neo4j
-        namespace: default
-        port: 7687
-      - resourceType: service
-        resourceName: greenstar-neo4j
-        namespace: default
-        port: http
-        localPort: 7474
   - name: nats
     activation:
       - command: dev
@@ -98,6 +66,35 @@ profiles:
               src: public/**/*
             - dest: /workspace
               src: src/**/*
+    portForward:
+      - resourceType: service
+        resourceName: greenstar-frontend
+        namespace: default
+        port: http
+        localPort: 3000
+      - resourceType: service
+        resourceName: greenstar-backend
+        namespace: default
+        port: http
+        localPort: 8000
+      - resourceType: service
+        resourceName: greenstar-redis
+        namespace: default
+        port: 6379
+      - resourceType: service
+        resourceName: greenstar-redis
+        namespace: default
+        port: http
+        localPort: 9000
+      - resourceType: service
+        resourceName: greenstar-neo4j
+        namespace: default
+        port: 7687
+      - resourceType: service
+        resourceName: greenstar-neo4j
+        namespace: default
+        port: http
+        localPort: 7474
   - name: ci
     activation:
       - env: CI=true

@@ -78,7 +78,7 @@ jobs:
       - run: kubectl wait -n ingress-nginx job/ingress-nginx-admission-create --for=condition=complete
       - run: kubectl wait -n ingress-nginx job/ingress-nginx-admission-patch --for=condition=complete
       - run: sleep 30
-      - run: skaffold deploy --tolerate-failures-until-deadline=true --build-artifacts=build.json -p nats
+      - run: skaffold deploy --tolerate-failures-until-deadline=true --build-artifacts=build.json
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
@@ -86,4 +86,4 @@ jobs:
       - run: curl -i http://localhost/auth/google/login
       - run: curl -i http://localhost/api/operations/
       - run: curl -i http://localhost/index.html
-      - run: skaffold delete -p nats
+      - run: skaffold delete
