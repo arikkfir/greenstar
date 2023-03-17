@@ -94,11 +94,14 @@ jobs:
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      - uses: actions/cache@v3
+      - uses: actions/setup-node@v3
         with:
-          path: e2e/node_modules
-          key: ${{ runner.os }}-e2e-${{ hashFiles('e2e/package*.json') }}
+          node-version: 18.x
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
       - run: npm ci
+        working-directory: e2e
+      - run: npx playwright install --with-deps
         working-directory: e2e
       - run: npx playwright test
         working-directory: e2e
