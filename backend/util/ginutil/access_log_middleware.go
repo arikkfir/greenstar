@@ -67,5 +67,16 @@ func AccessLogMiddleware(c *gin.Context) {
 	re = re.Errs("http:res:errors", errorsArr)
 
 	logger := re.Logger()
-	logger.Info().Msg("Request processed")
+
+	status := c.Writer.Status()
+	var event *zerolog.Event
+	if status >= 200 && status <= 399 {
+		event = logger.Info()
+	} else if status >= 400 && status <= 499 {
+		event = logger.Warn()
+	} else {
+		event = logger.Error()
+
+	}
+	event.Msg("Request processed")
 }
