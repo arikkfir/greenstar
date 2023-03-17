@@ -3,6 +3,12 @@ import {defineConfig, devices} from '@playwright/test';
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
+
+console.info('Reporters:', process.env.CI ? 'github' : [
+    ['list', {printSteps: true}],
+    ['html', {open: 'never'}],
+]);
+
 export default defineConfig({
     testDir: './specs',
     timeout: 30 * 1000,

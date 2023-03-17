@@ -1,7 +1,10 @@
 name: Verify
 on:
-  push:
-    branches: ["*"]
+  pull_request:
+    types:
+      - synchronize
+#  push:
+#    branches: ["*"]
 defaults:
   run:
     shell: bash -euxo pipefail {0}
