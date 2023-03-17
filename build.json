@@ -1,0 +1,12 @@
+{
+  "builds": [
+    {
+      "imageName": "ghcr.io/arikkfir/greenstar/frontend",
+      "tag": "ghcr.io/arikkfir/greenstar/frontend:4b18b8f172e9b9a4c96bf8d283fd7d7d0237831fef08fd3a4d613b5b8102ebc0"
+    },
+    {
+      "imageName": "ghcr.io/arikkfir/greenstar/backend",
+      "tag": "ghcr.io/arikkfir/greenstar/backend:c47de4da3b7389e685e7e846b25d0247d02ac97eb6b9f5386f708132830f8b25"
+    }
+  ]
+}
