@@ -11,10 +11,11 @@ import (
 const sessionContextKey = "$$$$____session____$$$$"
 
 type Session struct {
-	Claims      jwt.RegisteredClaims `json:"claims"`
-	Token       *oauth2.Token        `json:"token"`
-	Tenant      string               `json:"tenant"`
-	Permissions []string             `json:"permissions"`
+	Claims       jwt.RegisteredClaims       `json:"claims"`
+	Token        *oauth2.Token              `json:"token"`
+	Tenant       string                     `json:"tenant"`
+	Permissions  []string                   `json:"permissions"`
+	MockUserInfo *GoogleAPIUserInfoResponse `json:"mockUserInfo,omitempty"`
 }
 
 func GetSession(ctx context.Context) *Session {
@@ -30,4 +31,13 @@ func GetSession(ctx context.Context) *Session {
 
 func setSession(c *gin.Context, session *Session) {
 	c.Set(sessionContextKey, session)
+}
+
+func (s *Session) HasPermission(permission string) bool {
+	for _, p := range s.Permissions {
+		if p == permission {
+			return true
+		}
+	}
+	return false
 }
