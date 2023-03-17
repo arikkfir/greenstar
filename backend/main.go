@@ -178,7 +178,7 @@ func main() {
 	opsGraphHandler := handler.NewDefaultServer(opsGraphSchema)
 	opsGraphHandler.SetErrorPresenter(gqlutil.ErrorPresenter)
 	opsGraphHandler.SetRecoverFunc(gqlutil.PanicRecoverer)
-	opsGraphPlaygroundHandler := playground.Handler("Operations GraphQL playground", "/operations/query")
+	opsGraphPlaygroundHandler := playground.Handler("Operations GraphQL playground", "/api/operations/query")
 	router.Group("/api/operations").
 		Use(authenticator.CreateMiddlewareForFilteringUnauthenticated("greenstar.operations")).
 		GET("/playground", func(c *gin.Context) { opsGraphPlaygroundHandler(c.Writer, c.Request) }).
@@ -190,7 +190,7 @@ func main() {
 	adminGraphHandler := handler.NewDefaultServer(adminGraphSchema)
 	adminGraphHandler.SetErrorPresenter(gqlutil.ErrorPresenter)
 	adminGraphHandler.SetRecoverFunc(gqlutil.PanicRecoverer)
-	adminGraphPlaygroundHandler := playground.Handler("Admin GraphQL playground", "/admin/query")
+	adminGraphPlaygroundHandler := playground.Handler("Admin GraphQL playground", "/api/admin/query")
 	router.Group("/api/admin").
 		Use(authenticator.CreateMiddlewareForFilteringUnauthenticated("greenstar.admin")).
 		GET("/playground", func(c *gin.Context) { adminGraphPlaygroundHandler(c.Writer, c.Request) }).
@@ -202,7 +202,7 @@ func main() {
 	publicGraphHandler := handler.NewDefaultServer(publicGraphSchema)
 	publicGraphHandler.SetErrorPresenter(gqlutil.ErrorPresenter)
 	publicGraphHandler.SetRecoverFunc(gqlutil.PanicRecoverer)
-	publicGraphPlaygroundHandler := playground.Handler("Public GraphQL playground", "/public/query")
+	publicGraphPlaygroundHandler := playground.Handler("Public GraphQL playground", "/api/public/query")
 	router.Group("/api/public").
 		Use(authenticator.CreateMiddlewareForFilteringUnauthenticated("greenstar.public")).
 		GET("/playground", func(c *gin.Context) { publicGraphPlaygroundHandler(c.Writer, c.Request) }).
