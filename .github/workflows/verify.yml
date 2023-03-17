@@ -94,8 +94,8 @@ jobs:
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      - run: kubectl get pod -A
-      - run: curl -i http://localhost/auth/google/login
-      - run: curl -i http://localhost/api/operations/
-      - run: curl -i http://localhost/index.html
+      - run: npx playwright test
+        working-directory: e2e
+        env:
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       - run: skaffold delete
