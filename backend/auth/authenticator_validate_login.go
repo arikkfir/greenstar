@@ -28,6 +28,8 @@ func (a *Authenticator) CreateMiddlewareForFilteringUnauthenticated(audience str
 		r := redisutil.GetRedis(c)
 
 		if _, err := jwt.ParseWithClaims(claimsCookieValue, &claims, a.createTokenVerificationCallback); err != nil {
+			c.SetCookie(a.Config.StateCookieName, "", -1, "/", "", a.SecureCookies, true)
+			c.SetCookie(a.Config.ClaimsCookieName, "", -1, "/", "", a.SecureCookies, true)
 			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed parsing JWT token '%s': %w", claimsCookieValue, err))
 		} else if !claims.VerifyAudience(audience, true) {
 			c.AbortWithError(http.StatusForbidden, fmt.Errorf("forbidden audience: %s", audience))
@@ -42,7 +44,9 @@ func (a *Authenticator) CreateMiddlewareForFilteringUnauthenticated(audience str
 		} else if result := r.Do(c, r.B().Get().Key("session:"+claims.ID).Build()); result.Error() != nil {
 			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("failed getting session '%s' from redis: %w", claims.ID, err))
 		} else if err := result.DecodeJSON(&session); err != nil {
-			c.AbortWithError(http.StatusUnauthorized, fmt.Errorf("failed decoding session from redis: %w", err))
+			c.SetCookie(a.Config.StateCookieName, "", -1, "/", "", a.SecureCookies, true)
+			c.SetCookie(a.Config.ClaimsCookieName, "", -1, "/", "", a.SecureCookies, true)
+			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed decoding session from redis: %w", err))
 		} else if session.Claims.Issuer != claims.Issuer {
 			c.AbortWithError(http.StatusForbidden, fmt.Errorf("issuer mismatch, expected '%s', got: %s", session.Claims.Issuer, claims.Issuer))
 		} else if session.Claims.Subject != claims.Subject {
