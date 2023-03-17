@@ -39,7 +39,7 @@ jobs:
       - uses: docker/metadata-action@v4
         id: meta
         with:
-          images: ghcr.io/arikkfir/${{ github.repository }}/${{ matrix.image }}
+          images: ghcr.io/${{ github.repository }}/${{ matrix.image }}
           tags: |
             type=sha,prefix=,suffix=,format=short
             type=ref,event=branch
