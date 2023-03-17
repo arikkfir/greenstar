@@ -42,13 +42,14 @@ profiles:
       - command: dev
     deploy:
       kubectl:
+        defaultNamespace: default
         hooks:
           before:
             - host:
                 command:
                   - sh
                   - -cx
-                  - kubectl create secret generic greenstar-google-app --save-config --output=yaml --dry-run=client --from-env-file=google-client-app.env | kubectl apply -f -
+                  - kubectl create secret generic greenstar-google-app -n default --save-config --output=yaml --dry-run=client --from-env-file=google-client-app.env | kubectl apply -f -
                 os: [ darwin, linux ]
     manifests:
       kustomize:
@@ -100,13 +101,14 @@ profiles:
       - env: CI=true
     deploy:
       kubectl:
+        defaultNamespace: default
         hooks:
           before:
             - host:
                 command:
                   - sh
                   - -cx
-                  - kubectl create secret generic greenstar-google-app --save-config --output=yaml --dry-run=client --from-literal=GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} --from-literal=GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} | kubectl apply -f -
+                  - kubectl create secret generic greenstar-google-app -n default --save-config --output=yaml --dry-run=client --from-literal=GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} --from-literal=GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} | kubectl apply -f -
                 os: [ darwin, linux ]
     manifests:
       kustomize:
