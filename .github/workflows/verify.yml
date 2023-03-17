@@ -81,11 +81,11 @@ jobs:
             "builds": [
               {
                 "imageName": "ghcr.io/arikkfir/greenstar/frontend",
-                "tag": "ghcr.io/arikkfir/greenstar/frontend:${{ github.sha }}"
+                "tag": "ghcr.io/arikkfir/greenstar/frontend:${GITHUB_SHA:0:7}"
               },
               {
                 "imageName": "ghcr.io/arikkfir/greenstar/backend",
-                "tag": "ghcr.io/arikkfir/greenstar/backend:${{ github.sha }}"
+                "tag": "ghcr.io/arikkfir/greenstar/backend:${GITHUB_SHA:0:7}"
               }
             ]
           }
