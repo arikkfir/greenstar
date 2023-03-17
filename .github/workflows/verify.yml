@@ -108,6 +108,7 @@ jobs:
         working-directory: e2e
       - run: npx playwright install --with-deps
         working-directory: e2e
+      - run: curl -i http://localhost
       - run: npx playwright test
         working-directory: e2e
         env:

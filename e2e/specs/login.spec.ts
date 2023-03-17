@@ -37,6 +37,7 @@ test.describe('Login', () => {
             subject: "test|1",
             mutatePayload: true,
         });
+        console.info("Token: ", token)
 
         const session = {
             "claims": payload,
@@ -61,12 +62,14 @@ test.describe('Login', () => {
                 "name": "Jack Ryan"
             }
         }
+        console.info("Session: ", session)
 
         // Save the session to Redis
         const redisClient = createClient();
         await redisClient.connect();
         await redisClient.set('session:test-session-id', JSON.stringify(session));
         await redisClient.disconnect();
+        console.info("Session saved")
 
         // Set the cookie
         await page.context().addCookies([{
@@ -78,9 +81,11 @@ test.describe('Login', () => {
             httpOnly: true,
             secure: false,
         }])
+        console.info("Added cookie")
 
         // Navigate to the dashboard, and expect our session cookie to be accepted
         await page.goto('http://localhost');
+        console.info("Went to page")
         await expect(page.getByTestId("dashboard-title")).toHaveText('Dashboard here.');
     })
 })
