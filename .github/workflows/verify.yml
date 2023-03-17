@@ -22,6 +22,10 @@ jobs:
     permissions:
       contents: read
       packages: write
+    strategy:
+      fail-fast: true
+      matrix:
+        image: [backend, frontend]
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v2
@@ -35,7 +39,7 @@ jobs:
       - uses: docker/metadata-action@v4
         id: meta
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/arikkfir/${{ github.repository }}/${{ matrix.image }}
           tags: |
             type=sha,prefix=,suffix=,format=short
             type=ref,event=branch
@@ -47,31 +51,9 @@ jobs:
           cache-to: type=gha,mode=max
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-      - run: |-
-          cat > build.json <<EOF
-          {
-            "builds": [
-              {
-                "imageName": "ghcr.io/arikkfir/greenstar/frontend",
-                "tag": "ghcr.io/arikkfir/greenstar/frontend:${{ github.sha }}"
-              },
-              {
-                "imageName": "ghcr.io/arikkfir/greenstar/backend",
-                "tag": "ghcr.io/arikkfir/greenstar/backend:${{ github.sha }}"
-              }
-            ]
-          }
-          EOF
-      - uses: actions/upload-artifact@v3
-        with:
-          name: build
-          path: build.json
-          if-no-files-found: error
-          retention-days: 7
 
   e2e-tests:
     runs-on: ubuntu-22.04
-    needs: build-docker-images
     permissions:
       contents: read
       packages: write
@@ -92,9 +74,21 @@ jobs:
             && chmod +x skaffold \
             && sudo mv skaffold /usr/local/bin \
             && skaffold version
-      - uses: actions/download-artifact@v3
-        with:
-          name: build
+      - run: |-
+          cat > build.json <<EOF
+          {
+            "builds": [
+              {
+                "imageName": "ghcr.io/arikkfir/greenstar/frontend",
+                "tag": "ghcr.io/arikkfir/greenstar/frontend:${{ github.sha }}"
+              },
+              {
+                "imageName": "ghcr.io/arikkfir/greenstar/backend",
+                "tag": "ghcr.io/arikkfir/greenstar/backend:${{ github.sha }}"
+              }
+            ]
+          }
+          EOF
       - run: skaffold deploy --tolerate-failures-until-deadline=true --build-artifacts=build.json
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
