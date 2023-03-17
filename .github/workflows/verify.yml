@@ -49,6 +49,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          context: ${{ matrix.image }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
