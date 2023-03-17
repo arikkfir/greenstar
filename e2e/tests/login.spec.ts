@@ -1,9 +1,9 @@
 import {expect, test} from '@playwright/test';
+import {config} from 'dotenv'
 import jwt from 'jsonwebtoken';
+import {DateTime} from 'luxon'
 import * as path from "path";
 import {createClient} from 'redis';
-import {DateTime} from 'luxon'
-import {config} from 'dotenv'
 
 config({
     path: path.resolve(__dirname, '..', 'google-client-app.env')
@@ -51,7 +51,15 @@ test.describe('Login', () => {
                 "greenstar.auth.getUserInfo",
                 "greenstar.auth.getUserInfo:mock",
                 "greenstar.admin.createTenant",
-            ]
+            ],
+            "mockUserInfo": {
+                "email": "jack@ryan.com",
+                "family_name": "Ryan",
+                "given_name": "Jack",
+                "hd": "test",
+                "id": "test|1",
+                "name": "Jack Ryan"
+            }
         }
 
         // Save the session to Redis
@@ -72,7 +80,7 @@ test.describe('Login', () => {
         }])
 
         // Navigate to the dashboard, and expect our session cookie to be accepted
-        await page.goto('http://localhost:3000/');
+        await page.goto('http://localhost');
         await expect(page.getByTestId("dashboard-title")).toHaveText('Dashboard here.');
     })
 })

@@ -16,7 +16,7 @@ export default defineConfig({
     reporter: 'list',
     use: {
         actionTimeout: 0,
-        baseURL: 'http://localhost:3000',
+        baseURL: 'http://localhost',
         trace: 'on',
     },
     projects: [
