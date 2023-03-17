@@ -24,6 +24,11 @@ func (rc *customReadCloser) Close() error {
 }
 
 func AccessLogMiddleware(c *gin.Context) {
+	if c.Request.RequestURI == "/healthz" {
+		c.Next()
+		return
+	}
+
 	//
 	// Set up a request logger, which:
 	// - adds simple metadata fields
