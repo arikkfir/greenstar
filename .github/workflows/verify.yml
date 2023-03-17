@@ -94,6 +94,12 @@ jobs:
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      - uses: actions/cache@v3
+        with:
+          path: e2e/node_modules
+          key: ${{ runner.os }}-e2e-${{ hashFiles('e2e/package*.json') }}
+      - run: npm ci
+        working-directory: e2e
       - run: npx playwright test
         working-directory: e2e
         env:
