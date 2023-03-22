@@ -69,16 +69,6 @@ profiles:
               src: src/**/*
     portForward:
       - resourceType: service
-        resourceName: greenstar-frontend
-        namespace: default
-        port: http
-        localPort: 3000
-      - resourceType: service
-        resourceName: greenstar-backend
-        namespace: default
-        port: http
-        localPort: 8000
-      - resourceType: service
         resourceName: greenstar-redis
         namespace: default
         port: 6379
