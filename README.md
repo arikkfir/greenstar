@@ -2,8 +2,8 @@
 
 GreenSTAR is an accounting application built for the new generation.
 
-https://greenstar.analytics
-https://greenstar.app
+- https://greenstar.analytics
+- https://greenstar.app
 
 (the above do not work yet)
 
