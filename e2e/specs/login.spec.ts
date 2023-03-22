@@ -33,43 +33,11 @@ test.describe('Login', () => {
                 "greenstar.public"
             ],
             issuer: "greenstar.auth",
-            jwtid: "test-session-id",
+            jwtid: "test:" + DateTime.now().toISO(),
             subject: "test|1",
             mutatePayload: true,
         });
         console.info("Token: ", token)
-
-        const session = {
-            "claims": payload,
-            "token": {
-                "access_token": "bogus_access_token",
-                "token_type": "Bearer",
-                "refresh_token": "bogus_refresh_token",
-                "expiry": DateTime.now().plus({minutes: 15}).toISO(),
-            },
-            "tenant": "test",
-            "permissions": [
-                "greenstar.auth.getUserInfo",
-                "greenstar.auth.getUserInfo:mock",
-                "greenstar.admin.createTenant",
-            ],
-            "mockUserInfo": {
-                "email": "jack@ryan.com",
-                "family_name": "Ryan",
-                "given_name": "Jack",
-                "hd": "test",
-                "id": "test|1",
-                "name": "Jack Ryan"
-            }
-        }
-        console.info("Session: ", session)
-
-        // Save the session to Redis
-        const redisClient = createClient();
-        await redisClient.connect();
-        await redisClient.set('session:test-session-id', JSON.stringify(session));
-        await redisClient.disconnect();
-        console.info("Session saved")
 
         // Set the cookie
         await page.context().addCookies([{
@@ -81,7 +49,6 @@ test.describe('Login', () => {
             httpOnly: true,
             secure: false,
         }])
-        console.info("Added cookie")
 
         // Navigate to the dashboard, and expect our session cookie to be accepted
         await page.goto('http://localhost');

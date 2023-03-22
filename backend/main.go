@@ -167,10 +167,10 @@ func main() {
 
 	// Authentication routes
 	router.Group("/auth").
-		GET("/google/login", authenticator.InitiateLogin).
+		GET("/google/login", authenticator.HandleInitiateLogin).
 		GET("/google/callback", authenticator.HandleCallback).
 		GET("/google/logout", authenticator.HandleLogout).
-		GET("/user", authenticator.CreateMiddlewareForFilteringUnauthenticated("greenstar.auth"), authenticator.HandleUserInfo)
+		GET("/user", authenticator.HandleUserInfo)
 
 	// Operations routes
 	opsGraphResolver := &opsResolver.Resolver{Redis: redisClient}
@@ -180,7 +180,7 @@ func main() {
 	opsGraphHandler.SetRecoverFunc(gqlutil.PanicRecoverer)
 	opsGraphPlaygroundHandler := playground.Handler("Operations GraphQL playground", "/api/operations/query")
 	router.Group("/api/operations").
-		Use(authenticator.CreateMiddlewareForFilteringUnauthenticated("greenstar.operations")).
+		Use(authenticator.CreateRequireAuthenticationMiddleware("greenstar.operations")).
 		GET("/playground", func(c *gin.Context) { opsGraphPlaygroundHandler(c.Writer, c.Request) }).
 		POST("/query", func(c *gin.Context) { opsGraphHandler.ServeHTTP(c.Writer, c.Request) })
 
@@ -192,7 +192,7 @@ func main() {
 	adminGraphHandler.SetRecoverFunc(gqlutil.PanicRecoverer)
 	adminGraphPlaygroundHandler := playground.Handler("Admin GraphQL playground", "/api/admin/query")
 	router.Group("/api/admin").
-		Use(authenticator.CreateMiddlewareForFilteringUnauthenticated("greenstar.admin")).
+		Use(authenticator.CreateRequireAuthenticationMiddleware("greenstar.admin")).
 		GET("/playground", func(c *gin.Context) { adminGraphPlaygroundHandler(c.Writer, c.Request) }).
 		POST("/query", func(c *gin.Context) { adminGraphHandler.ServeHTTP(c.Writer, c.Request) })
 
@@ -204,7 +204,7 @@ func main() {
 	publicGraphHandler.SetRecoverFunc(gqlutil.PanicRecoverer)
 	publicGraphPlaygroundHandler := playground.Handler("Public GraphQL playground", "/api/public/query")
 	router.Group("/api/public").
-		Use(authenticator.CreateMiddlewareForFilteringUnauthenticated("greenstar.public")).
+		Use(authenticator.CreateRequireAuthenticationMiddleware("greenstar.public")).
 		GET("/playground", func(c *gin.Context) { publicGraphPlaygroundHandler(c.Writer, c.Request) }).
 		POST("/query", func(c *gin.Context) { publicGraphHandler.ServeHTTP(c.Writer, c.Request) })
 

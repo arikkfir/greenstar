@@ -1,11 +1,9 @@
 package auth
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
-	"io"
 	"net/http"
 )
 
@@ -22,7 +20,47 @@ type GoogleAPIUserInfoResponse struct {
 }
 
 func (a *Authenticator) HandleUserInfo(c *gin.Context) {
-	session := GetSession(c)
+	claims, err := a.parseClaimsFromCookie(c, "greenstar.auth")
+	if err != nil {
+		c.SetCookie(a.Config.StateCookieName, "", -1, "/", "", a.SecureCookies, true)
+		c.SetCookie(a.Config.ClaimsCookieName, "", -1, "/", "", a.SecureCookies, true)
+		c.AbortWithError(http.StatusUnauthorized, gin.Error{
+			Err:  fmt.Errorf("failed getting claims from cookie: %w", err),
+			Type: gin.ErrorTypePrivate,
+		})
+		return
+	} else if claims == nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	session, err := a.loadSession(c, claims.ID)
+	if err != nil {
+		c.SetCookie(a.Config.StateCookieName, "", -1, "/", "", a.SecureCookies, true)
+		c.SetCookie(a.Config.ClaimsCookieName, "", -1, "/", "", a.SecureCookies, true)
+		c.AbortWithError(http.StatusUnauthorized, gin.Error{
+			Err:  fmt.Errorf("failed loading session for claims: %w", err),
+			Type: gin.ErrorTypePrivate,
+		})
+		return
+	} else if session == nil {
+		c.SetCookie(a.Config.StateCookieName, "", -1, "/", "", a.SecureCookies, true)
+		c.SetCookie(a.Config.ClaimsCookieName, "", -1, "/", "", a.SecureCookies, true)
+		c.AbortWithError(http.StatusUnauthorized, gin.Error{
+			Err:  fmt.Errorf("session not found for claims: %w", err),
+			Type: gin.ErrorTypePrivate,
+		})
+		return
+	} else if err := a.verifyClaimsAndSession(claims, session); err != nil {
+		c.SetCookie(a.Config.StateCookieName, "", -1, "/", "", a.SecureCookies, true)
+		c.SetCookie(a.Config.ClaimsCookieName, "", -1, "/", "", a.SecureCookies, true)
+		c.AbortWithError(http.StatusUnauthorized, gin.Error{
+			Err:  fmt.Errorf("failed verifying claims and session: %w", err),
+			Type: gin.ErrorTypePrivate,
+		})
+		return
+	}
+
 	if session.MockUserInfo != nil {
 		if session.HasPermission(PermissionAuthUserInfoMock) {
 			log.Ctx(c).Warn().Interface("mock", session.MockUserInfo).Msg("Mock user info provided!")
@@ -30,64 +68,25 @@ func (a *Authenticator) HandleUserInfo(c *gin.Context) {
 				Offered: []string{gin.MIMEJSON},
 				Data:    *session.MockUserInfo,
 			})
-			return
 		} else {
 			c.AbortWithError(http.StatusForbidden, gin.Error{
 				Err:  fmt.Errorf("insufficient permissions to use mock userinfo"),
 				Type: gin.ErrorTypePrivate,
 			})
-			return
 		}
-	}
-
-	httpClient := a.OAuth.Client(c, session.Token)
-	defer httpClient.CloseIdleConnections()
-
-	userInfoResponse, err := httpClient.Get("https://www.googleapis.com/oauth2/v2/userinfo")
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, gin.Error{
-			Err:  fmt.Errorf("userinfo request failed: %w", err),
-			Type: gin.ErrorTypePrivate,
-			Meta: map[string]interface{}{
-				"url":    userInfoResponse.Request.URL.String(),
-				"status": userInfoResponse.Status,
-			},
-		})
 		return
 	}
-	defer userInfoResponse.Body.Close()
 
-	if userInfoResponse.StatusCode >= 200 && userInfoResponse.StatusCode <= 299 {
-		userInfo := GoogleAPIUserInfoResponse{}
-		decoder := json.NewDecoder(userInfoResponse.Body)
-		if err := decoder.Decode(&userInfo); err != nil {
-			c.AbortWithError(http.StatusInternalServerError, gin.Error{
-				Err:  fmt.Errorf("failed decoding google userinfo response: %w", err),
-				Type: gin.ErrorTypePrivate,
-			})
-		} else {
-			c.Negotiate(http.StatusOK, gin.Negotiate{
-				Offered: []string{gin.MIMEJSON},
-				Data:    userInfo,
-			})
-		}
-	} else if userInfoResponse.StatusCode == http.StatusUnauthorized {
-		body, _ := io.ReadAll(userInfoResponse.Body)
-		c.AbortWithError(http.StatusUnauthorized, gin.Error{
-			Err:  fmt.Errorf("unauthorized to request userinfo"),
+	userInfo, err := a.loadUserInfo(c, session.Token)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, gin.Error{
+			Err:  fmt.Errorf("failed loading userinfo: %w", err),
 			Type: gin.ErrorTypePrivate,
-			Meta: map[string]interface{}{"body": body},
 		})
 	} else {
-		body, _ := io.ReadAll(userInfoResponse.Body)
-		c.AbortWithError(http.StatusInternalServerError, gin.Error{
-			Err:  fmt.Errorf("failed to fetch google userinfo"),
-			Type: gin.ErrorTypePrivate,
-			Meta: map[string]interface{}{
-				"url":    userInfoResponse.Request.URL.String(),
-				"status": userInfoResponse.Status,
-				"body":   body,
-			},
+		c.Negotiate(http.StatusOK, gin.Negotiate{
+			Offered: []string{gin.MIMEJSON},
+			Data:    userInfo,
 		})
 	}
 }

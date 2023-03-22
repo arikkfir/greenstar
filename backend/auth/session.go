@@ -21,7 +21,7 @@ type Session struct {
 func GetSession(ctx context.Context) *Session {
 	v := ctx.Value(sessionContextKey)
 	if v == nil {
-		panic("session not found in context")
+		return nil
 	} else if session, ok := v.(*Session); ok {
 		return session
 	} else {

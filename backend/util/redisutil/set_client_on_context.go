@@ -1,6 +1,7 @@
 package redisutil
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rueian/rueidis"
@@ -8,8 +9,8 @@ import (
 
 const key = "$$$redisKey$$$"
 
-func GetRedis(c *gin.Context) rueidis.Client {
-	if v, found := c.Get(key); found {
+func GetRedis(ctx context.Context) rueidis.Client {
+	if v := ctx.Value(key); v != nil {
 		if r, ok := v.(rueidis.Client); ok {
 			return r
 		} else {

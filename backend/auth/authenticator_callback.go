@@ -1,34 +1,30 @@
 package auth
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/arikkfir/greenstar/backend/util/redisutil"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"io"
 	"net/http"
 	"strings"
 	"time"
 )
 
 func (a *Authenticator) HandleCallback(c *gin.Context) {
-	expectedState, err := c.Cookie(a.Config.StateCookieName)
+	expectedState, err := a.parseOAuthStateFromCookie(c)
 	if err != nil {
-		if errors.Is(err, http.ErrNoCookie) {
-			c.AbortWithError(http.StatusBadRequest, fmt.Errorf("oauth state cookie is missing: %w", err))
-		} else {
-			c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed getting oauth state cookie: %w", err))
-		}
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed getting oauth state cookie: %w", err))
+		return
+	} else if expectedState == nil {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("oauth state cookie is missing: %w", err))
 		return
 	}
 
 	stateFromProvider := c.Query("state")
-	if stateFromProvider != expectedState {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("incorrect state detected in state cookie - expected '%s', found '%s'", expectedState, stateFromProvider))
+	if stateFromProvider != *expectedState {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("incorrect state detected in state cookie - expected '%s', found '%s'", *expectedState, stateFromProvider))
 		return
 	}
 
@@ -56,54 +52,9 @@ func (a *Authenticator) HandleCallback(c *gin.Context) {
 		return
 	}
 
-	httpClient := a.OAuth.Client(c, token)
-	defer httpClient.CloseIdleConnections()
-
-	userInfoResponse, err := httpClient.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	userInfo, err := a.loadUserInfo(c, token)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, gin.Error{
-			Err:  fmt.Errorf("userinfo request failed: %w", err),
-			Type: gin.ErrorTypePrivate,
-			Meta: map[string]interface{}{
-				"url":    userInfoResponse.Request.URL.String(),
-				"status": userInfoResponse.Status,
-			},
-		})
-		return
-	}
-	defer userInfoResponse.Body.Close()
-
-	userInfo := GoogleAPIUserInfoResponse{}
-	if userInfoResponse.StatusCode >= 200 && userInfoResponse.StatusCode <= 299 {
-		responseBody := bytes.Buffer{}
-		decoder := json.NewDecoder(io.TeeReader(userInfoResponse.Body, &responseBody))
-		if err := decoder.Decode(&userInfo); err != nil {
-			c.AbortWithError(http.StatusInternalServerError, gin.Error{
-				Err:  fmt.Errorf("failed decoding google userinfo response: %w", err),
-				Type: gin.ErrorTypePrivate,
-				Meta: map[string]interface{}{"body": responseBody.String()},
-			})
-			return
-		}
-	} else if userInfoResponse.StatusCode == http.StatusUnauthorized {
-		body, _ := io.ReadAll(userInfoResponse.Body)
-		c.AbortWithError(http.StatusUnauthorized, gin.Error{
-			Err:  fmt.Errorf("unauthorized to request userinfo"),
-			Type: gin.ErrorTypePrivate,
-			Meta: map[string]interface{}{"body": body},
-		})
-		return
-	} else {
-		body, _ := io.ReadAll(userInfoResponse.Body)
-		c.AbortWithError(http.StatusInternalServerError, gin.Error{
-			Err:  fmt.Errorf("failed to fetch google userinfo"),
-			Type: gin.ErrorTypePrivate,
-			Meta: map[string]interface{}{
-				"url":    userInfoResponse.Request.URL.String(),
-				"status": userInfoResponse.Status,
-				"body":   body,
-			},
-		})
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed loading user info: %w", err))
 		return
 	}
 
@@ -139,7 +90,7 @@ func (a *Authenticator) HandleCallback(c *gin.Context) {
 	if sessionBytes, err := json.Marshal(session); err != nil {
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed marshalling session before persisting to Redis: %w", err))
 		return
-	} else if result := r.Do(c, r.B().Set().Key("session:"+sessionID).Value(string(sessionBytes)).Build()); result.Error() != nil {
+	} else if result := r.Do(c, r.B().Set().Key("session:"+sessionID).Value(string(sessionBytes)).ExatTimestamp(claims.ExpiresAt.Unix()).Build()); result.Error() != nil {
 		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed persisting session to redis: %w", err))
 		return
 	}
