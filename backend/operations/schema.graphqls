@@ -1,0 +1,28 @@
+scalar DateTime
+
+enum OperationStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+    STARTED
+    COMPLETED
+}
+
+enum OperationResult {
+    SUCCEEDED
+    FAILED
+}
+
+type Operation {
+    id: ID!
+    name: String!
+    description: String
+    status: OperationStatus!
+    result: OperationResult!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
+type Query {
+    operation(id: ID!): Operation
+}

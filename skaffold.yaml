@@ -1,0 +1,116 @@
+# nonk8s
+apiVersion: skaffold/v4beta2
+kind: Config
+metadata:
+  name: greenstar
+build:
+  local:
+    concurrency: 0
+    useBuildkit: true
+  artifacts:
+    - image: ghcr.io/arikkfir/greenstar/frontend
+      context: frontend
+      docker:
+        dockerfile: Dockerfile
+    - image: ghcr.io/arikkfir/greenstar/backend
+      context: backend
+      docker:
+        dockerfile: Dockerfile
+#    - image: ghcr.io/arikkfir/greenstar/backend/xlsconverter
+#      context: backend
+#      docker:
+#        dockerfile: Dockerfile.xlsconverter
+deploy:
+  statusCheckDeadlineSeconds: 600
+  statusCheck: true
+profiles:
+  - name: nats
+    activation:
+      - command: dev
+      - env: CI=true
+    manifests:
+      helm:
+        releases:
+          - name: greenstar-nats
+            repo: https://nats-io.github.io/k8s/helm/charts/
+            remoteChart: nats
+            namespace: default
+            wait: true
+            skipTests: true
+  - name: local-dev
+    activation:
+      - command: dev
+    deploy:
+      kubectl:
+        defaultNamespace: default
+        hooks:
+          before:
+            - host:
+                command:
+                  - sh
+                  - -cx
+                  - kubectl create secret generic greenstar-google-app -n default --save-config --output=yaml --dry-run=client --from-env-file=google-client-app.env | kubectl apply -f -
+                os: [ darwin, linux ]
+    manifests:
+      kustomize:
+        paths:
+          - deploy/dev
+    patches:
+      - op: replace
+        path: /build/artifacts/0/docker/dockerfile
+        value: Dockerfile.debug
+      - op: add
+        path: /build/artifacts/0/sync
+        value:
+          manual:
+            - dest: /workspace
+              src: public/**/*
+            - dest: /workspace
+              src: src/**/*
+    portForward:
+      - resourceType: service
+        resourceName: greenstar-frontend
+        namespace: default
+        port: http
+        localPort: 3000
+      - resourceType: service
+        resourceName: greenstar-backend
+        namespace: default
+        port: http
+        localPort: 8000
+      - resourceType: service
+        resourceName: greenstar-redis
+        namespace: default
+        port: 6379
+      - resourceType: service
+        resourceName: greenstar-redis
+        namespace: default
+        port: http
+        localPort: 9000
+      - resourceType: service
+        resourceName: greenstar-neo4j
+        namespace: default
+        port: 7687
+      - resourceType: service
+        resourceName: greenstar-neo4j
+        namespace: default
+        port: http
+        localPort: 7474
+  - name: ci
+    activation:
+      - env: CI=true
+    deploy:
+      kubectl:
+        defaultNamespace: default
+        hooks:
+          before:
+            - host:
+                command:
+                  - sh
+                  - -cx
+                  - kubectl create secret generic greenstar-google-app -n default --save-config --output=yaml --dry-run=client --from-literal=GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} --from-literal=GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} | kubectl apply -f -
+                os: [ darwin, linux ]
+    manifests:
+      kustomize:
+        paths:
+          - deploy/ci

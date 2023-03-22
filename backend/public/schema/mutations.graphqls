@@ -1,0 +1,27 @@
+scalar Upload
+
+input AccountChanges {
+  displayName: String
+  labels: [KeyAndValueInput!]
+  parentID: ID
+}
+
+input TransactionChanges {
+  Date: Time!
+  targetAccountID: ID!
+  sourceAccountID: ID!
+  referenceID: String!
+  amount: Money!
+  description: String!
+}
+
+type Mutation {
+  createAccount(accountID: ID, account: AccountChanges!): Account!
+  updateAccount(accountID: ID!, account: AccountChanges!): Account!
+  deleteAccount(accountID: ID!): ID!
+
+  createTransaction(transaction: TransactionChanges!): Transaction!
+  createTransactions(transactions: [TransactionChanges!]!): Int!
+  uploadTransactionsXLSFile(file: Upload!): Boolean!
+  uploadTransactionsXLSXFile(file: Upload!): Boolean!
+}

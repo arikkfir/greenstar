@@ -1,0 +1,11 @@
+{
+  "name": "Public API",
+  "extensions": {
+    "endpoints": {
+      "API": {
+        "url": "http://localhost:8003/",
+        "introspect": true
+      }
+    }
+  }
+}
