@@ -74,7 +74,15 @@ jobs:
       - run: kubectl wait --for=condition=available -n ingress-nginx deploy/ingress-nginx-controller
       - run: kubectl wait -n ingress-nginx job/ingress-nginx-admission-create --for=condition=complete
       - run: kubectl wait -n ingress-nginx job/ingress-nginx-admission-patch --for=condition=complete
-      - run: sleep 30
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - run: npm ci
+        working-directory: e2e
+      - run: npx playwright install --with-deps
+        working-directory: e2e
       - run: |-
           curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/v2.2.0/skaffold-linux-amd64 \
             && chmod +x skaffold \
@@ -99,15 +107,6 @@ jobs:
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: npm
-          cache-dependency-path: e2e/package-lock.json
-      - run: npm ci
-        working-directory: e2e
-      - run: npx playwright install --with-deps
-        working-directory: e2e
       - run: curl -i http://localhost
       - run: npx playwright test
         working-directory: e2e
