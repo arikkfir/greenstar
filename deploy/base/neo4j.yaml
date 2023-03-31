@@ -16,7 +16,7 @@ spec:
     - name: neo4j
       port: 7687
       protocol: TCP
-      targetPort: neo4j
+      targetPort: client
     - name: http
       port: 80
       protocol: TCP
@@ -163,7 +163,7 @@ spec:
             - containerPort: 2004
               name: metrics
             - containerPort: 7687
-              name: neo4j
+              name: client
             - containerPort: 7474
               name: http
           startupProbe:
@@ -188,7 +188,7 @@ spec:
             timeoutSeconds: 5
           resources:
             limits:
-              cpu: 500m
+              cpu: 2000m
               memory: 1Gi
             requests:
               cpu: 500m
