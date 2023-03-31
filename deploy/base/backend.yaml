@@ -88,4 +88,5 @@ spec:
             requests:
               cpu: 100m
               memory: 16Mi
+      enableServiceLinks: false
       serviceAccountName: greenstar-backend
