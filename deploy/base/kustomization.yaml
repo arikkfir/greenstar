@@ -3,7 +3,6 @@ kind: Kustomization
 commonLabels:
   app: greenstar
   app.kubernetes.io/name: greenstar
-  app.kubernetes.io/managed-by: kustomize
 resources:
   - backend.yaml
   - frontend.yaml
