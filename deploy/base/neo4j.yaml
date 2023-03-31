@@ -212,6 +212,7 @@ spec:
             - mountPath: /plugins
               name: plugins
               readOnly: false
+      enableServiceLinks: false
       serviceAccountName: greenstar-neo4j
       volumes:
         - name: backups
