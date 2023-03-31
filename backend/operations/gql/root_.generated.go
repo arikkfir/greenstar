@@ -9,6 +9,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/arik-kfir/greenstar/backend/operations/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -29,6 +30,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Mutation() MutationResolver
 	Query() QueryResolver
 }
 
@@ -36,6 +38,10 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Mutation struct {
+		Operation func(childComplexity int, id string, op model.OperationChanges) int
+	}
+
 	Operation struct {
 		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
@@ -65,6 +71,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Mutation.operation":
+		if e.complexity.Mutation.Operation == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_operation_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Operation(childComplexity, args["id"].(string), args["op"].(model.OperationChanges)), true
 
 	case "Operation.createdAt":
 		if e.complexity.Operation.CreatedAt == nil {
@@ -134,7 +152,9 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e}
-	inputUnmarshalMap := graphql.BuildUnmarshalerMap()
+	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputOperationChanges,
+	)
 	first := true
 
 	switch rc.Operation.Operation {
@@ -146,6 +166,21 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 			first = false
 			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
 			data := ec._Query(ctx, rc.Operation.SelectionSet)
+			var buf bytes.Buffer
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
+	case ast.Mutation:
+		return func(ctx context.Context) *graphql.Response {
+			if !first {
+				return nil
+			}
+			first = false
+			ctx = graphql.WithUnmarshalerMap(ctx, inputUnmarshalMap)
+			data := ec._Mutation(ctx, rc.Operation.SelectionSet)
 			var buf bytes.Buffer
 			data.MarshalGQL(&buf)
 
@@ -206,6 +241,17 @@ type Operation {
 
 type Query {
     operation(id: ID!): Operation
+}
+
+input OperationChanges {
+    name: String!
+    description: String
+    status: OperationStatus!
+    result: OperationResult!
+}
+
+type Mutation {
+    operation(id: ID!, op: OperationChanges!): Operation!
 }
 `, BuiltIn: false},
 }

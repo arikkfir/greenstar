@@ -10,12 +10,15 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/arikkfir/greenstar/backend/operations/model"
+	"github.com/arik-kfir/greenstar/backend/operations/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // region    ************************** generated!.gotpl **************************
 
+type MutationResolver interface {
+	Operation(ctx context.Context, id string, op model.OperationChanges) (*model.Operation, error)
+}
 type QueryResolver interface {
 	Operation(ctx context.Context, id string) (*model.Operation, error)
 }
@@ -23,6 +26,30 @@ type QueryResolver interface {
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) field_Mutation_operation_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 model.OperationChanges
+	if tmp, ok := rawArgs["op"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("op"))
+		arg1, err = ec.unmarshalNOperationChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationChanges(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["op"] = arg1
+	return args, nil
+}
 
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -61,6 +88,76 @@ func (ec *executionContext) field_Query_operation_args(ctx context.Context, rawA
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Mutation_operation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_operation(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Operation(rctx, fc.Args["id"].(string), fc.Args["op"].(model.OperationChanges))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Operation)
+	fc.Result = res
+	return ec.marshalNOperation2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperation(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_operation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Operation_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Operation_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Operation_description(ctx, field)
+			case "status":
+				return ec.fieldContext_Operation_status(ctx, field)
+			case "result":
+				return ec.fieldContext_Operation_result(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Operation_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Operation_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Operation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_operation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Operation_id(ctx context.Context, field graphql.CollectedField, obj *model.Operation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Operation_id(ctx, field)
@@ -219,7 +316,7 @@ func (ec *executionContext) _Operation_status(ctx context.Context, field graphql
 	}
 	res := resTmp.(model.OperationStatus)
 	fc.Result = res
-	return ec.marshalNOperationStatus2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationStatus(ctx, field.Selections, res)
+	return ec.marshalNOperationStatus2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Operation_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -263,7 +360,7 @@ func (ec *executionContext) _Operation_result(ctx context.Context, field graphql
 	}
 	res := resTmp.(model.OperationResult)
 	fc.Result = res
-	return ec.marshalNOperationResult2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationResult(ctx, field.Selections, res)
+	return ec.marshalNOperationResult2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Operation_result(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -391,7 +488,7 @@ func (ec *executionContext) _Query_operation(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*model.Operation)
 	fc.Result = res
-	return ec.marshalOOperation2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperation(ctx, field.Selections, res)
+	return ec.marshalOOperation2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_operation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -565,6 +662,58 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputOperationChanges(ctx context.Context, obj interface{}) (model.OperationChanges, error) {
+	var it model.OperationChanges
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "status", "result"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalNOperationStatus2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "result":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("result"))
+			it.Result, err = ec.unmarshalNOperationResult2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationResult(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -572,6 +721,38 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var mutationImplementors = []string{"Mutation"}
+
+func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mutationImplementors)
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Mutation",
+	})
+
+	out := graphql.NewFieldSet(fields)
+	for i, field := range fields {
+		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
+			Object: field.Name,
+			Field:  field,
+		})
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Mutation")
+		case "operation":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_operation(ctx, field)
+			})
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	return out
+}
 
 var operationImplementors = []string{"Operation"}
 
@@ -717,27 +898,46 @@ func (ec *executionContext) marshalNDateTime2string(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalNOperationResult2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationResult(ctx context.Context, v interface{}) (model.OperationResult, error) {
+func (ec *executionContext) marshalNOperation2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v model.Operation) graphql.Marshaler {
+	return ec._Operation(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOperation2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v *model.Operation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Operation(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNOperationChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationChanges(ctx context.Context, v interface{}) (model.OperationChanges, error) {
+	res, err := ec.unmarshalInputOperationChanges(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNOperationResult2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationResult(ctx context.Context, v interface{}) (model.OperationResult, error) {
 	var res model.OperationResult
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOperationResult2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationResult(ctx context.Context, sel ast.SelectionSet, v model.OperationResult) graphql.Marshaler {
+func (ec *executionContext) marshalNOperationResult2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationResult(ctx context.Context, sel ast.SelectionSet, v model.OperationResult) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNOperationStatus2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationStatus(ctx context.Context, v interface{}) (model.OperationStatus, error) {
+func (ec *executionContext) unmarshalNOperationStatus2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationStatus(ctx context.Context, v interface{}) (model.OperationStatus, error) {
 	var res model.OperationStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOperationStatus2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationStatus(ctx context.Context, sel ast.SelectionSet, v model.OperationStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNOperationStatus2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperationStatus(ctx context.Context, sel ast.SelectionSet, v model.OperationStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalOOperation2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v *model.Operation) graphql.Marshaler {
+func (ec *executionContext) marshalOOperation2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋoperationsᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v *model.Operation) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

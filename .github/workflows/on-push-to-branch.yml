@@ -1,0 +1,92 @@
+name: On push to branch
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+jobs:
+
+  backend-unit-tests:
+    name: Backend Unit Tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - run: go test ./...
+        working-directory: backend
+
+  build-docker-images:
+    name: Build Docker Images
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        image: [ backend, frontend ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v4
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.image }}
+          tags: |
+            type=sha,prefix=,suffix=,format=short
+            type=sha,prefix=,suffix=,format=long
+            type=ref,event=branch
+            type=ref,event=pr
+      - uses: docker/build-push-action@v3
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          context: ${{ matrix.image }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+  deploy-to-environment:
+    name: Deploy to environment
+    needs: build-docker-images
+    uses: arik-kfir/delivery/.github/workflows/deploy-app-env.yml@main
+    concurrency:
+      group: deployment
+      cancel-in-progress: false
+    with:
+      environment: ${{ github.ref_name }}
+      images: |-
+        ghcr.io/${{ github.repository }}/backend: ${{ github.sha }}
+        ghcr.io/${{ github.repository }}/frontend: ${{ github.sha }}
+    secrets: inherit
+
+  e2e-tests:
+    runs-on: ubuntu-22.04
+    needs: deploy-to-environment
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - run: |
+          npm ci
+          npx playwright install --with-deps
+#          npx playwright test
+        working-directory: e2e

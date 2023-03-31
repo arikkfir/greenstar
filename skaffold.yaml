@@ -1,5 +1,5 @@
 # nonk8s
-apiVersion: skaffold/v4beta2
+apiVersion: skaffold/v4beta5
 kind: Config
 metadata:
   name: greenstar
@@ -7,78 +7,28 @@ build:
   local:
     concurrency: 0
     useBuildkit: true
+    push: false
   artifacts:
-    - image: ghcr.io/arikkfir/greenstar/frontend
+    - image: ghcr.io/arik-kfir/greenstar/frontend
       context: frontend
       docker:
-        dockerfile: Dockerfile
-    - image: ghcr.io/arikkfir/greenstar/backend
+        dockerfile: Dockerfile.debug
+      sync:
+        manual:
+          - dest: /workspace
+            src: public/**/*
+          - dest: /workspace
+            src: src/**/*
+    - image: ghcr.io/arik-kfir/greenstar/backend
       context: backend
       docker:
         dockerfile: Dockerfile
-#    - image: ghcr.io/arikkfir/greenstar/backend/xlsconverter
-#      context: backend
-#      docker:
-#        dockerfile: Dockerfile.xlsconverter
+manifests:
+  kustomize:
+    paths:
+      - deploy/local
 deploy:
-  statusCheckDeadlineSeconds: 600
-  statusCheck: true
-profiles:
-  - name: nats
-    activation:
-      - command: dev
-      - env: CI=true
-    manifests:
-      helm:
-        releases:
-          - name: greenstar-nats
-            repo: https://nats-io.github.io/k8s/helm/charts/
-            remoteChart: nats
-            namespace: default
-            wait: true
-            skipTests: true
-  - name: local-dev
-    activation:
-      - command: dev
-    manifests:
-      kustomize:
-        paths:
-          - deploy/dev
-    patches:
-      - op: replace
-        path: /build/artifacts/0/docker/dockerfile
-        value: Dockerfile.debug
-      - op: add
-        path: /build/artifacts/0/sync
-        value:
-          manual:
-            - dest: /workspace
-              src: public/**/*
-            - dest: /workspace
-              src: src/**/*
-    portForward:
-      - resourceType: service
-        resourceName: greenstar-redis
-        namespace: default
-        port: 6379
-      - resourceType: service
-        resourceName: greenstar-redis
-        namespace: default
-        port: http
-        localPort: 9000
-      - resourceType: service
-        resourceName: greenstar-neo4j
-        namespace: default
-        port: 7687
-      - resourceType: service
-        resourceName: greenstar-neo4j
-        namespace: default
-        port: http
-        localPort: 7474
-  - name: ci
-    activation:
-      - env: CI=true
-    manifests:
-      kustomize:
-        paths:
-          - deploy/ci
+  tolerateFailuresUntilDeadline: true
+  statusCheckDeadlineSeconds: 60
+  kubectl:
+    defaultNamespace: default

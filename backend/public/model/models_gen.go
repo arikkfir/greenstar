@@ -46,7 +46,7 @@ type TransactionChanges struct {
 	Date            time.Time `json:"Date"`
 	TargetAccountID string    `json:"targetAccountID"`
 	SourceAccountID string    `json:"sourceAccountID"`
-	ReferenceID string `json:"referenceID"`
-	Amount      Money  `json:"amount"`
-	Description string `json:"description"`
+	ReferenceID     string    `json:"referenceID"`
+	Amount          Money     `json:"amount"`
+	Description     string    `json:"description"`
 }

@@ -1,7 +1,7 @@
 package httputil_test
 
 import (
-	"github.com/arikkfir/greenstar/backend/util/httputil"
+	"github.com/arik-kfir/greenstar/backend/util/httputil"
 	"testing"
 )
 

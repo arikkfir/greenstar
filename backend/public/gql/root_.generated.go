@@ -9,7 +9,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/arikkfir/greenstar/backend/public/model"
+	"github.com/arik-kfir/greenstar/backend/public/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -55,13 +55,12 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateAccount              func(childComplexity int, accountID *string, account model.AccountChanges) int
-		CreateTransaction          func(childComplexity int, transaction model.TransactionChanges) int
-		CreateTransactions         func(childComplexity int, transactions []*model.TransactionChanges) int
-		DeleteAccount              func(childComplexity int, accountID string) int
-		UpdateAccount              func(childComplexity int, accountID string, account model.AccountChanges) int
-		UploadTransactionsXLSFile  func(childComplexity int, file graphql.Upload) int
-		UploadTransactionsXLSXFile func(childComplexity int, file graphql.Upload) int
+		CreateAccount         func(childComplexity int, accountID *string, account model.AccountChanges) int
+		CreateTransaction     func(childComplexity int, transaction model.TransactionChanges) int
+		CreateTransactions    func(childComplexity int, transactions []*model.TransactionChanges) int
+		DeleteAccount         func(childComplexity int, accountID string) int
+		ScrapeIsraelBankYahav func(childComplexity int, username string, id string, password string) int
+		UpdateAccount         func(childComplexity int, accountID string, account model.AccountChanges) int
 	}
 
 	Query struct {
@@ -207,6 +206,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteAccount(childComplexity, args["accountID"].(string)), true
 
+	case "Mutation.scrapeIsraelBankYahav":
+		if e.complexity.Mutation.ScrapeIsraelBankYahav == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_scrapeIsraelBankYahav_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ScrapeIsraelBankYahav(childComplexity, args["username"].(string), args["id"].(string), args["password"].(string)), true
+
 	case "Mutation.updateAccount":
 		if e.complexity.Mutation.UpdateAccount == nil {
 			break
@@ -218,30 +229,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateAccount(childComplexity, args["accountID"].(string), args["account"].(model.AccountChanges)), true
-
-	case "Mutation.uploadTransactionsXLSFile":
-		if e.complexity.Mutation.UploadTransactionsXLSFile == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_uploadTransactionsXLSFile_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UploadTransactionsXLSFile(childComplexity, args["file"].(graphql.Upload)), true
-
-	case "Mutation.uploadTransactionsXLSXFile":
-		if e.complexity.Mutation.UploadTransactionsXLSXFile == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_uploadTransactionsXLSXFile_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UploadTransactionsXLSXFile(childComplexity, args["file"].(graphql.Upload)), true
 
 	case "Query.account":
 		if e.complexity.Query.Account == nil {
@@ -429,8 +416,8 @@ type Mutation {
 
   createTransaction(transaction: TransactionChanges!): Transaction!
   createTransactions(transactions: [TransactionChanges!]!): Int!
-  uploadTransactionsXLSFile(file: Upload!): Boolean!
-  uploadTransactionsXLSXFile(file: Upload!): Boolean!
+
+  scrapeIsraelBankYahav(username: String!, id: String!, password: String!): String!
 }
 `, BuiltIn: false},
 	{Name: "../schema/queries.graphqls", Input: `type Query {

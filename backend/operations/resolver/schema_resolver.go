@@ -8,16 +8,26 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/arikkfir/greenstar/backend/operations/gql"
-	"github.com/arikkfir/greenstar/backend/operations/model"
+	"github.com/arik-kfir/greenstar/backend/operations/gql"
+	"github.com/arik-kfir/greenstar/backend/operations/model"
+	"github.com/rueian/rueidis"
 )
+
+// Operation is the resolver for the operation field.
+func (r *mutationResolver) Operation(ctx context.Context, id string, op model.OperationChanges) (*model.Operation, error) {
+	panic(fmt.Errorf("not implemented: Operation - operation"))
+}
 
 // Operation is the resolver for the operation field.
 func (r *queryResolver) Operation(ctx context.Context, id string) (*model.Operation, error) {
 	op := model.Operation{}
 	cmd := r.Redis.B().Get().Key("op:" + id).Build()
 	if resp := r.Redis.Do(ctx, cmd); resp.Error() != nil {
-		return nil, fmt.Errorf("failed to get operation: %w", resp.Error())
+		if rueidis.IsRedisNil(resp.Error()) {
+			return nil, nil
+		} else {
+			return nil, fmt.Errorf("failed to get operation: %w", resp.Error())
+		}
 	} else if err := resp.DecodeJSON(&op); err != nil {
 		return nil, fmt.Errorf("failed to decode operation: %w", err)
 	} else {
@@ -25,7 +35,11 @@ func (r *queryResolver) Operation(ctx context.Context, id string) (*model.Operat
 	}
 }
 
+// Mutation returns gql.MutationResolver implementation.
+func (r *Resolver) Mutation() gql.MutationResolver { return &mutationResolver{r} }
+
 // Query returns gql.QueryResolver implementation.
 func (r *Resolver) Query() gql.QueryResolver { return &queryResolver{r} }
 
+type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

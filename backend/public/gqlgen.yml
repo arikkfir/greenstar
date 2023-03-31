@@ -30,7 +30,7 @@ models:
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
   Money:
-    model: github.com/arikkfir/greenstar/api/public/model.Money
+    model: github.com/arik-kfir/greenstar/backend/public/model.Money
   Account:
     fields:
       labels:
