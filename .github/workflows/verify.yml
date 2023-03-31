@@ -70,6 +70,15 @@ jobs:
           version: v0.17.0
           config: deploy/kind/cluster-config.yaml
           wait: 600s
+      - run: |
+          kubectl create secret generic greenstar-google-app \
+            --save-config --output=yaml --dry-run=client \
+            --from-literal=GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID} \
+            --from-literal=GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET} \
+            | kubectl apply -f -
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       - run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
       - run: kubectl wait --for=condition=available -n ingress-nginx deploy/ingress-nginx-controller
       - run: kubectl wait -n ingress-nginx job/ingress-nginx-admission-create --for=condition=complete
