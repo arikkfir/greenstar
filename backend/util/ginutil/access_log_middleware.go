@@ -78,5 +78,5 @@ func AccessLogMiddleware(c *gin.Context) {
 		event = logger.Error()
 
 	}
-	event.Msg("Request processed")
+	event.Msg("HTTP Request processed")
 }
