@@ -30,6 +30,7 @@
         <method importPath="github.com/nats-io/nats.go" receiver="*Subscription" name="Unsubscribe" />
         <method importPath="github.com/gin-gonic/gin" receiver="*Context" name="AbortWithError" />
         <method importPath="github.com/gin-gonic/gin" receiver="*Context" name="Error" />
+        <method importPath="github.com/nats-io/nats.go" receiver="*Conn" name="Drain" />
       </methods>
     </inspection_tool>
     <inspection_tool class="HttpUrlsUsage" enabled="true" level="WEAK WARNING" enabled_by_default="true">
