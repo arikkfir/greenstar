@@ -43,14 +43,11 @@ patches:
       name: greenstar-frontend
     patch: |-
       - op: replace
-        path: /spec/template/spec/containers/0/resources/limits/memory
-        value: 6Gi
-      - op: replace
-        path: /spec/template/spec/containers/0/resources/requests/memory
-        value: 6Gi
-      - op: replace
-        path: /spec/template/spec/containers/0/resources/limits/cpu
-        value: 4000m
-      - op: replace
-        path: /spec/template/spec/containers/0/resources/requests/cpu
-        value: 4000m
+        path: /spec/template/spec/containers/0/resources
+        value:
+          limits:
+            cpu: 4000m
+            memory: 6Gi
+          requests:
+            cpu: 4000m
+            memory: 6Gi
