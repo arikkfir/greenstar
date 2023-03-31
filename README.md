@@ -23,6 +23,16 @@ $ brew install skaffold                             # Kubernetes development too
 ```shell
 $ kind create cluster --config=deploy/kind/cluster-config.yaml --name=local
 $ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+$ cat > google-client-app.env <<EOF
+GOOGLE_CLIENT_ID=<your_google_oauth_client_id>
+GOOGLE_CLIENT_SECRET=<your_google_oauth_client_secret>
+EOF
+$ kubectl create secret generic greenstar-google-app \
+    --save-config \
+    --output=yaml \
+    --dry-run=client \
+    --from-env-file=google-client-app.env \
+    | kubectl apply -f -
 ```
 
 ### Running
