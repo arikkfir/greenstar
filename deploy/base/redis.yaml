@@ -13,10 +13,10 @@ metadata:
   name: greenstar-redis
 spec:
   ports:
-    - name: redis
+    - name: client
       port: 6379
       protocol: TCP
-      targetPort: redis
+      targetPort: client
     - name: http
       port: 80
       protocol: TCP
@@ -63,7 +63,7 @@ spec:
           name: redis
           ports:
             - containerPort: 6379
-              name: redis
+              name: client
             - containerPort: 8001
               name: http
           startupProbe:
