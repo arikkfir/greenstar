@@ -14,7 +14,6 @@
     "dotenv": "^16.0.3",
     "jsonwebtoken": "^9.0.0",
     "luxon": "^3.3.0",
-    "moment": "^2.29.4",
     "redis": "^4.6.5"
   }
 }
