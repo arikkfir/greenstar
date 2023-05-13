@@ -94,6 +94,15 @@ patches:
         value:
           name: REDIS_PORT
           value: "6379"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AUTH_AUTH0_LOCALHOST_ORG_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: local-config
+              key: AUTH0_LOCALHOST_ORG_NAME
+              optional: false
   - target:
       group: apps
       version: v1
@@ -103,15 +112,6 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/startupProbe/initialDelaySeconds
         value: 15
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: REACT_APP_AUTH0_ORG_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: local-config
-              key: REACT_APP_AUTH0_ORG_NAME
-              optional: false
       - op: replace
         path: /spec/template/spec/containers/0/resources
         value:

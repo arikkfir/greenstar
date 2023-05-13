@@ -156,6 +156,9 @@ func main() {
 	router.OPTIONS("/*path", corsMiddleware)
 	router.Use(corsMiddleware)
 
+	// Configuration endpoint for the frontend
+	router.GET("/api/v1/config", auth.CreateGetConfigHandler(cfg.Auth))
+
 	// Admin routes
 	adminAPIResolver := &adminResolver.Resolver{Neo4j: neo4jDriver}
 	adminAPISchema := adminGQL.NewExecutableSchema(adminGQL.Config{Resolvers: adminAPIResolver})
@@ -221,10 +224,6 @@ func main() {
 			log.Ctx(ctx).Fatal().Err(err).Str("subscription", subscriptionName).Msg("Cloud Pub/Sub subscriber failed")
 		}
 	}(cfg.GoogleCloud.PublicSubscription, publicAPIResolver.HandleMessage)
-
-	// Setup generic, public, get-org-ID API
-	router.Group("/api/util").
-		GET("/v1/organizations/:tenant", auth.CreateGetOrgIDHandler(cfg.Auth))
 
 	// Setup health checks under "/healthz"
 	if err := gin_healthcheck.New(router, config.DefaultConfig(), nil); err != nil {
