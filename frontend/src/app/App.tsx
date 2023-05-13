@@ -14,8 +14,6 @@ import {TopAppBar} from "./TopAppBar";
 import {Transactions} from "./Transactions";
 
 export interface AppProps {
-    environment: string
-    version: string
     organization: Organization
     adminAPIURL: string
     operationsAPIURL: string
@@ -23,11 +21,10 @@ export interface AppProps {
 }
 
 
-export function App({environment, version, organization, adminAPIURL, publicAPIURL, operationsAPIURL}: AppProps) {
+export function App({organization, adminAPIURL, publicAPIURL, operationsAPIURL}: AppProps) {
     useEffect(() => {
-        document.title = `Greenstar (v${version}/${environment})`;
-        console.info(`Loading application v${version} (${environment})`)
-    }, [version, environment]);
+        document.title = "Greenstar"
+    }, []);
 
     //
     // Build the theme of the app, based on either the OS current theme, or a user-specified preference, if one exists
