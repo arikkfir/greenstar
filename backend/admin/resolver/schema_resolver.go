@@ -8,8 +8,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/arikkfir/greenstar/backend/admin/gql"
-	"github.com/arikkfir/greenstar/backend/admin/model"
+	"github.com/arik-kfir/greenstar/backend/admin/gql"
+	"github.com/arik-kfir/greenstar/backend/admin/model"
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )

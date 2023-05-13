@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/arikkfir/greenstar/backend/public/model"
+	"github.com/arik-kfir/greenstar/backend/public/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -145,7 +145,7 @@ func (ec *executionContext) _Transaction_targetAccount(ctx context.Context, fiel
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transaction_targetAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -205,7 +205,7 @@ func (ec *executionContext) _Transaction_sourceAccount(ctx context.Context, fiel
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transaction_sourceAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -309,7 +309,7 @@ func (ec *executionContext) _Transaction_amount(ctx context.Context, field graph
 	}
 	res := resTmp.(model.Money)
 	fc.Result = res
-	return ec.marshalNMoney2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐMoney(ctx, field.Selections, res)
+	return ec.marshalNMoney2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐMoney(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transaction_amount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -455,13 +455,13 @@ func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionS
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNMoney2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐMoney(ctx context.Context, v interface{}) (model.Money, error) {
+func (ec *executionContext) unmarshalNMoney2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐMoney(ctx context.Context, v interface{}) (model.Money, error) {
 	var res model.Money
 	err := res.UnmarshalGQLContext(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMoney2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐMoney(ctx context.Context, sel ast.SelectionSet, v model.Money) graphql.Marshaler {
+func (ec *executionContext) marshalNMoney2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐMoney(ctx context.Context, sel ast.SelectionSet, v model.Money) graphql.Marshaler {
 	return graphql.WrapContextMarshaler(ctx, v)
 }
 
@@ -480,11 +480,11 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNTransaction2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v model.Transaction) graphql.Marshaler {
+func (ec *executionContext) marshalNTransaction2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v model.Transaction) graphql.Marshaler {
 	return ec._Transaction(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTransaction2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Transaction) graphql.Marshaler {
+func (ec *executionContext) marshalNTransaction2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Transaction) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -508,7 +508,7 @@ func (ec *executionContext) marshalNTransaction2ᚕᚖgithubᚗcomᚋarikkfirᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTransaction2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransaction(ctx, sel, v[i])
+			ret[i] = ec.marshalNTransaction2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransaction(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -528,7 +528,7 @@ func (ec *executionContext) marshalNTransaction2ᚕᚖgithubᚗcomᚋarikkfirᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNTransaction2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v *model.Transaction) graphql.Marshaler {
+func (ec *executionContext) marshalNTransaction2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v *model.Transaction) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")

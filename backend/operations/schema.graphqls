@@ -26,3 +26,14 @@ type Operation {
 type Query {
     operation(id: ID!): Operation
 }
+
+input OperationChanges {
+    name: String!
+    description: String
+    status: OperationStatus!
+    result: OperationResult!
+}
+
+type Mutation {
+    operation(id: ID!, op: OperationChanges!): Operation!
+}

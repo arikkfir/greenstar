@@ -22,6 +22,6 @@ type Mutation {
 
   createTransaction(transaction: TransactionChanges!): Transaction!
   createTransactions(transactions: [TransactionChanges!]!): Int!
-  uploadTransactionsXLSFile(file: Upload!): Boolean!
-  uploadTransactionsXLSXFile(file: Upload!): Boolean!
+
+  scrapeIsraelBankYahav(username: String!, id: String!, password: String!): String!
 }

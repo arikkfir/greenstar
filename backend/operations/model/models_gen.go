@@ -18,6 +18,13 @@ type Operation struct {
 	UpdatedAt   string          `json:"updatedAt"`
 }
 
+type OperationChanges struct {
+	Name        string          `json:"name"`
+	Description *string         `json:"description"`
+	Status      OperationStatus `json:"status"`
+	Result      OperationResult `json:"result"`
+}
+
 type OperationResult string
 
 const (

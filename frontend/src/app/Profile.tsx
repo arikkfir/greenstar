@@ -1,16 +1,38 @@
-import {PersonRounded as PersonRoundedIcon} from "@mui/icons-material";
-import {Avatar, IconButton, ListItemIcon, Menu, MenuItem} from "@mui/material";
+import {useAuth0} from "@auth0/auth0-react";
+import {
+    HourglassFullRounded as HourglassFullRoundedIcon,
+    LogoutRounded as LogoutRoundedIcon,
+    PersonRounded as PersonRoundedIcon
+} from "@mui/icons-material";
+import {Avatar, Divider, IconButton, ListItemIcon, Menu, MenuItem} from "@mui/material";
 import React from "react";
-import {User} from "./User";
-
-export interface ProfileMenuProps {
-    user: User
-}
+import {LoginButton} from "./LoginButton";
+import {Organization} from "./Organization";
 
 const menuId = 'primary-search-account-menu';
 
-export function ProfileMenu({user}: ProfileMenuProps) {
+export interface ProfileProps {
+    organization: Organization
+}
+
+export function Profile({organization}: ProfileProps) {
+    const {user, isAuthenticated, isLoading, logout} = useAuth0();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+    if (isLoading) {
+        return (
+            <IconButton size="large" edge="end">
+                <HourglassFullRoundedIcon/>
+            </IconButton>
+        )
+    }
+
+    if (!isAuthenticated || !user) {
+        return (
+            <LoginButton organizationId={organization.id}/>
+        )
+    }
+
     const openProfileMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
     const closeMenu = () => setAnchorEl(null);
     return (
@@ -32,6 +54,13 @@ export function ProfileMenu({user}: ProfileMenuProps) {
                         <PersonRoundedIcon fontSize="small"/>
                     </ListItemIcon>
                     Account
+                </MenuItem>
+                <Divider/>
+                <MenuItem onClick={() => logout()}>
+                    <ListItemIcon>
+                        <LogoutRoundedIcon fontSize="small"/>
+                    </ListItemIcon>
+                    Logout
                 </MenuItem>
             </Menu>
         </>

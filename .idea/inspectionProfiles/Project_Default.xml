@@ -31,6 +31,7 @@
         <method importPath="github.com/gin-gonic/gin" receiver="*Context" name="AbortWithError" />
         <method importPath="github.com/gin-gonic/gin" receiver="*Context" name="Error" />
         <method importPath="github.com/nats-io/nats.go" receiver="*Conn" name="Drain" />
+        <method importPath="cloud.google.com/go/pubsub" receiver="*Client" name="Close" />
       </methods>
     </inspection_tool>
     <inspection_tool class="HttpUrlsUsage" enabled="true" level="WEAK WARNING" enabled_by_default="true">
@@ -63,6 +64,9 @@
           <option value="http://%s.%s" />
         </list>
       </option>
+    </inspection_tool>
+    <inspection_tool class="ShellCheck" enabled="true" level="ERROR" enabled_by_default="true">
+      <shellcheck_settings value="SC2210" />
     </inspection_tool>
   </profile>
 </component>

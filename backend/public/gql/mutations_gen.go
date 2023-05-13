@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/arikkfir/greenstar/backend/public/model"
+	"github.com/arik-kfir/greenstar/backend/public/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -21,8 +21,7 @@ type MutationResolver interface {
 	DeleteAccount(ctx context.Context, accountID string) (string, error)
 	CreateTransaction(ctx context.Context, transaction model.TransactionChanges) (*model.Transaction, error)
 	CreateTransactions(ctx context.Context, transactions []*model.TransactionChanges) (int, error)
-	UploadTransactionsXLSFile(ctx context.Context, file graphql.Upload) (bool, error)
-	UploadTransactionsXLSXFile(ctx context.Context, file graphql.Upload) (bool, error)
+	ScrapeIsraelBankYahav(ctx context.Context, username string, id string, password string) (string, error)
 }
 
 // endregion ************************** generated!.gotpl **************************
@@ -44,7 +43,7 @@ func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Contex
 	var arg1 model.AccountChanges
 	if tmp, ok := rawArgs["account"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("account"))
-		arg1, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐAccountChanges(ctx, tmp)
+		arg1, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐAccountChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +58,7 @@ func (ec *executionContext) field_Mutation_createTransaction_args(ctx context.Co
 	var arg0 model.TransactionChanges
 	if tmp, ok := rawArgs["transaction"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("transaction"))
-		arg0, err = ec.unmarshalNTransactionChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransactionChanges(ctx, tmp)
+		arg0, err = ec.unmarshalNTransactionChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransactionChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -74,7 +73,7 @@ func (ec *executionContext) field_Mutation_createTransactions_args(ctx context.C
 	var arg0 []*model.TransactionChanges
 	if tmp, ok := rawArgs["transactions"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("transactions"))
-		arg0, err = ec.unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransactionChangesᚄ(ctx, tmp)
+		arg0, err = ec.unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransactionChangesᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -98,6 +97,39 @@ func (ec *executionContext) field_Mutation_deleteAccount_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_scrapeIsraelBankYahav_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["password"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -113,42 +145,12 @@ func (ec *executionContext) field_Mutation_updateAccount_args(ctx context.Contex
 	var arg1 model.AccountChanges
 	if tmp, ok := rawArgs["account"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("account"))
-		arg1, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐAccountChanges(ctx, tmp)
+		arg1, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐAccountChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["account"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_uploadTransactionsXLSFile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 graphql.Upload
-	if tmp, ok := rawArgs["file"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
-		arg0, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["file"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_uploadTransactionsXLSXFile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 graphql.Upload
-	if tmp, ok := rawArgs["file"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
-		arg0, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["file"] = arg0
 	return args, nil
 }
 
@@ -178,7 +180,6 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -188,7 +189,7 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -249,7 +250,6 @@ func (ec *executionContext) _Mutation_updateAccount(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -259,7 +259,7 @@ func (ec *executionContext) _Mutation_updateAccount(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -320,7 +320,6 @@ func (ec *executionContext) _Mutation_deleteAccount(ctx context.Context, field g
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -375,7 +374,6 @@ func (ec *executionContext) _Mutation_createTransaction(ctx context.Context, fie
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -385,7 +383,7 @@ func (ec *executionContext) _Mutation_createTransaction(ctx context.Context, fie
 	}
 	res := resTmp.(*model.Transaction)
 	fc.Result = res
-	return ec.marshalNTransaction2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransaction(ctx, field.Selections, res)
+	return ec.marshalNTransaction2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransaction(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createTransaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -446,7 +444,6 @@ func (ec *executionContext) _Mutation_createTransactions(ctx context.Context, fi
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -483,8 +480,8 @@ func (ec *executionContext) fieldContext_Mutation_createTransactions(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_uploadTransactionsXLSFile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_uploadTransactionsXLSFile(ctx, field)
+func (ec *executionContext) _Mutation_scrapeIsraelBankYahav(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_scrapeIsraelBankYahav(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -497,11 +494,10 @@ func (ec *executionContext) _Mutation_uploadTransactionsXLSFile(ctx context.Cont
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UploadTransactionsXLSFile(rctx, fc.Args["file"].(graphql.Upload))
+		return ec.resolvers.Mutation().ScrapeIsraelBankYahav(rctx, fc.Args["username"].(string), fc.Args["id"].(string), fc.Args["password"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
-		return graphql.Null
 	}
 	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
@@ -509,19 +505,19 @@ func (ec *executionContext) _Mutation_uploadTransactionsXLSFile(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_uploadTransactionsXLSFile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_scrapeIsraelBankYahav(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	defer func() {
@@ -531,62 +527,7 @@ func (ec *executionContext) fieldContext_Mutation_uploadTransactionsXLSFile(ctx 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_uploadTransactionsXLSFile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_uploadTransactionsXLSXFile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_uploadTransactionsXLSXFile(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UploadTransactionsXLSXFile(rctx, fc.Args["file"].(graphql.Upload))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_uploadTransactionsXLSXFile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_uploadTransactionsXLSXFile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_scrapeIsraelBankYahav_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -623,7 +564,7 @@ func (ec *executionContext) unmarshalInputAccountChanges(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("labels"))
-			it.Labels, err = ec.unmarshalOKeyAndValueInput2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐKeyAndValueInputᚄ(ctx, v)
+			it.Labels, err = ec.unmarshalOKeyAndValueInput2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐKeyAndValueInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -691,7 +632,7 @@ func (ec *executionContext) unmarshalInputTransactionChanges(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
-			it.Amount, err = ec.unmarshalNMoney2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐMoney(ctx, v)
+			it.Amount, err = ec.unmarshalNMoney2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐMoney(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -726,7 +667,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	})
 
 	out := graphql.NewFieldSet(fields)
-	var invalids uint32
 	for i, field := range fields {
 		innerCtx := graphql.WithRootFieldContext(ctx, &graphql.RootFieldContext{
 			Object: field.Name,
@@ -742,71 +682,41 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_createAccount(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateAccount":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateAccount(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "deleteAccount":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteAccount(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "createTransaction":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createTransaction(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "createTransactions":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createTransactions(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "uploadTransactionsXLSFile":
+		case "scrapeIsraelBankYahav":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_uploadTransactionsXLSFile(ctx, field)
+				return ec._Mutation_scrapeIsraelBankYahav(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "uploadTransactionsXLSXFile":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_uploadTransactionsXLSXFile(ctx, field)
-			})
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
 	}
 	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
 	return out
 }
 
@@ -814,17 +724,17 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNAccountChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐAccountChanges(ctx context.Context, v interface{}) (model.AccountChanges, error) {
+func (ec *executionContext) unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐAccountChanges(ctx context.Context, v interface{}) (model.AccountChanges, error) {
 	res, err := ec.unmarshalInputAccountChanges(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNTransactionChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransactionChanges(ctx context.Context, v interface{}) (model.TransactionChanges, error) {
+func (ec *executionContext) unmarshalNTransactionChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransactionChanges(ctx context.Context, v interface{}) (model.TransactionChanges, error) {
 	res, err := ec.unmarshalInputTransactionChanges(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransactionChangesᚄ(ctx context.Context, v interface{}) ([]*model.TransactionChanges, error) {
+func (ec *executionContext) unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransactionChangesᚄ(ctx context.Context, v interface{}) ([]*model.TransactionChanges, error) {
 	var vSlice []interface{}
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
@@ -833,7 +743,7 @@ func (ec *executionContext) unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋar
 	res := make([]*model.TransactionChanges, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNTransactionChanges2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransactionChanges(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNTransactionChanges2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransactionChanges(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -841,24 +751,9 @@ func (ec *executionContext) unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋar
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNTransactionChanges2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋapiᚋpublicᚋmodelᚐTransactionChanges(ctx context.Context, v interface{}) (*model.TransactionChanges, error) {
+func (ec *executionContext) unmarshalNTransactionChanges2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋpublicᚋmodelᚐTransactionChanges(ctx context.Context, v interface{}) (*model.TransactionChanges, error) {
 	res, err := ec.unmarshalInputTransactionChanges(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {
-	res, err := graphql.UnmarshalUpload(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v graphql.Upload) graphql.Marshaler {
-	res := graphql.MarshalUpload(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
 }
 
 // endregion ***************************** type.gotpl *****************************

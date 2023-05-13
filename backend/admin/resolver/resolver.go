@@ -1,8 +1,9 @@
 package resolver
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
-	"github.com/arikkfir/greenstar/backend/util/neo4jutil"
+	"github.com/arik-kfir/greenstar/backend/util/neo4jutil"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/rs/zerolog/log"
 )
@@ -25,4 +26,8 @@ func (r *Resolver) getNeo4jSessionForTenant(ctx context.Context, mode neo4j.Acce
 		DatabaseName: tenantID,
 		BoltLogger:   &neo4jutil.Neo4jZerologBoltLogger{Logger: log.Ctx(ctx)},
 	})
+}
+
+func (r *Resolver) HandleMessage(ctx context.Context, msg *pubsub.Message) {
+	panic("implement me")
 }

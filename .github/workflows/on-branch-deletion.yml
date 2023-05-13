@@ -1,0 +1,20 @@
+name: On branch deletion
+on:
+  delete:
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+jobs:
+
+  delete-env:
+    name: Delete environment
+    if: github.ref_type == 'branch' && github.event.ref_type == 'branch'
+    uses: arik-kfir/delivery/.github/workflows/delete-app-env.yml@main
+    concurrency:
+      group: deployment
+      cancel-in-progress: false
+    with:
+      environment: ${{ github.ref_name }}
+    secrets: inherit

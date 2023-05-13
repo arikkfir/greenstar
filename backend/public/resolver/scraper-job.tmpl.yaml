@@ -1,0 +1,23 @@
+#file: noinspection KubernetesUnknownValues
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "scraper-{{ .Name }}"
+  namespace: "{{ .Namespace }}"
+spec:
+  activeDeadlineSeconds: 600
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      containers:
+        - name: scraper
+          image: "ghcr.io/arikkfir/greenstar/scraper:{{ .Version }}"
+          envFrom:
+            - secretRef:
+                name: "scraper-{{ .Name }}"
+                optional: false
+      restartPolicy: Never
+  backoffLimit: 1
