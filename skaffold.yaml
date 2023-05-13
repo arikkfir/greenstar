@@ -12,7 +12,7 @@ build:
     - image: ghcr.io/arik-kfir/greenstar/frontend
       context: frontend
       docker:
-        dockerfile: Dockerfile.debug
+        dockerfile: Dockerfile
       sync:
         manual:
           - dest: /workspace
