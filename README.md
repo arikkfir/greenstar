@@ -2,11 +2,13 @@
 
 GreenSTAR is an accounting application built for the new generation.
 
-- https://greenstar.kfirs.com
+- https://app.admin.greenstar.kfirs.com
+- https://app.greenstar.kfirs.com
+- https://app.operations.greenstar.kfirs.com
 
 (the above do not work yet)
 
-## Setup a local development environment
+## Local development environment
 
 ### Prerequisite tools
 
@@ -15,55 +17,91 @@ $ brew install jq yq                                # JSON and YAML manipulation
 $ brew install go node                              # Programming languages 
 $ brew install kubernetes-cli kustomize helm kind   # Kubernetes tools
 $ brew install skaffold                             # Kubernetes development tool
+$ brew install dnsmasq mkcert                       # For local TLS domains
 ```
 
-### Setup
+### Local testing domains
 
-Replace the `NON_SECRET_ID` with something representing you, e.g. your local username, or something similar. The app
+Given that the application has multiple components, and each needs to be addressable separately via a separate domain,
+we need to use the same convention even when running locally.
+
+To do that, we will utilize `dnsmasq` to resolve the `greenstar.test` domain to localhost. To do that, perform the
+following actions (once):
+
+```shell
+$ cat >> /opt/homebrew/etc/dnsmasq.conf <<EOF
+address=/.greenstar.test/127.0.0.1
+server=8.8.8.8
+server=8.8.4.4
+EOF
+$ sudo brew services restart dnsmasq
+$ dig @127.0.0.1 foobar.greenstar.test # sanity test
+$ cat <<EOF | sudo tee /etc/resolver/greenstar
+domain greenstar.test
+search greenstar.test
+nameserver 127.0.0.1
+EOF
+$ sudo killall -HUP mDNSResponder
+$ scutil --dns # sanity test; verify resolver for "greenstar.test" appears and working
+
+... replace DNS server with 127.0.0.1 in macOS network manager...
+
+$ dig foobar.greenstar.test # sanity test (notice it's not the same sanity as above)
+```
+
+See [this blog post](https://mjpitz.com/blog/2020/10/21/local-ingress-domains-kind/) for more information.
+
+### Local TLS
+
+It is not sufficient to just resolve the `*.greenstar.test` domain to localhost, we also need it to work with TLS, since
+we are utilizing Auth0 which uses cryptographic APIs, which require secure hosts. To do that, follow the following
+actions:
+
+```shell
+$ mkcert -install
+$ cd deploy/local/tls
+$ mkcert api.greenstar.test
+$ mkcert '*.greenstar.test'
+```
+
+See [this blog post](https://web.dev/how-to-use-local-https/) for more information.
+
+### Setup cluster
+
+Replace the relevant values with something representing you, e.g. your local username, or something similar. The app
 (when in dev mode) will create a few transient resources (e.g. Cloud Pub/Sub topics, subscriptions, etc) in the GCP
 project associated with this ID, to differentiate it from similar resources used by other developers. Make sure you
 don't use something secret - a name or nickname is perfectly fine here.
 
 ```shell
-$ cat deploy/kind/cluster-config.yaml | yq ".nodes[0].extraMounts[0].hostPath = \"$(cd ~/.config/gcloud && pwd)\"" \
-    | kind create cluster --config=- --name=local
+$ cat deploy/kind/cluster-config.yaml | yq ".nodes[0].extraMounts[0].hostPath = \"$(cd ~/.config/gcloud && pwd)\"" | kind create cluster --config=- --name=local
 $ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-$ cat > deploy/local/greenstar-secrets.env <<EOF
-auth0_domain=AUTH0_DOMAIN
-auth0_api_client_id=AUTH0_API_APP_CLIENT_ID
-auth0_api_client_secret=AUTH0_API_APP_CLIENT_SECRET
-auth0_app_client_id=AUTH0_SPA_APP_CLIENT_ID
+```
+
+### Personal secrets & values
+
+Some values needed during local development are not shared, and are personally related to the development team. To make
+those available while running, perform the following (assuming you have access to the secrets, or use your own):
+
+```shell
+$ touch frontend/apply-patches.sh
+$ cat > deploy/local/config/greenstar-backend-secrets.env <<EOF
+AUTH_DESCOPE_PROJECT_ID=descope_project_id
+AUTH_DESCOPE_MANAGEMENT_KEY=descope_management_key
+DEV_MODE_ID=your_own_made_up_id
 EOF
-$ cat > deploy/local/local-config.env <<EOF
-DEV_MODE_ID=YOUR_OWN_MADEUP_ID
-GCP_PROJECT_ID=GCP_PROJECT_TO_USE
-REACT_APP_AUTH0_ORG_NAME=DEFAULT_ORG_NAME_IN_AUTH0_TO_USE_IN_LOCALHOST
+$ cat > deploy/local/config/greenstar-frontend-secrets.env <<EOF
 EOF
 ```
 
 ### Running
 
 ```shell
-$ skaffold dev --kube-context=kind-local --keep-running-on-failure=true
+$ skaffold dev --kube-context=kind-local
 ```
 
-This will build all Docker images, deploy them to the `default` namespace of the `kind` cluster you just set up, and
+This will build all container images, deploy them to the `default` namespace of the `kind` cluster you just set up, and
 then make the following URLs available:
 
-- http://localhost - the GreenSTAR web application
-- http://localhost/api/ - the GreenSTAR APIs
-- localhost:6379 - the Redis server
-
-### Authentication & Authorization
-
-We use Auth0 to manage authentication and authorization. The following objects are used:
-
-- One Auth0 app for the greenstar web application (aka. "SPA")
-- One Auth0 app for the greenstar backend API
-- Multiple Auth0 APIs (in Auth0, you can define an "API" object)
-- Manage a set of Roles
-  - Each role defines the set of scopes it grants, for one or more of the APIs above
-  - Roles are then granted to users
-- User logs into the app, granted some scopes over some of the APIs
-  - Upon login, an access token is received by the SPA
-- The access token is then used (via the HTTP authorization bearer header) to access the backend API
+- https://api.greenstar.test
+- https://TENANT.greenstar.test

@@ -1,0 +1,6 @@
+schema: ../schema/*.graphql
+documents: src/**/*.ts*
+ignoreNoDocuments: true
+generates:
+  ./src/gql/:
+    preset: client

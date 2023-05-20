@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j
+spec:
+  ports:
+    - name: client-nontls
+      port: 7687
+      protocol: TCP
+      targetPort: client-nontls
+    - name: http
+      port: 7474
+      protocol: TCP
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: neo4j
+  type: ClusterIP

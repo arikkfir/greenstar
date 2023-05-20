@@ -1,0 +1,8 @@
+type Tenant {
+    id: ID!
+    displayName: String!
+}
+
+input TenantChanges {
+    displayName: String!
+}

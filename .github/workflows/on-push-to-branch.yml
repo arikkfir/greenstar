@@ -14,15 +14,14 @@ jobs:
   backend-unit-tests:
     name: Backend Unit Tests
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    strategy:
+      matrix:
+        service: [ admin, app, operations ]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
+      - uses: actions/setup-go@v4
       - run: go test ./...
-        working-directory: backend
+        working-directory: ${{ matrix.service }}/api
 
   build-docker-images:
     name: Build Docker Images
@@ -32,7 +31,8 @@ jobs:
       packages: write
     strategy:
       matrix:
-        image: [ backend, frontend ]
+        service: [ admin, app, operations ]
+        type: [ api, frontend ]
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v2
@@ -46,7 +46,7 @@ jobs:
       - uses: docker/metadata-action@v4
         id: meta
         with:
-          images: ghcr.io/${{ github.repository }}/${{ matrix.image }}
+          images: ghcr.io/${{ github.repository }}/${{ matrix.service }}/${{ matrix.type }}
           tags: |
             type=sha,prefix=,suffix=,format=short
             type=sha,prefix=,suffix=,format=long
@@ -57,7 +57,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          context: ${{ matrix.image }}
+          context: ${{ matrix.service }}/${{ matrix.type }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
@@ -71,22 +71,10 @@ jobs:
     with:
       environment: ${{ github.ref_name }}
       images: |-
-        ghcr.io/${{ github.repository }}/backend: ${{ github.sha }}
-        ghcr.io/${{ github.repository }}/frontend: ${{ github.sha }}
+        ghcr.io/${{ github.repository }}/admin/api: ${{ github.sha }}
+        ghcr.io/${{ github.repository }}/admin/frontend: ${{ github.sha }}
+        ghcr.io/${{ github.repository }}/app/api: ${{ github.sha }}
+        ghcr.io/${{ github.repository }}/app/frontend: ${{ github.sha }}
+        ghcr.io/${{ github.repository }}/operations/api: ${{ github.sha }}
+        ghcr.io/${{ github.repository }}/operations/frontend: ${{ github.sha }}
     secrets: inherit
-
-  e2e-tests:
-    runs-on: ubuntu-22.04
-    needs: deploy-to-environment
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: npm
-          cache-dependency-path: e2e/package-lock.json
-      - run: |
-          npm ci
-          npx playwright install --with-deps
-#          npx playwright test
-        working-directory: e2e

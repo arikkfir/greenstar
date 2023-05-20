@@ -1,0 +1,21 @@
+scalar Time
+scalar Money
+
+type Transaction {
+    id: ID!
+    Date: Time!
+    targetAccount: Account!
+    sourceAccount: Account!
+    referenceID: String!
+    amount: Money!
+    description: String!
+}
+
+input TransactionChanges {
+    Date: Time!
+    targetAccountID: ID!
+    sourceAccountID: ID!
+    referenceID: String!
+    amount: Money!
+    description: String!
+}

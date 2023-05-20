@@ -1,0 +1,9 @@
+schema: schema/*.graphql
+documents:
+  - backend/**/*.graphql
+  - frontend/**/*.graphql
+extensions:
+  endpoints:
+    API:
+      url: http://api.greenstar.test/query
+      introspect: true

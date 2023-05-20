@@ -12,9 +12,6 @@
               <option name="patterns">
                 <list>
                   <Item>
-                    <option name="path" value=".github/workflows/verify.yml" />
-                  </Item>
-                  <Item>
                     <option name="path" value=".github/workflows/on-branch-deletion.yml" />
                   </Item>
                   <Item>
@@ -22,6 +19,9 @@
                   </Item>
                   <Item>
                     <option name="path" value=".github/workflows/on-release-tag.yml" />
+                  </Item>
+                  <Item>
+                    <option name="path" value=".github/workflows/verify.yml" />
                   </Item>
                 </list>
               </option>
@@ -32,7 +32,7 @@
           <value>
             <SchemaInfo>
               <option name="name" value="skaffold.yaml" />
-              <option name="relativePathToSchema" value="https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v3.json" />
+              <option name="relativePathToSchema" value="https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v4beta5.json" />
               <option name="applicationDefined" value="true" />
               <option name="patterns">
                 <list>

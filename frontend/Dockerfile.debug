@@ -4,11 +4,17 @@
 FROM node:19.4 as builder
 WORKDIR /workspace
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/workspace/.npm \
+    npm set cache /workspace/.npm && \
+    npm ci
 COPY public ./public
 COPY src ./src
+COPY apply-patches.sh ./
 COPY tsconfig.json ./
+RUN chmod +x ./apply-patches.sh && ./apply-patches.sh
 ENV PORT=80
+ENV WDS_SOCKET_PORT=443
 EXPOSE 80
+EXPOSE 443
 ENTRYPOINT ["npm"]
 CMD ["run", "start"]

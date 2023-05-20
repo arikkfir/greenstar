@@ -1,5 +1,5 @@
 # nonk8s
-apiVersion: skaffold/v4beta5
+apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
   name: greenstar
@@ -9,6 +9,10 @@ build:
     useBuildkit: true
     push: false
   artifacts:
+    - image: ghcr.io/arik-kfir/greenstar/backend
+      context: backend
+      docker:
+        dockerfile: Dockerfile
     - image: ghcr.io/arik-kfir/greenstar/frontend
       context: frontend
       docker:
@@ -19,16 +23,31 @@ build:
             src: public/**/*
           - dest: /workspace
             src: src/**/*
-    - image: ghcr.io/arik-kfir/greenstar/backend
-      context: backend
-      docker:
-        dockerfile: Dockerfile
 manifests:
   kustomize:
     paths:
       - deploy/local
 deploy:
   tolerateFailuresUntilDeadline: true
-  statusCheckDeadlineSeconds: 60
+  statusCheckDeadlineSeconds: 1200
   kubectl:
     defaultNamespace: default
+    hooks:
+      before:
+        - host:
+            command: # skaffold has a bug where past failure events cause it to indefinitely wait for stabilization
+              - kubectl
+              - delete
+              - events
+              - --all
+portForward:
+  - resourceType: Service
+    resourceName: greenstar-neo4j
+    namespace: default
+    port: client-nontls
+    localPort: 7687
+  - resourceType: Service
+    resourceName: greenstar-neo4j
+    namespace: default
+    port: http
+    localPort: 7474

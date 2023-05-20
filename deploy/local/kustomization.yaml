@@ -1,123 +1,57 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-commonLabels:
-  app.kubernetes.io/version: 0.0.0-local
 resources:
-  - https://github.com/arik-kfir/delivery//apps/greenstar/base
+  - ../base
   - ingress.yaml
 configMapGenerator:
-  - name: local-config
+  - name: greenstar-backend-config
     behavior: create
-    envs: [local-config.env]
+    envs: [ config/greenstar-backend-config.env ]
+  - name: greenstar-frontend-config
+    behavior: create
+    envs: [ config/greenstar-frontend-config.env ]
 secretGenerator:
-  - name: greenstar-secrets
+  - name: greenstar-backend-secrets
     behavior: create
-    envs: [greenstar-secrets.env]
+    envs: [ config/greenstar-backend-secrets.env ]
+  - name: greenstar-frontend-secrets
+    behavior: create
+    envs: [ config/greenstar-frontend-secrets.env ]
+  - name: greenstar-backend-tls
+    type: kubernetes.io/tls
+    behavior: create
+    files:
+      - tls.crt=tls/api.greenstar.test.pem
+      - tls.key=tls/api.greenstar.test-key.pem
+  - name: greenstar-frontend-tls
+    type: kubernetes.io/tls
+    behavior: create
+    files:
+      - tls.crt=tls/_wildcard.greenstar.test.pem
+      - tls.key=tls/_wildcard.greenstar.test-key.pem
 patches:
+
   - target:
       group: apps
       version: v1
       kind: Deployment
-      name: greenstar-backend
+      labelSelector: app.kubernetes.io/component=frontend
     patch: |-
-      - op: add
-        path: /spec/template/spec/volumes/-
-        value:
-          name: gcloud
-          hostPath:
-            path: /gcloud
-      - op: add
-        path: /spec/template/spec/containers/0/volumeMounts/-
-        value:
-          name: gcloud
-          mountPath: /root/.config/gcloud
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: LOG_LEVEL
-          value: debug
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: DEV_MODE
-          value: "true"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: DEV_MODE_ID
-          valueFrom:
-            configMapKeyRef:
-              name: local-config
-              key: DEV_MODE_ID
-              optional: false
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: GCP_PROJECT_ID
-          valueFrom:
-            configMapKeyRef:
-              name: local-config
-              key: GCP_PROJECT_ID
-              optional: false
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: GCP_ADMIN_SUBSCRIPTION
-          value: ""
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: GCP_OPERATIONS_SUBSCRIPTION
-          value: ""
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: GCP_PUBLIC_SUBSCRIPTION
-          value: ""
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: HTTP_CORS_ALLOWED_ORIGINS
-          value: "http://localhost"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: NEO4J_HOST
-          value: neo4j.main.kfirs.com
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: NEO4J_PORT
-          value: "7688"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: REDIS_PORT
-          value: "6379"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: AUTH_AUTH0_LOCALHOST_ORG_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: local-config
-              key: AUTH0_LOCALHOST_ORG_NAME
-              optional: false
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: greenstar-frontend
-    patch: |-
-      - op: add
+      - op: replace
+        path: /spec/template/spec/containers/0/startupProbe/failureThreshold
+        value: 10
+      - op: replace
         path: /spec/template/spec/containers/0/startupProbe/initialDelaySeconds
-        value: 15
+        value: 30
+      - op: replace
+        path: /spec/template/spec/containers/0/startupProbe/periodSeconds
+        value: 10
       - op: replace
         path: /spec/template/spec/containers/0/resources
         value:
           limits:
-            cpu: 4000m
-            memory: 6Gi
+            cpu: 2000m
+            memory: 4Gi
           requests:
-            cpu: 4000m
-            memory: 6Gi
+            cpu: 2000m
+            memory: 4Gi
