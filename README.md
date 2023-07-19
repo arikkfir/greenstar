@@ -104,4 +104,5 @@ This will build all container images, deploy them to the `default` namespace of 
 then make the following URLs available:
 
 - https://api.greenstar.test
+- https://global.greenstar.test
 - https://TENANT.greenstar.test
