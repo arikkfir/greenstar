@@ -14,14 +14,11 @@ jobs:
   backend-unit-tests:
     name: Backend Unit Tests
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        service: [ admin, app, operations ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
       - run: go test ./...
-        working-directory: ${{ matrix.service }}/api
+        working-directory: backend
 
   build-docker-images:
     name: Build Docker Images
@@ -31,8 +28,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        service: [ admin, app, operations ]
-        type: [ api, frontend ]
+        service: [ backend, frontend ]
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v2
@@ -46,7 +42,7 @@ jobs:
       - uses: docker/metadata-action@v4
         id: meta
         with:
-          images: ghcr.io/${{ github.repository }}/${{ matrix.service }}/${{ matrix.type }}
+          images: ghcr.io/${{ github.repository }}/${{ matrix.service }}
           tags: |
             type=sha,prefix=,suffix=,format=short
             type=sha,prefix=,suffix=,format=long
@@ -57,24 +53,24 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          context: ${{ matrix.service }}/${{ matrix.type }}
+          context: ${{ matrix.service }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
-  deploy-to-environment:
-    name: Deploy to environment
-    needs: build-docker-images
-    uses: arik-kfir/delivery/.github/workflows/deploy-app-env.yml@main
-    concurrency:
-      group: deployment
-      cancel-in-progress: false
-    with:
-      environment: ${{ github.ref_name }}
-      images: |-
-        ghcr.io/${{ github.repository }}/admin/api: ${{ github.sha }}
-        ghcr.io/${{ github.repository }}/admin/frontend: ${{ github.sha }}
-        ghcr.io/${{ github.repository }}/app/api: ${{ github.sha }}
-        ghcr.io/${{ github.repository }}/app/frontend: ${{ github.sha }}
-        ghcr.io/${{ github.repository }}/operations/api: ${{ github.sha }}
-        ghcr.io/${{ github.repository }}/operations/frontend: ${{ github.sha }}
-    secrets: inherit
+#  deploy-to-environment:
+#    name: Deploy to environment
+#    needs: build-docker-images
+#    uses: arik-kfir/delivery/.github/workflows/deploy-app-env.yml@main
+#    concurrency:
+#      group: deployment
+#      cancel-in-progress: false
+#    with:
+#      environment: ${{ github.ref_name }}
+#      images: |-
+#        ghcr.io/${{ github.repository }}/admin/api: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/admin/frontend: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/app/api: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/app/frontend: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/operations/api: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/operations/frontend: ${{ github.sha }}
+#    secrets: inherit

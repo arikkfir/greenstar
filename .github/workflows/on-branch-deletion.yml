@@ -21,14 +21,14 @@ jobs:
           BRANCH="${REF#refs/heads/}"
           echo "name=${BRANCH}" >> "$GITHUB_OUTPUT"
 
-  delete-env:
-    name: Delete environment
-    needs: get-deleted-branch
-    if: github.ref_type == 'branch' && github.event.ref_type == 'branch'
-    uses: arik-kfir/delivery/.github/workflows/delete-app-env.yml@main
-    concurrency:
-      group: deployment
-      cancel-in-progress: false
-    with:
-      environment: ${{ needs.get-deleted-branch.outputs.name }}
-    secrets: inherit
+#  delete-env:
+#    name: Delete environment
+#    needs: get-deleted-branch
+#    if: github.ref_type == 'branch' && github.event.ref_type == 'branch'
+#    uses: arik-kfir/delivery/.github/workflows/delete-app-env.yml@main
+#    concurrency:
+#      group: deployment
+#      cancel-in-progress: false
+#    with:
+#      environment: ${{ needs.get-deleted-branch.outputs.name }}
+#    secrets: inherit

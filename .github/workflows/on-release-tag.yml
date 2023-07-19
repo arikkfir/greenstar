@@ -18,15 +18,10 @@ jobs:
       packages: write
     strategy:
       matrix:
-        service: [ admin, app, operations ]
-        type: [ api, frontend ]
+        service: [ backend, frontend ]
     outputs:
-      admin_api_image_tag: ${{ steps.tags.outputs.admin_api_image_tag }}
-      admin_frontend_image_tag: ${{ steps.tags.outputs.admin_frontend_image_tag }}
-      app_api_image_tag: ${{ steps.tags.outputs.app_api_image_tag }}
-      app_frontend_image_tag: ${{ steps.tags.outputs.app_frontend_image_tag }}
-      operations_api_image_tag: ${{ steps.tags.outputs.operations_api_image_tag }}
-      operations_frontend_image_tag: ${{ steps.tags.outputs.operations_frontend_image_tag }}
+      backend_image_tag: ${{ steps.tags.outputs.backend_image_tag }}
+      frontend_image_tag: ${{ steps.tags.outputs.frontend_image_tag }}
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v2
@@ -40,16 +35,16 @@ jobs:
       - uses: docker/metadata-action@v4
         id: meta
         with:
-          images: ghcr.io/${{ github.repository }}/${{ matrix.service }}/${{ matrix.type }}
+          images: ghcr.io/${{ github.repository }}/${{ matrix.service }}
           tags: |
-            type=raw,value=latest,enable=false
+            type=raw,enable=false
             type=semver,pattern={{version}}
       - uses: docker/build-push-action@v3
         with:
           builder: ${{ steps.buildx.outputs.name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          context: ${{ matrix.service }}/${{ matrix.type }}
+          context: ${{ matrix.service }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
       - id: tags
@@ -57,22 +52,18 @@ jobs:
           cat > docker.json <<EOF
           ${{ steps.meta.outputs.json }}
           EOF
-          echo "${{ matrix.service }}_${{ matrix.type }}_image_tag=$(jq -r '.tags[0]' < docker.json | cut -d':' -f2)" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.service }}_image_tag=$(jq -r '.tags[0]' < docker.json | cut -d':' -f2)" >> "$GITHUB_OUTPUT"
 
-  deploy-to-environment:
-    name: Deploy to production
-    needs: build-docker-images
-    uses: arik-kfir/delivery/.github/workflows/deploy-app-env.yml@main
-    concurrency:
-      group: deployment
-      cancel-in-progress: false
-    with:
-      environment: production
-      images: |-
-        ghcr.io/${{ github.repository }}/admin/api: ${{ needs.build-docker-images.outputs.admin_api_image_tag }}
-        ghcr.io/${{ github.repository }}/admin/frontend: ${{ needs.build-docker-images.outputs.admin_frontend_image_tag }}
-        ghcr.io/${{ github.repository }}/app/api: ${{ needs.build-docker-images.outputs.app_api_image_tag }}
-        ghcr.io/${{ github.repository }}/app/frontend: ${{ needs.build-docker-images.outputs.app_frontend_image_tag }}
-        ghcr.io/${{ github.repository }}/operations/api: ${{ needs.build-docker-images.outputs.operations_api_image_tag }}
-        ghcr.io/${{ github.repository }}/operations/frontend: ${{ needs.build-docker-images.outputs.operations_frontend_image_tag }}
-    secrets: inherit
+#  deploy-to-environment:
+#    name: Deploy to production
+#    needs: build-docker-images
+#    uses: arik-kfir/delivery/.github/workflows/deploy-app-env.yml@main
+#    concurrency:
+#      group: deployment
+#      cancel-in-progress: false
+#    with:
+#      environment: production
+#      images: |-
+#        ghcr.io/${{ github.repository }}/backend: ${{ needs.build-docker-images.outputs.backend_image_tag }}
+#        ghcr.io/${{ github.repository }}/frontend: ${{ needs.build-docker-images.outputs.frontend_image_tag }}
+#    secrets: inherit
