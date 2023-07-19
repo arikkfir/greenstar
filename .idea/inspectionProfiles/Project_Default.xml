@@ -5,33 +5,27 @@
     <inspection_tool class="GoUnhandledErrorResult" enabled="true" level="WARNING" enabled_by_default="true">
       <functions>
         <function importPath="fmt" name="Printf" />
-        <function importPath="fmt" name="Errorf" />
         <function importPath="math/rand" name="Read" />
         <function importPath="fmt" name="Println" />
+        <function importPath="fmt" name="Errorf" />
         <function importPath="fmt" name="Print" />
-        <function importPath="os" name="Remove" />
+        <function importPath="io" name="WriteString" />
       </functions>
       <methods>
         <method importPath="hash" receiver="Hash" name="Write" />
-        <method importPath="strings" receiver="*Builder" name="Write" />
-        <method importPath="strings" receiver="*Builder" name="WriteByte" />
-        <method importPath="bytes" receiver="*Buffer" name="WriteRune" />
-        <method importPath="bytes" receiver="*Buffer" name="Write" />
         <method importPath="bytes" receiver="*Buffer" name="WriteString" />
-        <method importPath="strings" receiver="*Builder" name="WriteString" />
-        <method importPath="bytes" receiver="*Buffer" name="WriteByte" />
         <method importPath="strings" receiver="*Builder" name="WriteRune" />
+        <method importPath="bytes" receiver="*Buffer" name="Write" />
+        <method importPath="bytes" receiver="*Buffer" name="WriteByte" />
+        <method importPath="strings" receiver="*Builder" name="Write" />
         <method importPath="math/rand" receiver="*Rand" name="Read" />
-        <method importPath="io" receiver="ReadCloser" name="Close" />
+        <method importPath="strings" receiver="*Builder" name="WriteString" />
+        <method importPath="bytes" receiver="*Buffer" name="WriteRune" />
+        <method importPath="strings" receiver="*Builder" name="WriteByte" />
         <method importPath="github.com/neo4j/neo4j-go-driver/v5/neo4j" receiver="DriverWithContext" name="Close" />
-        <method importPath="github.com/neo4j/neo4j-go-driver/v5/neo4j" receiver="SessionWithContext" name="Close" />
-        <method importPath="os" receiver="*File" name="Close" />
-        <method importPath="github.com/kubemq-io/kubemq-go" receiver="*EventsStoreClient" name="Close" />
-        <method importPath="github.com/nats-io/nats.go" receiver="*Subscription" name="Unsubscribe" />
-        <method importPath="github.com/gin-gonic/gin" receiver="*Context" name="AbortWithError" />
-        <method importPath="github.com/gin-gonic/gin" receiver="*Context" name="Error" />
-        <method importPath="github.com/nats-io/nats.go" receiver="*Conn" name="Drain" />
         <method importPath="cloud.google.com/go/pubsub" receiver="*Client" name="Close" />
+        <method importPath="github.com/neo4j/neo4j-go-driver/v5/neo4j" receiver="SessionWithContext" name="Close" />
+        <method importPath="net/http" receiver="*Server" name="Shutdown" />
       </methods>
     </inspection_tool>
     <inspection_tool class="HttpUrlsUsage" enabled="true" level="WEAK WARNING" enabled_by_default="true">

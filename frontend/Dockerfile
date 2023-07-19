@@ -4,10 +4,14 @@
 FROM node:19.4 as builder
 WORKDIR /workspace
 COPY package.json package-lock.json ./
-RUN npm ci --only=production
+RUN --mount=type=cache,target=/workspace/.npm \
+    npm set cache /workspace/.npm && \
+    npm ci --only=production
 COPY public ./public
 COPY src ./src
+COPY apply-patches.sh ./
 COPY tsconfig.json ./
+RUN chmod +x ./apply-patches.sh && ./apply-patches.sh
 RUN npm run build
 
 ### Target layer

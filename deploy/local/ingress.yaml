@@ -3,28 +3,32 @@ kind: Ingress
 metadata:
   name: greenstar
 spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - api.greenstar.test
+      secretName: greenstar-backend-tls
+    - hosts:
+        - '*.greenstar.test'
+      secretName: greenstar-frontend-tls
   rules:
-    - host: localhost
+    - host: api.greenstar.test
       http:
         paths:
-          - path: /auth
-            pathType: Prefix
-            backend:
-              service:
-                name: greenstar-backend
-                port:
-                  name: http
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: greenstar-backend
-                port:
-                  name: http
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: greenstar-frontend
+                name: greenstar-app-backend
+                port:
+                  name: http
+    - host: '*.greenstar.test'
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: greenstar-app-frontend
                 port:
                   name: http

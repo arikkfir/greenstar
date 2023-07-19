@@ -1,9 +1,0 @@
-type KeyAndValue {
-  key: String!
-  value: String!
-}
-
-input KeyAndValueInput {
-    key: String!
-    value: String!
-}

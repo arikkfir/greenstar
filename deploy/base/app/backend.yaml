@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+  name: backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+  name: backend
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    app.kubernetes.io/component: backend
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+  name: backend
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: backend
+    spec:
+      containers:
+        - image: ghcr.io/arik-kfir/greenstar/backend
+          name: backend
+          env:
+            - name: NEO4J_HOST
+              value: greenstar-neo4j
+            - name: NEO4J_PORT
+              value: "7687"
+            - name: REDIS_HOST
+              value: greenstar-redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+            - configMapRef:
+                name: greenstar-backend-config
+                optional: false
+            - secretRef:
+                name: greenstar-backend-secrets
+                optional: false
+          startupProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            failureThreshold: 3
+            periodSeconds: 5
+            terminationGracePeriodSeconds: 30
+            timeoutSeconds: 3
+          ports:
+            - containerPort: 8000
+              name: http
+            - containerPort: 9000
+              name: health
+          resources:
+            limits:
+              cpu: 200m
+              memory: 32Mi
+            requests:
+              cpu: 100m
+              memory: 16Mi
+          volumeMounts: []
+      enableServiceLinks: false
+      serviceAccountName: backend
+      volumes: []

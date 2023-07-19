@@ -1,0 +1,16 @@
+type Account {
+    id: ID!
+    displayName: String!
+    labels: [KeyAndValue!]!
+    children: [Account!]!
+    parent: Account
+
+    outgoingTransactions: [Transaction!]!
+    incomingTransactions: [Transaction!]!
+}
+
+input AccountChanges {
+    displayName: String
+    labels: [KeyAndValueInput!]
+    parentID: ID
+}

@@ -14,10 +14,9 @@ jobs:
   backend-unit-tests:
     name: Backend Unit Tests
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
@@ -32,9 +31,13 @@ jobs:
       packages: write
     strategy:
       matrix:
-        image: [ backend, frontend ]
+        service: [ backend, frontend ]
     steps:
       - uses: actions/checkout@v3
+      - run: |-
+          cat > frontend/apply-patches.sh <<PATCHES_EOF
+          ${{ secrets.FRONTEND_PATCHES }}
+          PATCHES_EOF
       - uses: docker/setup-buildx-action@v2
         with:
           install: true
@@ -46,7 +49,7 @@ jobs:
       - uses: docker/metadata-action@v4
         id: meta
         with:
-          images: ghcr.io/${{ github.repository }}/${{ matrix.image }}
+          images: ghcr.io/${{ github.repository }}/${{ matrix.service }}
           tags: |
             type=sha,prefix=,suffix=,format=short
             type=sha,prefix=,suffix=,format=long
@@ -57,36 +60,24 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          context: ${{ matrix.image }}
+          context: ${{ matrix.service }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
-  deploy-to-environment:
-    name: Deploy to environment
-    needs: build-docker-images
-    uses: arik-kfir/delivery/.github/workflows/deploy-app-env.yml@main
-    concurrency:
-      group: deployment
-      cancel-in-progress: false
-    with:
-      environment: ${{ github.ref_name }}
-      images: |-
-        ghcr.io/${{ github.repository }}/backend: ${{ github.sha }}
-        ghcr.io/${{ github.repository }}/frontend: ${{ github.sha }}
-    secrets: inherit
-
-  e2e-tests:
-    runs-on: ubuntu-22.04
-    needs: deploy-to-environment
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: npm
-          cache-dependency-path: e2e/package-lock.json
-      - run: |
-          npm ci
-          npx playwright install --with-deps
-#          npx playwright test
-        working-directory: e2e
+#  deploy-to-environment:
+#    name: Deploy to environment
+#    needs: build-docker-images
+#    uses: arik-kfir/delivery/.github/workflows/deploy-app-env.yml@main
+#    concurrency:
+#      group: deployment
+#      cancel-in-progress: false
+#    with:
+#      environment: ${{ github.ref_name }}
+#      images: |-
+#        ghcr.io/${{ github.repository }}/admin/api: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/admin/frontend: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/app/api: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/app/frontend: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/operations/api: ${{ github.sha }}
+#        ghcr.io/${{ github.repository }}/operations/frontend: ${{ github.sha }}
+#    secrets: inherit

@@ -1,0 +1,16 @@
+type Mutation {
+    createTenant(tenantID: String, tenant: TenantChanges!): Tenant!
+    updateTenant(tenantID: String!, tenant: TenantChanges!): Tenant!
+    deleteTenant(tenantID: String!): ID!
+
+    createAccount(accountID: ID, account: AccountChanges!): Account!
+    updateAccount(accountID: ID!, account: AccountChanges!): Account!
+    deleteAccount(accountID: ID!): ID!
+
+    createTransaction(transaction: TransactionChanges!): Transaction!
+    createTransactions(transactions: [TransactionChanges!]!): Int!
+
+    scrapeIsraelBankYahav(username: String!, id: String!, password: String!): String!
+
+    updateOperation(id: ID!, op: OperationChanges!): Operation!
+}
