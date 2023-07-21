@@ -1,15 +1,15 @@
-import {ListItemButtonProps, PaletteMode, useMediaQuery} from "@mui/material";
+import {PaletteMode, useMediaQuery} from "@mui/material";
 import {createTheme} from "@mui/material/styles";
 import React, {useState} from "react";
 import {Link as RouterLink, LinkProps as RouterLinkProps} from 'react-router-dom';
 
-const MuiListItemButtonBehavior = React.forwardRef<
-    HTMLAnchorElement,
-    Omit<RouterLinkProps, 'to'> & { href: RouterLinkProps['to'] }
->((props, ref) => {
-    const {href, ...other} = props;
-    return <RouterLink ref={ref} to={href} {...other} />;
-});
+const LinkBehavior =
+    React.forwardRef<HTMLAnchorElement, Omit<RouterLinkProps, 'to'> & { href: RouterLinkProps['to'] }>(
+        (props, ref) => {
+            const {href, ...other} = props;
+            return <RouterLink ref={ref} to={href} {...other} />;
+        }
+    );
 
 export function useTheme() {
     const osPaletteMode = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light';
@@ -17,11 +17,16 @@ export function useTheme() {
     return React.useMemo(
         () => createTheme({
             components: {
-                MuiListItemButton: {
+                MuiLink: {
                     defaultProps: {
-                        component: MuiListItemButtonBehavior,
-                    } as ListItemButtonProps
-                }
+                        component: LinkBehavior,
+                    },
+                },
+                MuiButtonBase: {
+                    defaultProps: {
+                        LinkComponent: LinkBehavior,
+                    },
+                },
             },
             palette: {
                 mode: preferredPaletteMode || osPaletteMode,
