@@ -6,8 +6,20 @@ import (
 	"github.com/rueian/rueidis"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
+
+func flatten(a []string) []string {
+	values := make([]string, 0)
+	for _, s := range a {
+		tokens := strings.Split(s, ",")
+		for _, token := range tokens {
+			values = append(values, strings.TrimSpace(token))
+		}
+	}
+	return values
+}
 
 func NewServer(
 	port int,
@@ -22,6 +34,11 @@ func NewServer(
 	neo4jDriver neo4j.DriverWithContext,
 	descopeClient *descope.DescopeClient,
 	graphHandler http.HandlerFunc) *http.Server {
+
+	allowedOrigins = flatten(allowedOrigins)
+	allowedMethods = flatten(allowedMethods)
+	allowedHeaders = flatten(allowedHeaders)
+	exposeHeaders = flatten(exposeHeaders)
 
 	addr := ":" + strconv.Itoa(port)
 
