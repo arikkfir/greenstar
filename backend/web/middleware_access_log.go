@@ -11,17 +11,17 @@ import (
 	"time"
 )
 
-type statusRecorder struct {
+type responseRecorder struct {
 	http.ResponseWriter
 	w      io.Writer
 	status int
 }
 
-func (r *statusRecorder) Write(b []byte) (int, error) {
+func (r *responseRecorder) Write(b []byte) (int, error) {
 	return r.w.Write(b)
 }
 
-func (r *statusRecorder) WriteHeader(status int) {
+func (r *responseRecorder) WriteHeader(status int) {
 	r.status = status
 	r.ResponseWriter.WriteHeader(status)
 }
@@ -73,7 +73,7 @@ func AccessLogMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		requestBody := bytes.Buffer{}
 		responseBody := bytes.Buffer{}
 		r.Body = &util.ReaderCloser{Reader: io.TeeReader(r.Body, &requestBody)}
-		responseRecorder := &statusRecorder{
+		responseRecorder := &responseRecorder{
 			ResponseWriter: w,
 			w:              io.MultiWriter(&responseBody, w),
 			status:         200,
@@ -83,6 +83,10 @@ func AccessLogMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		start := time.Now()
 		next(responseRecorder, r.WithContext(event.Logger().WithContext(r.Context())))
 		duration := time.Since(start)
+
+		// Add request & response bodies
+		event = event.Bytes("http:req:body", requestBody.Bytes())
+		event = event.Bytes("http:res:body", responseBody.Bytes())
 
 		// Add invocation result
 		event = event.Dur("http:process:duration", duration)

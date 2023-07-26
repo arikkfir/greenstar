@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/jessevdk/go-flags"
-	pkgerrors "github.com/pkg/errors"
+	"github.com/kr/text"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	swerrors "github.com/secureworks/errors"
+	"github.com/secureworks/errors"
 	"os"
 )
 
@@ -28,28 +28,17 @@ func init() {
 		// the log message line
 		// This creates a similar effect to Java & Python log output experience
 		zerolog.ErrorStackMarshaler = func(err error) interface{} {
-			type pkgErrorsStackTracer interface {
-				StackTrace() pkgerrors.StackTrace
-			}
-			if pkgError, ok := err.(pkgErrorsStackTracer); ok {
-				return fmt.Sprintf("%+v", pkgError)
-			} else if cst, ok := err.(swerrors.ChainStackTracer); ok {
-				return fmt.Sprintf("%+v", cst)
-			}
-			return nil
+			return fmt.Sprintf("%+v", fmt.Sprintf("%+v", errors.New(err)))
 		}
 		writer := zerolog.ConsoleWriter{
 			Out:           os.Stderr,
 			FieldsExclude: []string{zerolog.ErrorStackFieldName},
 			FormatExtra: func(event map[string]interface{}, b *bytes.Buffer) error {
 				stack, ok := event[zerolog.ErrorStackFieldName]
-				if !ok {
-					return nil
-				} else if stackString, ok := stack.(string); ok {
-					b.WriteByte('\n')
-					_, err := fmt.Fprint(b, stackString)
+				if ok {
+					_, err := fmt.Fprint(b, text.Indent(stack.(string), "     "))
 					if err != nil {
-						return err
+						panic(err)
 					}
 				}
 				return nil
@@ -59,15 +48,7 @@ func init() {
 		zerolog.DefaultContextLogger = &log.Logger
 	} else {
 		zerolog.ErrorStackMarshaler = func(err error) interface{} {
-			type pkgErrorsStackTracer interface {
-				StackTrace() pkgerrors.StackTrace
-			}
-			if pkgError, ok := err.(pkgErrorsStackTracer); ok {
-				return fmt.Sprintf("%+v", pkgError)
-			} else if cst, ok := err.(swerrors.ChainStackTracer); ok {
-				return fmt.Sprintf("%+v", cst)
-			}
-			return nil
+			return fmt.Sprintf("%+v", fmt.Sprintf("%+v", errors.New(err)))
 		}
 	}
 	if level, err := zerolog.ParseLevel(cfg.LogLevel); err != nil {
