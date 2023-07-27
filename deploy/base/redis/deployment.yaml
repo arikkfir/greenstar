@@ -27,8 +27,9 @@ spec:
                 - bash
                 - -c
                 - '[[ "$(redis-cli PING)" == "PONG" ]]'
-            failureThreshold: 30
-            periodSeconds: 5
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 1
             terminationGracePeriodSeconds: 60
             timeoutSeconds: 5
           livenessProbe:
@@ -44,10 +45,10 @@ spec:
             timeoutSeconds: 5
           resources:
             limits:
-              cpu: 200m
+              cpu: 500m
               memory: 64Mi
             requests:
-              cpu: 100m
+              cpu: 500m
               memory: 64Mi
           volumeMounts:
             - mountPath: /data
