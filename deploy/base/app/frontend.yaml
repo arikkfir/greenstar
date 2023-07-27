@@ -61,14 +61,20 @@ spec:
             httpGet:
               port: http
               path: /index.html
-            failureThreshold: 3
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            failureThreshold: 5
+            periodSeconds: 5
             terminationGracePeriodSeconds: 10
-            timeoutSeconds: 3
+            timeoutSeconds: 1
           ports:
             - containerPort: 80
               name: http
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /index.html
+            failureThreshold: 3
+            periodSeconds: 5
+            timeoutSeconds: 1
           resources:
             limits:
               cpu: 1000m
