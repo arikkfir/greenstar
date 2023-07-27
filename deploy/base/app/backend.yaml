@@ -83,10 +83,10 @@ spec:
           resources:
             limits:
               cpu: 500m
-              memory: 32Mi
+              memory: 64Mi
             requests:
               cpu: 500m
-              memory: 32Mi
+              memory: 64Mi
           volumeMounts: []
       enableServiceLinks: false
       serviceAccountName: backend
