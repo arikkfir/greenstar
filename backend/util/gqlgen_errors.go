@@ -14,6 +14,10 @@ func GraphErrorPresenter(ctx context.Context, e error) *gqlerror.Error {
 	var path ast.Path
 	err := e
 	if ge, ok := err.(*gqlerror.Error); ok {
+		if ge.Extensions["code"] == "GRAPHQL_VALIDATION_FAILED" {
+			return ge
+		}
+
 		// Unwrap one level of gqlerror.Error since gql always wraps returned errors from
 		// resolvers with it - and we want to test the underlying error if it's a tag provider
 		err = errors.Unwrap(ge)
@@ -31,7 +35,6 @@ func GraphErrorPresenter(ctx context.Context, e error) *gqlerror.Error {
 		Error().
 		Stack().
 		Err(e).
-		Interface("gqlPath", path).
 		Msg("Internal error occurred")
 
 	return &gqlerror.Error{
