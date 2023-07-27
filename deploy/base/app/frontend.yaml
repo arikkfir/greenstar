@@ -55,7 +55,7 @@ spec:
               path: /index.html
             failureThreshold: 3
             initialDelaySeconds: 5
-            periodSeconds: 5
+            periodSeconds: 3
             timeoutSeconds: 1
           livenessProbe:
             httpGet:
