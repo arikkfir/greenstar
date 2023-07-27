@@ -20,12 +20,12 @@ type MutationResolver interface {
 	CreateTenant(ctx context.Context, tenantID *string, tenant model.TenantChanges) (*model.Tenant, error)
 	UpdateTenant(ctx context.Context, tenantID string, tenant model.TenantChanges) (*model.Tenant, error)
 	DeleteTenant(ctx context.Context, tenantID string) (string, error)
-	CreateAccount(ctx context.Context, accountID *string, account model.AccountChanges) (*model.Account, error)
-	UpdateAccount(ctx context.Context, accountID string, account model.AccountChanges) (*model.Account, error)
-	DeleteAccount(ctx context.Context, accountID string) (string, error)
-	CreateTransaction(ctx context.Context, transaction model.TransactionChanges) (*model.Transaction, error)
-	CreateTransactions(ctx context.Context, transactions []*model.TransactionChanges) (int, error)
-	ScrapeIsraelBankYahav(ctx context.Context, username string, id string, password string) (string, error)
+	CreateAccount(ctx context.Context, tenantID string, accountID *string, account model.AccountChanges) (*model.Account, error)
+	UpdateAccount(ctx context.Context, tenantID string, accountID string, account model.AccountChanges) (*model.Account, error)
+	DeleteAccount(ctx context.Context, tenantID string, accountID string) (string, error)
+	CreateTransaction(ctx context.Context, tenantID string, transaction model.TransactionChanges) (*model.Transaction, error)
+	CreateTransactions(ctx context.Context, tenantID string, transactions []*model.TransactionChanges) (int, error)
+	ScrapeIsraelBankYahav(ctx context.Context, tenantID string, username string, id string, password string) (string, error)
 	UpdateOperation(ctx context.Context, id string, op model.OperationChanges) (*model.Operation, error)
 }
 
@@ -36,24 +36,33 @@ type MutationResolver interface {
 func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *string
+	var arg0 string
+	if tmp, ok := rawArgs["tenantID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenantID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tenantID"] = arg0
+	var arg1 *string
 	if tmp, ok := rawArgs["accountID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountID"))
-		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["accountID"] = arg0
-	var arg1 model.AccountChanges
+	args["accountID"] = arg1
+	var arg2 model.AccountChanges
 	if tmp, ok := rawArgs["account"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("account"))
-		arg1, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx, tmp)
+		arg2, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["account"] = arg1
+	args["account"] = arg2
 	return args, nil
 }
 
@@ -84,30 +93,48 @@ func (ec *executionContext) field_Mutation_createTenant_args(ctx context.Context
 func (ec *executionContext) field_Mutation_createTransaction_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.TransactionChanges
-	if tmp, ok := rawArgs["transaction"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("transaction"))
-		arg0, err = ec.unmarshalNTransactionChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["tenantID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenantID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["transaction"] = arg0
+	args["tenantID"] = arg0
+	var arg1 model.TransactionChanges
+	if tmp, ok := rawArgs["transaction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("transaction"))
+		arg1, err = ec.unmarshalNTransactionChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["transaction"] = arg1
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_createTransactions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 []*model.TransactionChanges
-	if tmp, ok := rawArgs["transactions"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("transactions"))
-		arg0, err = ec.unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChangesᚄ(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["tenantID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenantID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["transactions"] = arg0
+	args["tenantID"] = arg0
+	var arg1 []*model.TransactionChanges
+	if tmp, ok := rawArgs["transactions"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("transactions"))
+		arg1, err = ec.unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChangesᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["transactions"] = arg1
 	return args, nil
 }
 
@@ -115,14 +142,23 @@ func (ec *executionContext) field_Mutation_deleteAccount_args(ctx context.Contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["accountID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountID"))
+	if tmp, ok := rawArgs["tenantID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenantID"))
 		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["accountID"] = arg0
+	args["tenantID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["accountID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountID"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["accountID"] = arg1
 	return args, nil
 }
 
@@ -145,32 +181,41 @@ func (ec *executionContext) field_Mutation_scrapeIsraelBankYahav_args(ctx contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["username"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	if tmp, ok := rawArgs["tenantID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenantID"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["username"] = arg0
+	args["tenantID"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["username"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("username"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg1
+	args["username"] = arg1
 	var arg2 string
-	if tmp, ok := rawArgs["password"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["password"] = arg2
+	args["id"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["password"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg3
 	return args, nil
 }
 
@@ -178,23 +223,32 @@ func (ec *executionContext) field_Mutation_updateAccount_args(ctx context.Contex
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["accountID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountID"))
+	if tmp, ok := rawArgs["tenantID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenantID"))
 		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["accountID"] = arg0
-	var arg1 model.AccountChanges
-	if tmp, ok := rawArgs["account"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("account"))
-		arg1, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx, tmp)
+	args["tenantID"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["accountID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accountID"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["account"] = arg1
+	args["accountID"] = arg1
+	var arg2 model.AccountChanges
+	if tmp, ok := rawArgs["account"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("account"))
+		arg2, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["account"] = arg2
 	return args, nil
 }
 
@@ -297,6 +351,12 @@ func (ec *executionContext) fieldContext_Mutation_createTenant(ctx context.Conte
 				return ec.fieldContext_Tenant_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Tenant_displayName(ctx, field)
+			case "accounts":
+				return ec.fieldContext_Tenant_accounts(ctx, field)
+			case "account":
+				return ec.fieldContext_Tenant_account(ctx, field)
+			case "transactions":
+				return ec.fieldContext_Tenant_transactions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Tenant", field.Name)
 		},
@@ -310,7 +370,7 @@ func (ec *executionContext) fieldContext_Mutation_createTenant(ctx context.Conte
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createTenant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -358,6 +418,12 @@ func (ec *executionContext) fieldContext_Mutation_updateTenant(ctx context.Conte
 				return ec.fieldContext_Tenant_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Tenant_displayName(ctx, field)
+			case "accounts":
+				return ec.fieldContext_Tenant_accounts(ctx, field)
+			case "account":
+				return ec.fieldContext_Tenant_account(ctx, field)
+			case "transactions":
+				return ec.fieldContext_Tenant_transactions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Tenant", field.Name)
 		},
@@ -371,7 +437,7 @@ func (ec *executionContext) fieldContext_Mutation_updateTenant(ctx context.Conte
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateTenant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -426,7 +492,7 @@ func (ec *executionContext) fieldContext_Mutation_deleteTenant(ctx context.Conte
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteTenant_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -445,7 +511,7 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateAccount(rctx, fc.Args["accountID"].(*string), fc.Args["account"].(model.AccountChanges))
+		return ec.resolvers.Mutation().CreateAccount(rctx, fc.Args["tenantID"].(string), fc.Args["accountID"].(*string), fc.Args["account"].(model.AccountChanges))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -470,6 +536,8 @@ func (ec *executionContext) fieldContext_Mutation_createAccount(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "tenant":
+				return ec.fieldContext_Account_tenant(ctx, field)
 			case "id":
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
@@ -497,7 +565,7 @@ func (ec *executionContext) fieldContext_Mutation_createAccount(ctx context.Cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createAccount_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -516,7 +584,7 @@ func (ec *executionContext) _Mutation_updateAccount(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateAccount(rctx, fc.Args["accountID"].(string), fc.Args["account"].(model.AccountChanges))
+		return ec.resolvers.Mutation().UpdateAccount(rctx, fc.Args["tenantID"].(string), fc.Args["accountID"].(string), fc.Args["account"].(model.AccountChanges))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -541,6 +609,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAccount(ctx context.Cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "tenant":
+				return ec.fieldContext_Account_tenant(ctx, field)
 			case "id":
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
@@ -568,7 +638,7 @@ func (ec *executionContext) fieldContext_Mutation_updateAccount(ctx context.Cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateAccount_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -587,7 +657,7 @@ func (ec *executionContext) _Mutation_deleteAccount(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteAccount(rctx, fc.Args["accountID"].(string))
+		return ec.resolvers.Mutation().DeleteAccount(rctx, fc.Args["tenantID"].(string), fc.Args["accountID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -623,7 +693,7 @@ func (ec *executionContext) fieldContext_Mutation_deleteAccount(ctx context.Cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteAccount_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -642,7 +712,7 @@ func (ec *executionContext) _Mutation_createTransaction(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTransaction(rctx, fc.Args["transaction"].(model.TransactionChanges))
+		return ec.resolvers.Mutation().CreateTransaction(rctx, fc.Args["tenantID"].(string), fc.Args["transaction"].(model.TransactionChanges))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -694,7 +764,7 @@ func (ec *executionContext) fieldContext_Mutation_createTransaction(ctx context.
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createTransaction_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -713,7 +783,7 @@ func (ec *executionContext) _Mutation_createTransactions(ctx context.Context, fi
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTransactions(rctx, fc.Args["transactions"].([]*model.TransactionChanges))
+		return ec.resolvers.Mutation().CreateTransactions(rctx, fc.Args["tenantID"].(string), fc.Args["transactions"].([]*model.TransactionChanges))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -749,7 +819,7 @@ func (ec *executionContext) fieldContext_Mutation_createTransactions(ctx context
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createTransactions_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -768,7 +838,7 @@ func (ec *executionContext) _Mutation_scrapeIsraelBankYahav(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ScrapeIsraelBankYahav(rctx, fc.Args["username"].(string), fc.Args["id"].(string), fc.Args["password"].(string))
+		return ec.resolvers.Mutation().ScrapeIsraelBankYahav(rctx, fc.Args["tenantID"].(string), fc.Args["username"].(string), fc.Args["id"].(string), fc.Args["password"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -804,7 +874,7 @@ func (ec *executionContext) fieldContext_Mutation_scrapeIsraelBankYahav(ctx cont
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_scrapeIsraelBankYahav_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }
@@ -875,7 +945,7 @@ func (ec *executionContext) fieldContext_Mutation_updateOperation(ctx context.Co
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateOperation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
-		return
+		return fc, err
 	}
 	return fc, nil
 }

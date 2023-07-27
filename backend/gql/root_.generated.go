@@ -34,6 +34,7 @@ type ResolverRoot interface {
 	Account() AccountResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Tenant() TenantResolver
 }
 
 type DirectiveRoot struct {
@@ -48,6 +49,7 @@ type ComplexityRoot struct {
 		Labels               func(childComplexity int) int
 		OutgoingTransactions func(childComplexity int) int
 		Parent               func(childComplexity int) int
+		Tenant               func(childComplexity int) int
 	}
 
 	KeyAndValue struct {
@@ -56,14 +58,14 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateAccount         func(childComplexity int, accountID *string, account model.AccountChanges) int
+		CreateAccount         func(childComplexity int, tenantID string, accountID *string, account model.AccountChanges) int
 		CreateTenant          func(childComplexity int, tenantID *string, tenant model.TenantChanges) int
-		CreateTransaction     func(childComplexity int, transaction model.TransactionChanges) int
-		CreateTransactions    func(childComplexity int, transactions []*model.TransactionChanges) int
-		DeleteAccount         func(childComplexity int, accountID string) int
+		CreateTransaction     func(childComplexity int, tenantID string, transaction model.TransactionChanges) int
+		CreateTransactions    func(childComplexity int, tenantID string, transactions []*model.TransactionChanges) int
+		DeleteAccount         func(childComplexity int, tenantID string, accountID string) int
 		DeleteTenant          func(childComplexity int, tenantID string) int
-		ScrapeIsraelBankYahav func(childComplexity int, username string, id string, password string) int
-		UpdateAccount         func(childComplexity int, accountID string, account model.AccountChanges) int
+		ScrapeIsraelBankYahav func(childComplexity int, tenantID string, username string, id string, password string) int
+		UpdateAccount         func(childComplexity int, tenantID string, accountID string, account model.AccountChanges) int
 		UpdateOperation       func(childComplexity int, id string, op model.OperationChanges) int
 		UpdateTenant          func(childComplexity int, tenantID string, tenant model.TenantChanges) int
 	}
@@ -79,17 +81,17 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Account      func(childComplexity int, id string) int
-		Accounts     func(childComplexity int, roots bool) int
-		Operation    func(childComplexity int, id string) int
-		Tenant       func(childComplexity int, id string) int
-		Tenants      func(childComplexity int) int
-		Transactions func(childComplexity int) int
+		Operation func(childComplexity int, id string) int
+		Tenant    func(childComplexity int, id string) int
+		Tenants   func(childComplexity int) int
 	}
 
 	Tenant struct {
-		DisplayName func(childComplexity int) int
-		ID          func(childComplexity int) int
+		Account      func(childComplexity int, id string) int
+		Accounts     func(childComplexity int, rootsOnly *bool) int
+		DisplayName  func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Transactions func(childComplexity int) int
 	}
 
 	Transaction struct {
@@ -167,6 +169,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Account.Parent(childComplexity), true
 
+	case "Account.tenant":
+		if e.complexity.Account.Tenant == nil {
+			break
+		}
+
+		return e.complexity.Account.Tenant(childComplexity), true
+
 	case "KeyAndValue.key":
 		if e.complexity.KeyAndValue.Key == nil {
 			break
@@ -191,7 +200,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateAccount(childComplexity, args["accountID"].(*string), args["account"].(model.AccountChanges)), true
+		return e.complexity.Mutation.CreateAccount(childComplexity, args["tenantID"].(string), args["accountID"].(*string), args["account"].(model.AccountChanges)), true
 
 	case "Mutation.createTenant":
 		if e.complexity.Mutation.CreateTenant == nil {
@@ -215,7 +224,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTransaction(childComplexity, args["transaction"].(model.TransactionChanges)), true
+		return e.complexity.Mutation.CreateTransaction(childComplexity, args["tenantID"].(string), args["transaction"].(model.TransactionChanges)), true
 
 	case "Mutation.createTransactions":
 		if e.complexity.Mutation.CreateTransactions == nil {
@@ -227,7 +236,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTransactions(childComplexity, args["transactions"].([]*model.TransactionChanges)), true
+		return e.complexity.Mutation.CreateTransactions(childComplexity, args["tenantID"].(string), args["transactions"].([]*model.TransactionChanges)), true
 
 	case "Mutation.deleteAccount":
 		if e.complexity.Mutation.DeleteAccount == nil {
@@ -239,7 +248,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteAccount(childComplexity, args["accountID"].(string)), true
+		return e.complexity.Mutation.DeleteAccount(childComplexity, args["tenantID"].(string), args["accountID"].(string)), true
 
 	case "Mutation.deleteTenant":
 		if e.complexity.Mutation.DeleteTenant == nil {
@@ -263,7 +272,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ScrapeIsraelBankYahav(childComplexity, args["username"].(string), args["id"].(string), args["password"].(string)), true
+		return e.complexity.Mutation.ScrapeIsraelBankYahav(childComplexity, args["tenantID"].(string), args["username"].(string), args["id"].(string), args["password"].(string)), true
 
 	case "Mutation.updateAccount":
 		if e.complexity.Mutation.UpdateAccount == nil {
@@ -275,7 +284,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateAccount(childComplexity, args["accountID"].(string), args["account"].(model.AccountChanges)), true
+		return e.complexity.Mutation.UpdateAccount(childComplexity, args["tenantID"].(string), args["accountID"].(string), args["account"].(model.AccountChanges)), true
 
 	case "Mutation.updateOperation":
 		if e.complexity.Mutation.UpdateOperation == nil {
@@ -350,30 +359,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Operation.UpdatedAt(childComplexity), true
 
-	case "Query.account":
-		if e.complexity.Query.Account == nil {
-			break
-		}
-
-		args, err := ec.field_Query_account_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Account(childComplexity, args["id"].(string)), true
-
-	case "Query.accounts":
-		if e.complexity.Query.Accounts == nil {
-			break
-		}
-
-		args, err := ec.field_Query_accounts_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Accounts(childComplexity, args["roots"].(bool)), true
-
 	case "Query.operation":
 		if e.complexity.Query.Operation == nil {
 			break
@@ -405,12 +390,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Tenants(childComplexity), true
 
-	case "Query.transactions":
-		if e.complexity.Query.Transactions == nil {
+	case "Tenant.account":
+		if e.complexity.Tenant.Account == nil {
 			break
 		}
 
-		return e.complexity.Query.Transactions(childComplexity), true
+		args, err := ec.field_Tenant_account_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Tenant.Account(childComplexity, args["id"].(string)), true
+
+	case "Tenant.accounts":
+		if e.complexity.Tenant.Accounts == nil {
+			break
+		}
+
+		args, err := ec.field_Tenant_accounts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Tenant.Accounts(childComplexity, args["rootsOnly"].(*bool)), true
 
 	case "Tenant.displayName":
 		if e.complexity.Tenant.DisplayName == nil {
@@ -425,6 +427,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Tenant.ID(childComplexity), true
+
+	case "Tenant.transactions":
+		if e.complexity.Tenant.Transactions == nil {
+			break
+		}
+
+		return e.complexity.Tenant.Transactions(childComplexity), true
 
 	case "Transaction.amount":
 		if e.complexity.Transaction.Amount == nil {
@@ -586,6 +595,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../../schema/accounts.graphql", Input: `type Account {
+    tenant: Tenant!
     id: ID!
     displayName: String!
     labels: [KeyAndValue!]!
@@ -617,14 +627,14 @@ input KeyAndValueInput {
     updateTenant(tenantID: String!, tenant: TenantChanges!): Tenant!
     deleteTenant(tenantID: String!): ID!
 
-    createAccount(accountID: ID, account: AccountChanges!): Account!
-    updateAccount(accountID: ID!, account: AccountChanges!): Account!
-    deleteAccount(accountID: ID!): ID!
+    createAccount(tenantID: ID!, accountID: ID, account: AccountChanges!): Account!
+    updateAccount(tenantID: ID!, accountID: ID!, account: AccountChanges!): Account!
+    deleteAccount(tenantID: ID!, accountID: ID!): ID!
 
-    createTransaction(transaction: TransactionChanges!): Transaction!
-    createTransactions(transactions: [TransactionChanges!]!): Int!
+    createTransaction(tenantID: ID!, transaction: TransactionChanges!): Transaction!
+    createTransactions(tenantID: ID!, transactions: [TransactionChanges!]!): Int!
 
-    scrapeIsraelBankYahav(username: String!, id: String!, password: String!): String!
+    scrapeIsraelBankYahav(tenantID: ID!, username: String!, id: String!, password: String!): String!
 
     updateOperation(id: ID!, op: OperationChanges!): Operation!
 }
@@ -664,18 +674,16 @@ input OperationChanges {
 	{Name: "../../schema/query.graphql", Input: `type Query {
     tenants: [Tenant!]!
     tenant(id: ID!): Tenant
-
-    accounts(roots: Boolean!): [Account!]!
-    account(id: ID!): Account
-
-    transactions: [Transaction!]!
-
     operation(id: ID!): Operation
 }
 `, BuiltIn: false},
 	{Name: "../../schema/tenants.graphql", Input: `type Tenant {
     id: ID!
     displayName: String!
+
+    accounts(rootsOnly: Boolean): [Account!]!
+    account(id: ID!): Account
+    transactions: [Transaction!]!
 }
 
 input TenantChanges {

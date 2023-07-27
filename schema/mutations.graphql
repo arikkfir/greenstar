@@ -3,14 +3,14 @@ type Mutation {
     updateTenant(tenantID: String!, tenant: TenantChanges!): Tenant!
     deleteTenant(tenantID: String!): ID!
 
-    createAccount(accountID: ID, account: AccountChanges!): Account!
-    updateAccount(accountID: ID!, account: AccountChanges!): Account!
-    deleteAccount(accountID: ID!): ID!
+    createAccount(tenantID: ID!, accountID: ID, account: AccountChanges!): Account!
+    updateAccount(tenantID: ID!, accountID: ID!, account: AccountChanges!): Account!
+    deleteAccount(tenantID: ID!, accountID: ID!): ID!
 
-    createTransaction(transaction: TransactionChanges!): Transaction!
-    createTransactions(transactions: [TransactionChanges!]!): Int!
+    createTransaction(tenantID: ID!, transaction: TransactionChanges!): Transaction!
+    createTransactions(tenantID: ID!, transactions: [TransactionChanges!]!): Int!
 
-    scrapeIsraelBankYahav(username: String!, id: String!, password: String!): String!
+    scrapeIsraelBankYahav(tenantID: ID!, username: String!, id: String!, password: String!): String!
 
     updateOperation(id: ID!, op: OperationChanges!): Operation!
 }

@@ -1,11 +1,5 @@
 type Query {
     tenants: [Tenant!]!
     tenant(id: ID!): Tenant
-
-    accounts(roots: Boolean!): [Account!]!
-    account(id: ID!): Account
-
-    transactions: [Transaction!]!
-
     operation(id: ID!): Operation
 }

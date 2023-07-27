@@ -35,14 +35,14 @@ type TransactionsService struct {
 	Service
 }
 
-func (s *TransactionsService) CreateTransaction(ctx context.Context, transaction model.TransactionChanges) (*model.Transaction, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
+func (s *TransactionsService) CreateTransaction(ctx context.Context, tenantID string, transaction model.TransactionChanges) (*model.Transaction, error) {
+	if tenantID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Create transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Create transactions") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, tenantID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -76,8 +76,8 @@ RETURN sourceAccount.id, sourceAccount.displayName, r, targetAccount.id, targetA
 		return &model.Transaction{
 			ID:            txRel.Props["txID"].(string),
 			Date:          txRel.Props["date"].(time.Time),
-			TargetAccount: &model.Account{ID: rec.Values[3].(string), DisplayName: rec.Values[4].(string)},
-			SourceAccount: &model.Account{ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)},
+			TargetAccount: &model.Account{Tenant: &model.Tenant{ID: tenantID}, ID: rec.Values[3].(string), DisplayName: rec.Values[4].(string)},
+			SourceAccount: &model.Account{Tenant: &model.Tenant{ID: tenantID}, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)},
 			ReferenceID:   txRel.Props["refID"].(string),
 			Amount:        txRel.Props["amount"].(model.Money),
 			Description:   txRel.Props["description"].(string),
@@ -86,14 +86,14 @@ RETURN sourceAccount.id, sourceAccount.displayName, r, targetAccount.id, targetA
 	return v.(*model.Transaction), err
 }
 
-func (s *TransactionsService) CreateTransactions(ctx context.Context, transactions []*model.TransactionChanges) (int, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
+func (s *TransactionsService) CreateTransactions(ctx context.Context, tenantID string, transactions []*model.TransactionChanges) (int, error) {
+	if tenantID == GlobalTenantID {
 		return 0, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Create transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Create transactions") {
 		return 0, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, tenantID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -141,18 +141,18 @@ CREATE (sourceAccount%d)-[:TransferredTo {
 	return v.(int), err
 }
 
-func (s *TransactionsService) ScrapeIsraelBankYahav(ctx context.Context, username string, id string, password string) (string, error) {
+func (s *TransactionsService) ScrapeIsraelBankYahav(ctx context.Context, tenantID, username, id, password string) (string, error) {
 	panic(errors.New("not implemented: ScrapeIsraelBankYahav"))
 }
 
-func (s *TransactionsService) Transactions(ctx context.Context) ([]*model.Transaction, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
+func (s *TransactionsService) Transactions(ctx context.Context, tenant *model.Tenant) ([]*model.Transaction, error) {
+	if tenant.ID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "Read transactions") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, tenant.ID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -172,8 +172,8 @@ RETURN src.id, src.displayName, dst.id, dst.displayName, tx.id, tx.date, tx.refe
 
 		transactions := make([]*model.Transaction, 0)
 		for _, rec := range records {
-			src := &model.Account{ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)}
-			dst := &model.Account{ID: rec.Values[2].(string), DisplayName: rec.Values[3].(string)}
+			src := &model.Account{Tenant: tenant, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)}
+			dst := &model.Account{Tenant: tenant, ID: rec.Values[2].(string), DisplayName: rec.Values[3].(string)}
 			transactions = append(transactions, &model.Transaction{
 				ID:            rec.Values[4].(string),
 				Date:          rec.Values[5].(time.Time),

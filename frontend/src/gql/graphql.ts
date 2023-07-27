@@ -28,6 +28,7 @@ export type Account = {
   labels: Array<KeyAndValue>;
   outgoingTransactions: Array<Transaction>;
   parent?: Maybe<Account>;
+  tenant: Tenant;
 };
 
 export type AccountChanges = {
@@ -65,6 +66,7 @@ export type Mutation = {
 export type MutationCreateAccountArgs = {
   account: AccountChanges;
   accountID?: InputMaybe<Scalars['ID']['input']>;
+  tenantID: Scalars['ID']['input'];
 };
 
 
@@ -75,17 +77,20 @@ export type MutationCreateTenantArgs = {
 
 
 export type MutationCreateTransactionArgs = {
+  tenantID: Scalars['ID']['input'];
   transaction: TransactionChanges;
 };
 
 
 export type MutationCreateTransactionsArgs = {
+  tenantID: Scalars['ID']['input'];
   transactions: Array<TransactionChanges>;
 };
 
 
 export type MutationDeleteAccountArgs = {
   accountID: Scalars['ID']['input'];
+  tenantID: Scalars['ID']['input'];
 };
 
 
@@ -97,6 +102,7 @@ export type MutationDeleteTenantArgs = {
 export type MutationScrapeIsraelBankYahavArgs = {
   id: Scalars['String']['input'];
   password: Scalars['String']['input'];
+  tenantID: Scalars['ID']['input'];
   username: Scalars['String']['input'];
 };
 
@@ -104,6 +110,7 @@ export type MutationScrapeIsraelBankYahavArgs = {
 export type MutationUpdateAccountArgs = {
   account: AccountChanges;
   accountID: Scalars['ID']['input'];
+  tenantID: Scalars['ID']['input'];
 };
 
 
@@ -151,22 +158,9 @@ export enum OperationStatus {
 
 export type Query = {
   __typename?: 'Query';
-  account?: Maybe<Account>;
-  accounts: Array<Account>;
   operation?: Maybe<Operation>;
   tenant?: Maybe<Tenant>;
   tenants: Array<Tenant>;
-  transactions: Array<Transaction>;
-};
-
-
-export type QueryAccountArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryAccountsArgs = {
-  roots: Scalars['Boolean']['input'];
 };
 
 
@@ -181,8 +175,21 @@ export type QueryTenantArgs = {
 
 export type Tenant = {
   __typename?: 'Tenant';
+  account?: Maybe<Account>;
+  accounts: Array<Account>;
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  transactions: Array<Transaction>;
+};
+
+
+export type TenantAccountArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type TenantAccountsArgs = {
+  rootsOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type TenantChanges = {

@@ -10,6 +10,7 @@ import (
 )
 
 type Account struct {
+	Tenant               *Tenant        `json:"tenant"`
 	ID                   string         `json:"id"`
 	DisplayName          string         `json:"displayName"`
 	Labels               []*KeyAndValue `json:"labels"`
@@ -53,8 +54,11 @@ type OperationChanges struct {
 }
 
 type Tenant struct {
-	ID          string `json:"id"`
-	DisplayName string `json:"displayName"`
+	ID           string         `json:"id"`
+	DisplayName  string         `json:"displayName"`
+	Accounts     []*Account     `json:"accounts"`
+	Account      *Account       `json:"account,omitempty"`
+	Transactions []*Transaction `json:"transactions"`
 }
 
 type TenantChanges struct {

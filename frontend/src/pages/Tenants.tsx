@@ -8,7 +8,7 @@ import {
     updateTenantMutation
 } from "../services/tenants";
 import {useMutation, useQuery} from "@apollo/client";
-import {Tenant} from "../gql/graphql";
+import {Scalars} from "../gql/graphql";
 
 const idColumn = {
     field: 'id',
@@ -36,7 +36,11 @@ export function Tenants() {
     const [updateTenant, {loading: updatingRow, reset: resetUpdate}] = useMutation(updateTenantMutation);
     const [deleteTenant, {loading: deletingRow, reset: resetDeletion}] = useMutation(deleteTenantMutation);
 
-    type TenantRow = Tenant & { isNew: boolean }
+    type TenantRow = {
+        isNew: boolean,
+        id: Scalars['ID']['output'];
+        displayName: Scalars['String']['output'];
+    }
 
     const createRow = ({id, displayName}: TenantRow) =>
         createTenant({refetchQueries: [allTenantsQuery], variables: {id, displayName}})

@@ -1,5 +1,4 @@
 import {graphql} from "../gql";
-import {Tenant} from "../gql/graphql";
 
 const tenantIDHashLetters = "abcdefghijklmnopqrstuvwxyz"
 
@@ -9,10 +8,6 @@ export function randomTenantID(length: number): string {
         hash += tenantIDHashLetters.charAt(Math.floor(Math.random() * tenantIDHashLetters.length))
     }
     return hash
-}
-
-export type TenantRow = Tenant & {
-    isNew?: boolean
 }
 
 export const allTenantsQuery = graphql(/* GraphQL */ `

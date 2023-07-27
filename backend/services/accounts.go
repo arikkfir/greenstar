@@ -16,14 +16,14 @@ type AccountsService struct {
 	Service
 }
 
-func (s *AccountsService) CreateAccount(ctx context.Context, accountID *string, account model.AccountChanges) (*model.Account, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
+func (s *AccountsService) CreateAccount(ctx context.Context, tenantID string, accountID *string, account model.AccountChanges) (*model.Account, error) {
+	if tenantID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Manage accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Manage accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, tenantID)
 	defer session.Close(ctx)
 
 	var id string
@@ -70,6 +70,7 @@ CREATE (account:Account {accountID: $accountID, displayName: $displayName})`
 		}
 
 		return &model.Account{
+			Tenant:      &model.Tenant{ID: tenantID},
 			ID:          record.Values[0].(string),
 			DisplayName: record.Values[1].(string),
 		}, nil
@@ -81,14 +82,14 @@ CREATE (account:Account {accountID: $accountID, displayName: $displayName})`
 	}
 }
 
-func (s *AccountsService) UpdateAccount(ctx context.Context, accountID string, account model.AccountChanges) (*model.Account, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
+func (s *AccountsService) UpdateAccount(ctx context.Context, tenantID, accountID string, account model.AccountChanges) (*model.Account, error) {
+	if tenantID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Manage accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Manage accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, tenantID)
 	defer session.Close(ctx)
 
 	updateAccountParams := map[string]interface{}{}
@@ -137,6 +138,7 @@ MATCH (account:Account {accountID: $accountID}) `
 		}
 
 		return &model.Account{
+			Tenant:      &model.Tenant{ID: tenantID},
 			ID:          record.Values[0].(string),
 			DisplayName: record.Values[1].(string),
 		}, nil
@@ -144,14 +146,14 @@ MATCH (account:Account {accountID: $accountID}) `
 	return v.(*model.Account), err
 }
 
-func (s *AccountsService) DeleteAccount(ctx context.Context, accountID string) (string, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
+func (s *AccountsService) DeleteAccount(ctx context.Context, tenantID, accountID string) (string, error) {
+	if tenantID == GlobalTenantID {
 		return "", errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Manage accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Manage accounts") {
 		return "", errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeWrite, tenantID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -177,14 +179,14 @@ DELETE account`
 	return v.(string), err
 }
 
-func (s *AccountsService) Accounts(ctx context.Context, roots bool) ([]*model.Account, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
+func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant, rootsOnly *bool) ([]*model.Account, error) {
+	if tenant.ID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "Read accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, tenant.ID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -197,7 +199,7 @@ MATCH (a:Account)
 RETURN a.id, a.displayName`
 
 		query := getAllAccountsCypher
-		if roots {
+		if rootsOnly != nil && *rootsOnly == true {
 			query = getRootAccountsCypher
 		}
 		result, err := tx.Run(ctx, query, nil)
@@ -213,6 +215,7 @@ RETURN a.id, a.displayName`
 		accounts := make([]*model.Account, 0)
 		for _, rec := range records {
 			accounts = append(accounts, &model.Account{
+				Tenant:      tenant,
 				ID:          rec.Values[0].(string),
 				DisplayName: rec.Values[1].(string),
 			})
@@ -222,14 +225,14 @@ RETURN a.id, a.displayName`
 	return v.([]*model.Account), err
 }
 
-func (s *AccountsService) Account(ctx context.Context, id string) (*model.Account, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
+func (s *AccountsService) Account(ctx context.Context, tenant *model.Tenant, accountID string) (*model.Account, error) {
+	if tenant.ID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "Read accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, tenant.ID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -237,7 +240,7 @@ func (s *AccountsService) Account(ctx context.Context, id string) (*model.Accoun
 MATCH (account:Account {id: $accountID})
 RETURN account.id, account.displayName`
 
-		result, err := tx.Run(ctx, getAccountCypher, map[string]any{"accountID": id})
+		result, err := tx.Run(ctx, getAccountCypher, map[string]any{"accountID": accountID})
 		if err != nil {
 			return nil, errors.New("failed to execute query: %w\n%s", err, getAccountCypher)
 		}
@@ -248,6 +251,7 @@ RETURN account.id, account.displayName`
 		}
 
 		return &model.Account{
+			Tenant:      tenant,
 			ID:          record.Values[0].(string),
 			DisplayName: record.Values[1].(string),
 		}, nil
@@ -256,13 +260,11 @@ RETURN account.id, account.displayName`
 }
 
 func (s *AccountsService) Labels(ctx context.Context, obj *model.Account) ([]*model.KeyAndValue, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
-		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, obj.Tenant.ID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -293,13 +295,11 @@ RETURN l.name, r.value`
 }
 
 func (s *AccountsService) Children(ctx context.Context, obj *model.Account) ([]*model.Account, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
-		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, obj.Tenant.ID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -330,13 +330,11 @@ RETURN acc.id, acc.displayName`
 }
 
 func (s *AccountsService) Parent(ctx context.Context, obj *model.Account) (*model.Account, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
-		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, obj.Tenant.ID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -371,15 +369,13 @@ RETURN parent.id, parent.displayName`
 }
 
 func (s *AccountsService) OutgoingTransactions(ctx context.Context, obj *model.Account) ([]*model.Transaction, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
-		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read transactions") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, obj.Tenant.ID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -401,8 +397,8 @@ RETURN src.id, src.displayName, dst.id, dst.displayName, tx.id, tx.date, tx.refe
 
 		transactions := make([]*model.Transaction, 0)
 		for _, rec := range records {
-			src := &model.Account{ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)}
-			dst := &model.Account{ID: rec.Values[2].(string), DisplayName: rec.Values[3].(string)}
+			src := &model.Account{Tenant: obj.Tenant, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)}
+			dst := &model.Account{Tenant: obj.Tenant, ID: rec.Values[2].(string), DisplayName: rec.Values[3].(string)}
 			transactions = append(transactions, &model.Transaction{
 				ID:            rec.Values[4].(string),
 				Date:          rec.Values[5].(time.Time),
@@ -419,15 +415,13 @@ RETURN src.id, src.displayName, dst.id, dst.displayName, tx.id, tx.date, tx.refe
 }
 
 func (s *AccountsService) IncomingTransactions(ctx context.Context, obj *model.Account) ([]*model.Transaction, error) {
-	if web.GetTenant(ctx) == GlobalTenantID {
-		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Read transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read transactions") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, web.GetTenant(ctx))
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, obj.Tenant.ID)
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
@@ -449,8 +443,8 @@ RETURN src.id, src.displayName, dst.id, dst.displayName, tx.id, tx.date, tx.refe
 
 		transactions := make([]*model.Transaction, 0)
 		for _, rec := range records {
-			src := &model.Account{ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)}
-			dst := &model.Account{ID: rec.Values[2].(string), DisplayName: rec.Values[3].(string)}
+			src := &model.Account{Tenant: obj.Tenant, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)}
+			dst := &model.Account{Tenant: obj.Tenant, ID: rec.Values[2].(string), DisplayName: rec.Values[3].(string)}
 			transactions = append(transactions, &model.Transaction{
 				ID:            rec.Values[4].(string),
 				Date:          rec.Values[5].(time.Time),

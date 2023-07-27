@@ -14,9 +14,7 @@ type TenantsService struct {
 }
 
 func (s *TenantsService) Tenants(ctx context.Context) ([]*model.Tenant, error) {
-	if web.GetTenant(ctx) != GlobalTenantID {
-		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Manage tenants") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -36,9 +34,7 @@ func (s *TenantsService) Tenants(ctx context.Context) ([]*model.Tenant, error) {
 }
 
 func (s *TenantsService) Tenant(ctx context.Context, id string) (*model.Tenant, error) {
-	if web.GetTenant(ctx) != GlobalTenantID {
-		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Manage tenants") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -58,9 +54,7 @@ func (s *TenantsService) Tenant(ctx context.Context, id string) (*model.Tenant, 
 }
 
 func (s *TenantsService) CreateTenant(ctx context.Context, tenantID *string, tenant model.TenantChanges) (*model.Tenant, error) {
-	if web.GetTenant(ctx) != GlobalTenantID {
-		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Manage tenants") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -102,13 +96,11 @@ func (s *TenantsService) CreateTenant(ctx context.Context, tenantID *string, ten
 }
 
 func (s *TenantsService) UpdateTenant(ctx context.Context, tenantID string, tenant model.TenantChanges) (*model.Tenant, error) {
-	if web.GetTenant(ctx) != GlobalTenantID {
-		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Manage tenants") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	if tenantID == "global" {
+	if tenantID == GlobalTenantID {
 		return nil, errors.New("Updating the global tenant is not allowed.", util.ErrBadRequest, util.UserFacingTag)
 	}
 
@@ -122,13 +114,11 @@ func (s *TenantsService) UpdateTenant(ctx context.Context, tenantID string, tena
 }
 
 func (s *TenantsService) DeleteTenant(ctx context.Context, tenantID string) (string, error) {
-	if web.GetTenant(ctx) != GlobalTenantID {
-		return "", errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(web.GetTenant(ctx), "Manage tenants") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
 		return "", errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	if tenantID == "global" {
+	if tenantID == GlobalTenantID {
 		return "", errors.New("Deleting the global tenant is not allowed.", util.ErrBadRequest, util.UserFacingTag)
 	}
 

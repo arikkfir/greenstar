@@ -157,6 +157,8 @@ func (ec *executionContext) fieldContext_Transaction_targetAccount(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "tenant":
+				return ec.fieldContext_Account_tenant(ctx, field)
 			case "id":
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
@@ -217,6 +219,8 @@ func (ec *executionContext) fieldContext_Transaction_sourceAccount(ctx context.C
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "tenant":
+				return ec.fieldContext_Account_tenant(ctx, field)
 			case "id":
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":

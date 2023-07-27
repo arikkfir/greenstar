@@ -1,4 +1,5 @@
 type Account {
+    tenant: Tenant!
     id: ID!
     displayName: String!
     labels: [KeyAndValue!]!
