@@ -12,6 +12,7 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/kr/text v0.2.0
 	github.com/neo4j/neo4j-go-driver/v5 v5.10.0
+	github.com/redis/rueidis v1.0.13
 	github.com/rs/cors v1.9.0
 	github.com/rs/zerolog v1.29.1
 	github.com/secureworks/errors v0.1.2
@@ -53,9 +54,7 @@ require (
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/onsi/gomega v1.27.6 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
-	github.com/rueian/rueidis v0.0.100
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/urfave/cli/v2 v2.25.7 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect

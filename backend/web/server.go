@@ -3,7 +3,7 @@ package web
 import (
 	descope "github.com/descope/go-sdk/descope/client"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
-	"github.com/rueian/rueidis"
+	"github.com/redis/rueidis"
 	"net/http"
 	"strconv"
 	"strings"

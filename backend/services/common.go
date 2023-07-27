@@ -5,8 +5,8 @@ import (
 	"github.com/arik-kfir/greenstar/backend/util"
 	descope "github.com/descope/go-sdk/descope/client"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/redis/rueidis"
 	"github.com/rs/zerolog/log"
-	"github.com/rueian/rueidis"
 )
 
 const GlobalTenantID = "global"

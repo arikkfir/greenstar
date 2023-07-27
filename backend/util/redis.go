@@ -2,7 +2,7 @@ package util
 
 import (
 	"crypto/tls"
-	"github.com/rueian/rueidis"
+	"github.com/redis/rueidis"
 	"github.com/secureworks/errors"
 	"strconv"
 )
