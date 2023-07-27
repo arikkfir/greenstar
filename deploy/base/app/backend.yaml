@@ -65,8 +65,8 @@ spec:
               path: /healthz
             failureThreshold: 3
             initialDelaySeconds: 5
-            periodSeconds: 10
-            timeoutSeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 1
           livenessProbe:
             httpGet:
               port: health
@@ -82,11 +82,11 @@ spec:
               name: health
           resources:
             limits:
-              cpu: 200m
+              cpu: 500m
               memory: 32Mi
             requests:
-              cpu: 100m
-              memory: 16Mi
+              cpu: 500m
+              memory: 32Mi
           volumeMounts: []
       enableServiceLinks: false
       serviceAccountName: backend
