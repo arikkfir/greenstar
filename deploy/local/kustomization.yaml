@@ -38,14 +38,11 @@ patches:
       labelSelector: app.kubernetes.io/component=frontend
     patch: |-
       - op: replace
-        path: /spec/template/spec/containers/0/startupProbe/failureThreshold
-        value: 10
-      - op: replace
         path: /spec/template/spec/containers/0/startupProbe/initialDelaySeconds
-        value: 30
-      - op: replace
-        path: /spec/template/spec/containers/0/startupProbe/periodSeconds
         value: 10
+      - op: replace
+        path: /spec/template/spec/containers/0/startupProbe/timeoutSeconds
+        value: 30
       - op: replace
         path: /spec/template/spec/containers/0/resources
         value:
