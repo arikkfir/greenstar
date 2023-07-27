@@ -9,12 +9,29 @@ import {ApolloWrapper} from "./apollo-wrapper";
 import {AppLayout} from "./app-layout";
 import {Descope, useSession, useUser} from "@descope/react-sdk";
 import {Tenants} from "./pages/Tenants";
-import {GrowthBook, GrowthBookProvider} from "@growthbook/growthbook-react";
+import {GrowthBook, GrowthBookProvider, useFeatureIsOn} from "@growthbook/growthbook-react";
 import {useEffect} from "react";
+import {APIExplorer} from "./pages/APIExplorer";
 
 interface AppProps {
     tenant: string
     growthBook: GrowthBook
+}
+
+interface AppRoutesProps {
+    tenant: string
+}
+
+function AppRoutes({tenant}: AppRoutesProps) {
+    const showGraphQLQueryLink = useFeatureIsOn("show-graphql-console");
+    return (
+        <Routes>
+            <Route path="/" element={<HomePage/>}/>
+            {tenant === "global" && (<Route path="/tenants" element={<Tenants/>}/>)}
+            {showGraphQLQueryLink && (<Route path="/api" element={<APIExplorer/>}/>)}
+            <Route path="*" element={<NotFoundPage/>}/>
+        </Routes>
+    )
 }
 
 export function App({tenant, growthBook}: AppProps) {
@@ -55,11 +72,7 @@ export function App({tenant, growthBook}: AppProps) {
                 <CssBaseline/>
                 <ApolloWrapper tenant={tenant}>
                     <AppLayout tenant={tenant}>
-                        <Routes>
-                            <Route path="/" element={<HomePage/>}/>
-                            {tenant === "global" && (<Route path="/tenants" element={<Tenants/>}/>)}
-                            <Route path="*" element={<NotFoundPage/>}/>
-                        </Routes>
+                        <AppRoutes tenant={tenant}/>
                     </AppLayout>
                 </ApolloWrapper>
             </ThemeProvider>

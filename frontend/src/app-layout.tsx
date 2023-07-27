@@ -18,7 +18,7 @@ export function AppLayout({children, tenant}: PropsWithChildren<AppLayoutProps>)
             <Stack direction="row" spacing={0} sx={{flexGrow: 1, overflow: 'auto'}}>
                 <AppDrawer tenant={tenant}/>
                 <Stack direction="column" sx={{flexGrow: 1, overflow: 'auto'}}>
-                    <Box sx={{p: 3}}>
+                    <Box sx={{flexGrow: 1, p: 3}}>
                         {children}
                     </Box>
                     <Copyright/>

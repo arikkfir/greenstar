@@ -1,6 +1,6 @@
 import {LineAxis, ReceiptLong} from "@mui/icons-material";
 import {Divider, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText} from "@mui/material";
-import {globalTenant, gqlPlaygroundURL} from "../../config";
+import {globalTenant} from "../../config";
 import {getJwtPermissions, getSessionToken} from "@descope/react-sdk";
 import {useFeatureIsOn} from "@growthbook/growthbook-react";
 
@@ -42,9 +42,9 @@ export function AppDrawer({tenant}: AppDrawerProps) {
                         </ListItem>
                     </>
                 )}
-                <Divider/>
                 {tenant === globalTenant && globalPermissions.includes("Manage tenants") && (
                     <>
+                        <Divider/>
                         <ListItem disablePadding>
                             <ListItemButton href="/tenants">
                                 <ListItemIcon><LineAxis/></ListItemIcon>
@@ -57,9 +57,9 @@ export function AppDrawer({tenant}: AppDrawerProps) {
                     <>
                         <Divider/>
                         <ListItem disablePadding>
-                            <ListItemButton href={gqlPlaygroundURL}>
+                            <ListItemButton href="/api">
                                 <ListItemIcon><ReceiptLong/></ListItemIcon>
-                                <ListItemText primary="GraphQL Playground"/>
+                                <ListItemText primary="API Explorer"/>
                             </ListItemButton>
                         </ListItem>
                     </>
