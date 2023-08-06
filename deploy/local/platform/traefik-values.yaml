@@ -1,0 +1,77 @@
+ingressRoute:
+  dashboard:
+    enabled: false
+
+updateStrategy:
+  rollingUpdate:
+    maxUnavailable: 1
+    maxSurge: 1
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowEmptyServices: true
+  kubernetesIngress:
+    allowEmptyServices: true
+
+logs:
+  general:
+    level: INFO
+  access:
+    enabled: false
+    fields:
+      general:
+        defaultmode: keep
+      headers:
+        defaultmode: keep
+
+globalArguments: []
+
+additionalArguments: []
+
+ports:
+  web:
+    containerPort: 8000
+    expose: true
+    exposedPort: 80
+    hostPort: 80
+    port: 8000
+    redirectTo: websecure
+  websecure:
+    containerPort: 8443
+    expose: true
+    exposedPort: 443
+    hostPort: 443
+    port: 8443
+    tls:
+      enabled: true
+  redis:
+    containerPort: 6379
+    expose: true
+    exposedPort: 6379
+    hostPort: 6379
+    port: 6379
+    tls:
+      enabled: true
+  bolt:
+    containerPort: 7687
+    expose: true
+    exposedPort: 7687
+    hostPort: 7687
+    port: 7687
+    tls:
+      enabled: true
+
+service:
+  type: NodePort
+
+rbac:
+  namespaced: true
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 100Mi
+  limits:
+    cpu: 500m
+    memory: 200Mi

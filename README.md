@@ -59,8 +59,7 @@ actions:
 
 ```shell
 $ mkcert -install
-$ cd deploy/local/tls
-$ mkcert api.greenstar.test
+$ cd deploy/local/app/tls
 $ mkcert '*.greenstar.test'
 ```
 
@@ -74,8 +73,7 @@ project associated with this ID, to differentiate it from similar resources used
 don't use something secret - a name or nickname is perfectly fine here.
 
 ```shell
-$ cat deploy/kind/cluster-config.yaml | yq ".nodes[0].extraMounts[0].hostPath = \"$(cd ~/.config/gcloud && pwd)\"" | kind create cluster --config=- --name=local
-$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+$ cat deploy/local/kind/cluster-config.yaml | kind create cluster --config=- --name=greenstar
 ```
 
 ### Personal secrets & values
@@ -85,24 +83,25 @@ those available while running, perform the following (assuming you have access t
 
 ```shell
 $ touch frontend/apply-patches.sh
-$ cat > deploy/local/config/greenstar-backend-secrets.env <<EOF
+$ cat > deploy/local/app/config/greenstar-backend-secrets.env <<EOF
 AUTH_DESCOPE_PROJECT_ID=descope_project_id
 AUTH_DESCOPE_MANAGEMENT_KEY=descope_management_key
 DEV_MODE_ID=your_own_made_up_id
 EOF
-$ cat > deploy/local/config/greenstar-frontend-secrets.env <<EOF
+$ cat > deploy/local/app/config/greenstar-frontend-secrets.env <<EOF
 EOF
 ```
 
 ### Running
 
 ```shell
-$ skaffold dev --kube-context=kind-local
+$ skaffold dev
 ```
 
 This will build all container images, deploy them to the `default` namespace of the `kind` cluster you just set up, and
 then make the following URLs available:
 
-- https://api.greenstar.test
-- https://global.greenstar.test
-- https://TENANT.greenstar.test
+- https://api.greenstar.test - application backend (tenant agnostic)
+- https://neo4j.greenstar.test - neo4j console
+- https://global.greenstar.test - administration frontend (no tenant)
+- [https://*.greenstar.test](https://*.greenstar.test) - tenant frontend (replace `*` with the tenant ID)

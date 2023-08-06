@@ -1,13 +1,13 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Kind" type="google-container-tools-skaffold-run-config" factoryName="google-container-tools-skaffold-run-config-dev" show_console_on_std_err="false" show_console_on_std_out="false">
     <option name="allowRunningInParallel" value="false" />
-    <option name="buildEnvironment" value="Local" />
+    <option name="buildEnvironment" />
     <option name="cleanupDeployments" value="true" />
     <option name="deployToCurrentContext" value="false" />
     <option name="deployToMinikube" value="false" />
     <option name="envVariables" />
     <option name="imageRepositoryOverride" />
-    <option name="kubernetesContext" value="kind-local" />
+    <option name="kubernetesContext" value="kind-greenstar" />
     <option name="mappings">
       <list />
     </option>
@@ -19,9 +19,7 @@
     </option>
     <option name="skaffoldConfigurationFilePath" value="$PROJECT_DIR$/skaffold.yaml" />
     <option name="skaffoldModules">
-      <list>
-        <option value="greenstar" />
-      </list>
+      <list />
     </option>
     <option name="skaffoldNamespace" />
     <option name="skaffoldProfile" />

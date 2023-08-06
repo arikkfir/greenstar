@@ -2,7 +2,25 @@
 apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
-  name: greenstar
+  name: platform
+deploy:
+  kubeContext: kind-greenstar
+  helm:
+    releases:
+      - name: greenstar-traefik
+        remoteChart: traefik
+        repo: https://traefik.github.io/charts
+        version: 23.2.0
+        wait: true
+        valuesFiles:
+          - deploy/local/platform/traefik-values.yaml
+---
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: app
+requires:
+  - configs: [platform]
 build:
   local:
     concurrency: 0
@@ -26,28 +44,10 @@ build:
 manifests:
   kustomize:
     paths:
-      - deploy/local
+      - deploy/local/app
 deploy:
   tolerateFailuresUntilDeadline: true
   statusCheckDeadlineSeconds: 1200
+  kubeContext: kind-greenstar
   kubectl:
     defaultNamespace: default
-    hooks:
-      before:
-        - host:
-            command: # skaffold has a bug where past failure events cause it to indefinitely wait for stabilization
-              - kubectl
-              - delete
-              - events
-              - --all
-portForward:
-  - resourceType: Service
-    resourceName: greenstar-neo4j
-    namespace: default
-    port: client-nontls
-    localPort: 7687
-  - resourceType: Service
-    resourceName: greenstar-neo4j
-    namespace: default
-    port: http
-    localPort: 7474

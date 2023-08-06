@@ -3,6 +3,15 @@ kind: Kustomization
 commonLabels:
   app.kubernetes.io/name: app
 namePrefix: app-
+configMapGenerator:
+  - name: migrations
+    behavior: create
+    files:
+      - 01_acme.cypher=migrations/01_acme.cypher
+      - migrate.sh=migrations/migrate.sh
 resources:
   - backend.yaml
   - frontend.yaml
+  - migrations-job.yaml
+configurations:
+  - kustomizeconfig.yaml

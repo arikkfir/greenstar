@@ -21,6 +21,22 @@ spec:
     app.kubernetes.io/component: frontend
   type: ClusterIP
 ---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: frontend-tls
+spec:
+  entryPoints: [websecure]
+  routes:
+    - kind: Rule
+      match: HostRegexp(`{tenant:[a-zA-Z][a-zA-Z0-9_-]*}.greenstar.test`)
+      services:
+        - name: frontend
+          port: http
+          kind: Service
+  tls:
+    secretName: greenstar-wildcard-tls
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

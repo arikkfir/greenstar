@@ -38,6 +38,14 @@ spec:
               value: 128m
             - name: NEO4J_dbms_security_auth__enabled
               value: "false"
+            - name: NEO4J_server_directories_data
+              value: /data
+            - name: NEO4J_server_directories_logs
+              value: /logs
+            - name: NEO4J_server_directories_metrics
+              value: /metrics
+            - name: NEO4J_server_directories_plugins
+              value: /plugins
           ports:
             - containerPort: 2004
               name: metrics
@@ -76,14 +84,8 @@ spec:
               cpu: 2000m
               memory: 1500Mi
           volumeMounts:
-            - mountPath: /backups
-              name: backups
-              readOnly: false
             - mountPath: /data
               name: data
-              readOnly: false
-            - mountPath: /import
-              name: import
               readOnly: false
             - mountPath: /logs
               name: logs
@@ -97,17 +99,9 @@ spec:
       enableServiceLinks: false
       serviceAccountName: neo4j
       volumes:
-        - name: backups
-          persistentVolumeClaim:
-            claimName: neo4j-backups
-            readOnly: false
         - name: data
           persistentVolumeClaim:
             claimName: neo4j-data
-            readOnly: false
-        - name: import
-          persistentVolumeClaim:
-            claimName: neo4j-import
             readOnly: false
         - name: logs
           persistentVolumeClaim:

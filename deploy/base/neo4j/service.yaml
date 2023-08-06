@@ -15,3 +15,35 @@ spec:
   selector:
     app.kubernetes.io/name: neo4j
   type: ClusterIP
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: neo4j-tls
+spec:
+  entryPoints: [websecure]
+  routes:
+    - kind: Rule
+      priority: 999
+      match: Host(`neo4j.greenstar.test`)
+      services:
+        - name: neo4j
+          port: http
+          kind: Service
+  tls:
+    secretName: greenstar-wildcard-tls
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: neo4j-tls-tcp
+spec:
+  entryPoints: [bolt]
+  routes:
+    - match: HostSNI(`neo4j.greenstar.test`)
+      priority: 999
+      services:
+        - name: neo4j
+          port: client-nontls
+  tls:
+    secretName: greenstar-wildcard-tls

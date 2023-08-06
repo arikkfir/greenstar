@@ -11,3 +11,18 @@ spec:
   selector:
     app.kubernetes.io/name: redis
   type: ClusterIP
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: redis-tls-tcp
+spec:
+  entryPoints: [redis]
+  routes:
+    - match: HostSNI(`redis.greenstar.test`)
+      priority: 999
+      services:
+        - name: redis
+          port: client-nontls
+  tls:
+    secretName: greenstar-wildcard-tls
