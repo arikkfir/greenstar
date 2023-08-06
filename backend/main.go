@@ -19,7 +19,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	log.Ctx(ctx).Info().Msg("Starting Greenstar Admin")
+	log.Ctx(ctx).Info().Msg("Starting server")
 
 	// Create the Redis client
 	redisClient, err := util.CreateRedisClient(cfg.Redis.Host, cfg.Redis.Port, "greenstar-admin", cfg.Redis.TLS)
