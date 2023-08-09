@@ -2,28 +2,28 @@ nameReference:
   - kind: Secret
     version: v1
     fieldSpecs:
-      - group: traefik.containo.us
+      - group: traefik.io
         version: v1alpha1
         kind: IngressRoute
         path: spec/tls/secretName
   - kind: Secret
     version: v1
     fieldSpecs:
-      - group: traefik.containo.us
+      - group: traefik.io
         version: v1alpha1
         kind: IngressRouteTCP
         path: spec/tls/secretName
   - kind: Service
     version: v1
     fieldSpecs:
-      - group: traefik.containo.us
+      - group: traefik.io
         version: v1alpha1
         kind: IngressRoute
         path: spec/routes/services/name
   - kind: Service
     version: v1
     fieldSpecs:
-      - group: traefik.containo.us
+      - group: traefik.io
         version: v1alpha1
         kind: IngressRouteTCP
         path: spec/routes/services/name
