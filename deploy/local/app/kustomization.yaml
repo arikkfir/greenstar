@@ -39,7 +39,7 @@ patches:
           requests:
             memory: 128Mi
 
-  # Locally we use frontend Dockerfile.debug which runs Node.js directly (no NGINX) thus more memory is required
+  # Locally we use frontend Dockerfile.debug which runs Node.js directly (no NGINX) thus longer startup time is required
   - target:
       group: apps
       version: v1
@@ -52,6 +52,14 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/startupProbe/timeoutSeconds
         value: 30
+
+  # Locally we use frontend Dockerfile.debug which runs Node.js directly (no NGINX) thus more memory is required
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      labelSelector: app.kubernetes.io/component=frontend
+    patch: |-
       - op: replace
         path: /spec/template/spec/containers/0/resources
         value:
