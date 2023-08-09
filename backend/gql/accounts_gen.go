@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/arik-kfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -65,7 +65,7 @@ func (ec *executionContext) _Account_tenant(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Tenant)
 	fc.Result = res
-	return ec.marshalNTenant2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, field.Selections, res)
+	return ec.marshalNTenant2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Account_tenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -209,7 +209,7 @@ func (ec *executionContext) _Account_labels(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*model.KeyAndValue)
 	fc.Result = res
-	return ec.marshalNKeyAndValue2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueᚄ(ctx, field.Selections, res)
+	return ec.marshalNKeyAndValue2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Account_labels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -259,7 +259,7 @@ func (ec *executionContext) _Account_children(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountᚄ(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccountᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Account_children(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -318,7 +318,7 @@ func (ec *executionContext) _Account_parent(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalOAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalOAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Account_parent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -380,7 +380,7 @@ func (ec *executionContext) _Account_outgoingTransactions(ctx context.Context, f
 	}
 	res := resTmp.([]*model.Transaction)
 	fc.Result = res
-	return ec.marshalNTransaction2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
+	return ec.marshalNTransaction2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Account_outgoingTransactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -440,7 +440,7 @@ func (ec *executionContext) _Account_incomingTransactions(ctx context.Context, f
 	}
 	res := resTmp.([]*model.Transaction)
 	fc.Result = res
-	return ec.marshalNTransaction2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
+	return ec.marshalNTransaction2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Account_incomingTransactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -503,7 +503,7 @@ func (ec *executionContext) unmarshalInputAccountChanges(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("labels"))
-			data, err := ec.unmarshalOKeyAndValueInput2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueInputᚄ(ctx, v)
+			data, err := ec.unmarshalOKeyAndValueInput2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -761,11 +761,11 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAccount2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx context.Context, sel ast.SelectionSet, v model.Account) graphql.Marshaler {
+func (ec *executionContext) marshalNAccount2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx context.Context, sel ast.SelectionSet, v model.Account) graphql.Marshaler {
 	return ec._Account(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAccount2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Account) graphql.Marshaler {
+func (ec *executionContext) marshalNAccount2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Account) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -789,7 +789,7 @@ func (ec *executionContext) marshalNAccount2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋg
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, sel, v[i])
+			ret[i] = ec.marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -809,7 +809,7 @@ func (ec *executionContext) marshalNAccount2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋg
 	return ret
 }
 
-func (ec *executionContext) marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx context.Context, sel ast.SelectionSet, v *model.Account) graphql.Marshaler {
+func (ec *executionContext) marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx context.Context, sel ast.SelectionSet, v *model.Account) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -819,12 +819,12 @@ func (ec *executionContext) marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgree
 	return ec._Account(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx context.Context, v interface{}) (model.AccountChanges, error) {
+func (ec *executionContext) unmarshalNAccountChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx context.Context, v interface{}) (model.AccountChanges, error) {
 	res, err := ec.unmarshalInputAccountChanges(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx context.Context, sel ast.SelectionSet, v *model.Account) graphql.Marshaler {
+func (ec *executionContext) marshalOAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx context.Context, sel ast.SelectionSet, v *model.Account) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

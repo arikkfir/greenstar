@@ -53,7 +53,7 @@ spec:
         app.kubernetes.io/component: backend
     spec:
       containers:
-        - image: ghcr.io/arik-kfir/greenstar/backend
+        - image: ghcr.io/arikkfir/greenstar/backend
           name: backend
           env:
             - name: NEO4J_HOST

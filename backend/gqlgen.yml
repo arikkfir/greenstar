@@ -30,7 +30,7 @@ models:
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
   Money:
-    model: github.com/arik-kfir/greenstar/backend/model.Money
+    model: github.com/arikkfir/greenstar/backend/model.Money
   Tenant:
     fields:
       accounts:

@@ -11,7 +11,7 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/arik-kfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -181,7 +181,7 @@ func (ec *executionContext) _Tenant_accounts(ctx context.Context, field graphql.
 	}
 	res := resTmp.([]*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountᚄ(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccountᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tenant_accounts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -251,7 +251,7 @@ func (ec *executionContext) _Tenant_account(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalOAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalOAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tenant_account(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -324,7 +324,7 @@ func (ec *executionContext) _Tenant_transactions(ctx context.Context, field grap
 	}
 	res := resTmp.([]*model.Transaction)
 	fc.Result = res
-	return ec.marshalNTransaction2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
+	return ec.marshalNTransaction2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tenant_transactions(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -550,11 +550,11 @@ func (ec *executionContext) _Tenant(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNTenant2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx context.Context, sel ast.SelectionSet, v model.Tenant) graphql.Marshaler {
+func (ec *executionContext) marshalNTenant2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx context.Context, sel ast.SelectionSet, v model.Tenant) graphql.Marshaler {
 	return ec._Tenant(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTenant2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Tenant) graphql.Marshaler {
+func (ec *executionContext) marshalNTenant2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenantᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Tenant) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -578,7 +578,7 @@ func (ec *executionContext) marshalNTenant2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTenant2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, sel, v[i])
+			ret[i] = ec.marshalNTenant2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -598,7 +598,7 @@ func (ec *executionContext) marshalNTenant2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgr
 	return ret
 }
 
-func (ec *executionContext) marshalNTenant2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx context.Context, sel ast.SelectionSet, v *model.Tenant) graphql.Marshaler {
+func (ec *executionContext) marshalNTenant2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx context.Context, sel ast.SelectionSet, v *model.Tenant) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -608,12 +608,12 @@ func (ec *executionContext) marshalNTenant2ᚖgithubᚗcomᚋarikᚑkfirᚋgreen
 	return ec._Tenant(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTenantChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenantChanges(ctx context.Context, v interface{}) (model.TenantChanges, error) {
+func (ec *executionContext) unmarshalNTenantChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenantChanges(ctx context.Context, v interface{}) (model.TenantChanges, error) {
 	res, err := ec.unmarshalInputTenantChanges(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOTenant2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx context.Context, sel ast.SelectionSet, v *model.Tenant) graphql.Marshaler {
+func (ec *executionContext) marshalOTenant2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx context.Context, sel ast.SelectionSet, v *model.Tenant) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

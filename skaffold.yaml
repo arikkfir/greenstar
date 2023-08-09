@@ -27,11 +27,11 @@ build:
     useBuildkit: true
     push: false
   artifacts:
-    - image: ghcr.io/arik-kfir/greenstar/backend
+    - image: ghcr.io/arikkfir/greenstar/backend
       context: backend
       docker:
         dockerfile: Dockerfile
-    - image: ghcr.io/arik-kfir/greenstar/frontend
+    - image: ghcr.io/arikkfir/greenstar/frontend
       context: frontend
       docker:
         dockerfile: Dockerfile.debug

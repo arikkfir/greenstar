@@ -2,7 +2,7 @@ package web
 
 import (
 	"bytes"
-	"github.com/arik-kfir/greenstar/backend/util"
+	"github.com/arikkfir/greenstar/backend/util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"io"

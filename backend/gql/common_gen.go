@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/arik-kfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -214,7 +214,7 @@ func (ec *executionContext) _KeyAndValue(ctx context.Context, sel ast.SelectionS
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNKeyAndValue2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KeyAndValue) graphql.Marshaler {
+func (ec *executionContext) marshalNKeyAndValue2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.KeyAndValue) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -238,7 +238,7 @@ func (ec *executionContext) marshalNKeyAndValue2ᚕᚖgithubᚗcomᚋarikᚑkfir
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNKeyAndValue2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValue(ctx, sel, v[i])
+			ret[i] = ec.marshalNKeyAndValue2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValue(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -258,7 +258,7 @@ func (ec *executionContext) marshalNKeyAndValue2ᚕᚖgithubᚗcomᚋarikᚑkfir
 	return ret
 }
 
-func (ec *executionContext) marshalNKeyAndValue2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValue(ctx context.Context, sel ast.SelectionSet, v *model.KeyAndValue) graphql.Marshaler {
+func (ec *executionContext) marshalNKeyAndValue2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValue(ctx context.Context, sel ast.SelectionSet, v *model.KeyAndValue) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -268,12 +268,12 @@ func (ec *executionContext) marshalNKeyAndValue2ᚖgithubᚗcomᚋarikᚑkfirᚋ
 	return ec._KeyAndValue(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNKeyAndValueInput2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueInput(ctx context.Context, v interface{}) (*model.KeyAndValueInput, error) {
+func (ec *executionContext) unmarshalNKeyAndValueInput2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueInput(ctx context.Context, v interface{}) (*model.KeyAndValueInput, error) {
 	res, err := ec.unmarshalInputKeyAndValueInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOKeyAndValueInput2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueInputᚄ(ctx context.Context, v interface{}) ([]*model.KeyAndValueInput, error) {
+func (ec *executionContext) unmarshalOKeyAndValueInput2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueInputᚄ(ctx context.Context, v interface{}) ([]*model.KeyAndValueInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -285,7 +285,7 @@ func (ec *executionContext) unmarshalOKeyAndValueInput2ᚕᚖgithubᚗcomᚋarik
 	res := make([]*model.KeyAndValueInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNKeyAndValueInput2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNKeyAndValueInput2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐKeyAndValueInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}

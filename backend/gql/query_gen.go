@@ -10,7 +10,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/arik-kfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -107,7 +107,7 @@ func (ec *executionContext) _Query_tenants(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.([]*model.Tenant)
 	fc.Result = res
-	return ec.marshalNTenant2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenantᚄ(ctx, field.Selections, res)
+	return ec.marshalNTenant2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenantᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_tenants(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -160,7 +160,7 @@ func (ec *executionContext) _Query_tenant(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*model.Tenant)
 	fc.Result = res
-	return ec.marshalOTenant2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, field.Selections, res)
+	return ec.marshalOTenant2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_tenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -224,7 +224,7 @@ func (ec *executionContext) _Query_operation(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*model.Operation)
 	fc.Result = res
-	return ec.marshalOOperation2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx, field.Selections, res)
+	return ec.marshalOOperation2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_operation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {

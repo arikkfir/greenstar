@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/arik-kfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -146,7 +146,7 @@ func (ec *executionContext) _Transaction_targetAccount(ctx context.Context, fiel
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transaction_targetAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -208,7 +208,7 @@ func (ec *executionContext) _Transaction_sourceAccount(ctx context.Context, fiel
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transaction_sourceAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -314,7 +314,7 @@ func (ec *executionContext) _Transaction_amount(ctx context.Context, field graph
 	}
 	res := resTmp.(model.Money)
 	fc.Result = res
-	return ec.marshalNMoney2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐMoney(ctx, field.Selections, res)
+	return ec.marshalNMoney2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐMoney(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Transaction_amount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -432,7 +432,7 @@ func (ec *executionContext) unmarshalInputTransactionChanges(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("amount"))
-			data, err := ec.unmarshalNMoney2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐMoney(ctx, v)
+			data, err := ec.unmarshalNMoney2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐMoney(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -533,13 +533,13 @@ func (ec *executionContext) _Transaction(ctx context.Context, sel ast.SelectionS
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNMoney2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐMoney(ctx context.Context, v interface{}) (model.Money, error) {
+func (ec *executionContext) unmarshalNMoney2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐMoney(ctx context.Context, v interface{}) (model.Money, error) {
 	var res model.Money
 	err := res.UnmarshalGQLContext(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNMoney2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐMoney(ctx context.Context, sel ast.SelectionSet, v model.Money) graphql.Marshaler {
+func (ec *executionContext) marshalNMoney2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐMoney(ctx context.Context, sel ast.SelectionSet, v model.Money) graphql.Marshaler {
 	return graphql.WrapContextMarshaler(ctx, v)
 }
 
@@ -558,11 +558,11 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) marshalNTransaction2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v model.Transaction) graphql.Marshaler {
+func (ec *executionContext) marshalNTransaction2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v model.Transaction) graphql.Marshaler {
 	return ec._Transaction(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNTransaction2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Transaction) graphql.Marshaler {
+func (ec *executionContext) marshalNTransaction2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Transaction) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -586,7 +586,7 @@ func (ec *executionContext) marshalNTransaction2ᚕᚖgithubᚗcomᚋarikᚑkfir
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTransaction2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransaction(ctx, sel, v[i])
+			ret[i] = ec.marshalNTransaction2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransaction(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -606,7 +606,7 @@ func (ec *executionContext) marshalNTransaction2ᚕᚖgithubᚗcomᚋarikᚑkfir
 	return ret
 }
 
-func (ec *executionContext) marshalNTransaction2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v *model.Transaction) graphql.Marshaler {
+func (ec *executionContext) marshalNTransaction2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransaction(ctx context.Context, sel ast.SelectionSet, v *model.Transaction) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -616,12 +616,12 @@ func (ec *executionContext) marshalNTransaction2ᚖgithubᚗcomᚋarikᚑkfirᚋ
 	return ec._Transaction(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTransactionChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx context.Context, v interface{}) (model.TransactionChanges, error) {
+func (ec *executionContext) unmarshalNTransactionChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx context.Context, v interface{}) (model.TransactionChanges, error) {
 	res, err := ec.unmarshalInputTransactionChanges(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChangesᚄ(ctx context.Context, v interface{}) ([]*model.TransactionChanges, error) {
+func (ec *executionContext) unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChangesᚄ(ctx context.Context, v interface{}) ([]*model.TransactionChanges, error) {
 	var vSlice []interface{}
 	if v != nil {
 		vSlice = graphql.CoerceList(v)
@@ -630,7 +630,7 @@ func (ec *executionContext) unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋar
 	res := make([]*model.TransactionChanges, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNTransactionChanges2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNTransactionChanges2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -638,7 +638,7 @@ func (ec *executionContext) unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋar
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalNTransactionChanges2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx context.Context, v interface{}) (*model.TransactionChanges, error) {
+func (ec *executionContext) unmarshalNTransactionChanges2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx context.Context, v interface{}) (*model.TransactionChanges, error) {
 	res, err := ec.unmarshalInputTransactionChanges(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }

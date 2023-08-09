@@ -7,8 +7,8 @@ package resolver
 import (
 	"context"
 
-	"github.com/arik-kfir/greenstar/backend/gql"
-	"github.com/arik-kfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/gql"
+	"github.com/arikkfir/greenstar/backend/model"
 )
 
 // CreateTenant is the resolver for the createTenant field.

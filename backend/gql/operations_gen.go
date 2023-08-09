@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/arik-kfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -184,7 +184,7 @@ func (ec *executionContext) _Operation_status(ctx context.Context, field graphql
 	}
 	res := resTmp.(model.OperationStatus)
 	fc.Result = res
-	return ec.marshalNOperationStatus2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationStatus(ctx, field.Selections, res)
+	return ec.marshalNOperationStatus2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Operation_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -228,7 +228,7 @@ func (ec *executionContext) _Operation_result(ctx context.Context, field graphql
 	}
 	res := resTmp.(model.OperationResult)
 	fc.Result = res
-	return ec.marshalNOperationResult2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationResult(ctx, field.Selections, res)
+	return ec.marshalNOperationResult2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Operation_result(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -372,7 +372,7 @@ func (ec *executionContext) unmarshalInputOperationChanges(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			data, err := ec.unmarshalNOperationStatus2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationStatus(ctx, v)
+			data, err := ec.unmarshalNOperationStatus2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -381,7 +381,7 @@ func (ec *executionContext) unmarshalInputOperationChanges(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("result"))
-			data, err := ec.unmarshalNOperationResult2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationResult(ctx, v)
+			data, err := ec.unmarshalNOperationResult2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationResult(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -485,11 +485,11 @@ func (ec *executionContext) marshalNDateTime2string(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalNOperation2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v model.Operation) graphql.Marshaler {
+func (ec *executionContext) marshalNOperation2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v model.Operation) graphql.Marshaler {
 	return ec._Operation(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNOperation2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v *model.Operation) graphql.Marshaler {
+func (ec *executionContext) marshalNOperation2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v *model.Operation) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -499,32 +499,32 @@ func (ec *executionContext) marshalNOperation2ᚖgithubᚗcomᚋarikᚑkfirᚋgr
 	return ec._Operation(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNOperationChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationChanges(ctx context.Context, v interface{}) (model.OperationChanges, error) {
+func (ec *executionContext) unmarshalNOperationChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationChanges(ctx context.Context, v interface{}) (model.OperationChanges, error) {
 	res, err := ec.unmarshalInputOperationChanges(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNOperationResult2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationResult(ctx context.Context, v interface{}) (model.OperationResult, error) {
+func (ec *executionContext) unmarshalNOperationResult2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationResult(ctx context.Context, v interface{}) (model.OperationResult, error) {
 	var res model.OperationResult
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOperationResult2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationResult(ctx context.Context, sel ast.SelectionSet, v model.OperationResult) graphql.Marshaler {
+func (ec *executionContext) marshalNOperationResult2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationResult(ctx context.Context, sel ast.SelectionSet, v model.OperationResult) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNOperationStatus2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationStatus(ctx context.Context, v interface{}) (model.OperationStatus, error) {
+func (ec *executionContext) unmarshalNOperationStatus2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationStatus(ctx context.Context, v interface{}) (model.OperationStatus, error) {
 	var res model.OperationStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOperationStatus2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationStatus(ctx context.Context, sel ast.SelectionSet, v model.OperationStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNOperationStatus2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationStatus(ctx context.Context, sel ast.SelectionSet, v model.OperationStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalOOperation2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v *model.Operation) graphql.Marshaler {
+func (ec *executionContext) marshalOOperation2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx context.Context, sel ast.SelectionSet, v *model.Operation) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

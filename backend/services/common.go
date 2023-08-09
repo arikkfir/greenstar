@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"github.com/arik-kfir/greenstar/backend/util"
+	"github.com/arikkfir/greenstar/backend/util"
 	descope "github.com/descope/go-sdk/descope/client"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/redis/rueidis"

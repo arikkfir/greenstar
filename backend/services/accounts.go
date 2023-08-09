@@ -3,9 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
-	"github.com/arik-kfir/greenstar/backend/model"
-	"github.com/arik-kfir/greenstar/backend/util"
-	"github.com/arik-kfir/greenstar/backend/web"
+	"github.com/arikkfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/util"
+	"github.com/arikkfir/greenstar/backend/web"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/secureworks/errors"
 	"strconv"

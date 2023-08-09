@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/arik-kfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/model"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -57,7 +57,7 @@ func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Contex
 	var arg2 model.AccountChanges
 	if tmp, ok := rawArgs["account"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("account"))
-		arg2, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx, tmp)
+		arg2, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func (ec *executionContext) field_Mutation_createTenant_args(ctx context.Context
 	var arg1 model.TenantChanges
 	if tmp, ok := rawArgs["tenant"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
-		arg1, err = ec.unmarshalNTenantChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenantChanges(ctx, tmp)
+		arg1, err = ec.unmarshalNTenantChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenantChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -105,7 +105,7 @@ func (ec *executionContext) field_Mutation_createTransaction_args(ctx context.Co
 	var arg1 model.TransactionChanges
 	if tmp, ok := rawArgs["transaction"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("transaction"))
-		arg1, err = ec.unmarshalNTransactionChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx, tmp)
+		arg1, err = ec.unmarshalNTransactionChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -129,7 +129,7 @@ func (ec *executionContext) field_Mutation_createTransactions_args(ctx context.C
 	var arg1 []*model.TransactionChanges
 	if tmp, ok := rawArgs["transactions"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("transactions"))
-		arg1, err = ec.unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChangesᚄ(ctx, tmp)
+		arg1, err = ec.unmarshalNTransactionChanges2ᚕᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransactionChangesᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -243,7 +243,7 @@ func (ec *executionContext) field_Mutation_updateAccount_args(ctx context.Contex
 	var arg2 model.AccountChanges
 	if tmp, ok := rawArgs["account"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("account"))
-		arg2, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx, tmp)
+		arg2, err = ec.unmarshalNAccountChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccountChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -267,7 +267,7 @@ func (ec *executionContext) field_Mutation_updateOperation_args(ctx context.Cont
 	var arg1 model.OperationChanges
 	if tmp, ok := rawArgs["op"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("op"))
-		arg1, err = ec.unmarshalNOperationChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperationChanges(ctx, tmp)
+		arg1, err = ec.unmarshalNOperationChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperationChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -291,7 +291,7 @@ func (ec *executionContext) field_Mutation_updateTenant_args(ctx context.Context
 	var arg1 model.TenantChanges
 	if tmp, ok := rawArgs["tenant"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenant"))
-		arg1, err = ec.unmarshalNTenantChanges2githubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenantChanges(ctx, tmp)
+		arg1, err = ec.unmarshalNTenantChanges2githubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenantChanges(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -336,7 +336,7 @@ func (ec *executionContext) _Mutation_createTenant(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.Tenant)
 	fc.Result = res
-	return ec.marshalNTenant2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, field.Selections, res)
+	return ec.marshalNTenant2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createTenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -403,7 +403,7 @@ func (ec *executionContext) _Mutation_updateTenant(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.Tenant)
 	fc.Result = res
-	return ec.marshalNTenant2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, field.Selections, res)
+	return ec.marshalNTenant2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTenant(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateTenant(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -525,7 +525,7 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -598,7 +598,7 @@ func (ec *executionContext) _Mutation_updateAccount(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateAccount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -726,7 +726,7 @@ func (ec *executionContext) _Mutation_createTransaction(ctx context.Context, fie
 	}
 	res := resTmp.(*model.Transaction)
 	fc.Result = res
-	return ec.marshalNTransaction2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐTransaction(ctx, field.Selections, res)
+	return ec.marshalNTransaction2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐTransaction(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createTransaction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -907,7 +907,7 @@ func (ec *executionContext) _Mutation_updateOperation(ctx context.Context, field
 	}
 	res := resTmp.(*model.Operation)
 	fc.Result = res
-	return ec.marshalNOperation2ᚖgithubᚗcomᚋarikᚑkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx, field.Selections, res)
+	return ec.marshalNOperation2ᚖgithubᚗcomᚋarikkfirᚋgreenstarᚋbackendᚋmodelᚐOperation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateOperation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {

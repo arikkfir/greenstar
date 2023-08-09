@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"github.com/arik-kfir/greenstar/backend/model"
+	"github.com/arikkfir/greenstar/backend/model"
 	"github.com/redis/rueidis"
 	"github.com/secureworks/errors"
 )

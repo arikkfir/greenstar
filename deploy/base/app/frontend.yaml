@@ -55,7 +55,7 @@ spec:
         app.kubernetes.io/component: frontend
     spec:
       containers:
-        - image: ghcr.io/arik-kfir/greenstar/frontend
+        - image: ghcr.io/arikkfir/greenstar/frontend
           name: frontend
           env: []
           envFrom:

@@ -1,7 +1,7 @@
 package resolver
 
 import (
-	"github.com/arik-kfir/greenstar/backend/services"
+	"github.com/arikkfir/greenstar/backend/services"
 )
 
 type Resolver struct {
