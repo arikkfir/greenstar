@@ -24,6 +24,22 @@ secretGenerator:
       - tls.key=tls/_wildcard.greenstar.test-key.pem
 patches:
 
+  # Debugging Go requires more memory
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      labelSelector: app.kubernetes.io/component=backend
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          limits:
+            memory: 128Mi
+          requests:
+            memory: 128Mi
+
+  # Locally we use frontend Dockerfile.debug which runs Node.js directly (no NGINX) thus more memory is required
   - target:
       group: apps
       version: v1
