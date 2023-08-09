@@ -20,7 +20,7 @@ spec:
   entryPoints: [redis]
   routes:
     - match: HostSNI(`redis.greenstar.test`)
-      priority: 999
+      priority: 100
       services:
         - name: redis
           port: client-nontls

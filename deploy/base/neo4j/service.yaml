@@ -24,7 +24,7 @@ spec:
   entryPoints: [websecure]
   routes:
     - kind: Rule
-      priority: 999
+      priority: 100
       match: Host(`neo4j.greenstar.test`)
       services:
         - name: neo4j

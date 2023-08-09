@@ -30,6 +30,7 @@ spec:
   routes:
     - kind: Rule
       match: Host(`api.greenstar.test`)
+      priority: 100
       services:
         - name: backend
           port: http
