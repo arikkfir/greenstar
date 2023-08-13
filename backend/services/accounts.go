@@ -397,8 +397,8 @@ func (s *AccountsService) OutgoingTransactions(ctx context.Context, obj *model.A
 		const getTxQuery = `// Get databases representing tenants
 MATCH (origin:Account {accountID: $sourceAccountID})
 MATCH (src:Account)-[tx:Transaction]->(dst:Account)
-WHERE exists ( (origin)-[:ChildOf*0..]->(src) )
-RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.id, tx.date, tx.referenceID, tx.amount, tx.description`
+WHERE exists ( (origin)<-[:ChildOf*0..]-(src) )
+RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, tx.date, tx.referenceID, tx.amount, tx.description`
 
 		result, err := tx.Run(ctx, getTxQuery, map[string]any{"sourceAccountID": obj.ID})
 		if err != nil {
@@ -443,8 +443,8 @@ func (s *AccountsService) IncomingTransactions(ctx context.Context, obj *model.A
 		const getTxQuery = `// Get databases representing tenants
 MATCH (target:Account {accountID: $targetAccountID})
 MATCH (src:Account)-[tx:Transaction]->(dst:Account)
-WHERE exists ( (target)-[:ChildOf*0..]->(dst) )
-RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.id, tx.date, tx.referenceID, tx.amount, tx.description`
+WHERE exists ( (target)<-[:ChildOf*0..]-(dst) )
+RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, tx.date, tx.referenceID, tx.amount, tx.description`
 
 		result, err := tx.Run(ctx, getTxQuery, map[string]any{"targetAccountID": obj.ID})
 		if err != nil {

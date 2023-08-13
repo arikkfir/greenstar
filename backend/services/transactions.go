@@ -158,7 +158,7 @@ func (s *TransactionsService) Transactions(ctx context.Context, tenant *model.Te
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		const getTxQuery = `// Get databases representing tenants
 MATCH (src:Account)-[tx:Transaction]->(dst:Account)
-RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.id, tx.date, tx.referenceID, tx.amount, tx.description`
+RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, tx.date, tx.referenceID, tx.amount, tx.description`
 
 		result, err := tx.Run(ctx, getTxQuery, nil)
 		if err != nil {
