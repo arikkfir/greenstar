@@ -12,8 +12,8 @@ import (
 )
 
 // Accounts is the resolver for the accounts field.
-func (r *tenantResolver) Accounts(ctx context.Context, obj *model.Tenant, rootsOnly *bool) ([]*model.Account, error) {
-	return r.AccountsService.Accounts(ctx, obj, rootsOnly)
+func (r *tenantResolver) Accounts(ctx context.Context, obj *model.Tenant) ([]*model.Account, error) {
+	return r.AccountsService.Accounts(ctx, obj)
 }
 
 // Account is the resolver for the account field.

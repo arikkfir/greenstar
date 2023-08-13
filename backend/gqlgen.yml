@@ -45,6 +45,8 @@ models:
         resolver: true
       parent:
         resolver: true
+      childCount:
+        resolver: true
       children:
         resolver: true
       outgoingTransactions:

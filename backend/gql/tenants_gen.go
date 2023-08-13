@@ -18,7 +18,7 @@ import (
 // region    ************************** generated!.gotpl **************************
 
 type TenantResolver interface {
-	Accounts(ctx context.Context, obj *model.Tenant, rootsOnly *bool) ([]*model.Account, error)
+	Accounts(ctx context.Context, obj *model.Tenant) ([]*model.Account, error)
 	Account(ctx context.Context, obj *model.Tenant, id string) (*model.Account, error)
 	Transactions(ctx context.Context, obj *model.Tenant) ([]*model.Transaction, error)
 }
@@ -39,21 +39,6 @@ func (ec *executionContext) field_Tenant_account_args(ctx context.Context, rawAr
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Tenant_accounts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *bool
-	if tmp, ok := rawArgs["rootsOnly"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rootsOnly"))
-		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["rootsOnly"] = arg0
 	return args, nil
 }
 
@@ -167,7 +152,7 @@ func (ec *executionContext) _Tenant_accounts(ctx context.Context, field graphql.
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Tenant().Accounts(rctx, obj, fc.Args["rootsOnly"].(*bool))
+		return ec.resolvers.Tenant().Accounts(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -200,6 +185,8 @@ func (ec *executionContext) fieldContext_Tenant_accounts(ctx context.Context, fi
 				return ec.fieldContext_Account_displayName(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
+			case "childCount":
+				return ec.fieldContext_Account_childCount(ctx, field)
 			case "children":
 				return ec.fieldContext_Account_children(ctx, field)
 			case "parent":
@@ -211,17 +198,6 @@ func (ec *executionContext) fieldContext_Tenant_accounts(ctx context.Context, fi
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Account", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Tenant_accounts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }
@@ -270,6 +246,8 @@ func (ec *executionContext) fieldContext_Tenant_account(ctx context.Context, fie
 				return ec.fieldContext_Account_displayName(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
+			case "childCount":
+				return ec.fieldContext_Account_childCount(ctx, field)
 			case "children":
 				return ec.fieldContext_Account_children(ctx, field)
 			case "parent":

@@ -16,6 +16,11 @@ func (r *accountResolver) Labels(ctx context.Context, obj *model.Account) ([]*mo
 	return r.AccountsService.Labels(ctx, obj)
 }
 
+// ChildCount is the resolver for the childCount field.
+func (r *accountResolver) ChildCount(ctx context.Context, obj *model.Account) (int, error) {
+	return r.AccountsService.ChildCount(ctx, obj)
+}
+
 // Children is the resolver for the children field.
 func (r *accountResolver) Children(ctx context.Context, obj *model.Account) ([]*model.Account, error) {
 	return r.AccountsService.Children(ctx, obj)

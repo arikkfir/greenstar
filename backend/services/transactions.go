@@ -52,7 +52,7 @@ func (s *TransactionsService) CreateTransaction(ctx context.Context, tenantID st
 MATCH (sourceAccount:Account {accountID: $sourceAccountID})
 MATCH (targetAccount:Account {accountID: $targetAccountID})
 CREATE (sourceAccount)-[r:TransferredTo {txID: $id, date: $date, refID: $refID, amount: $amount, description: $description}]->(targetAccount)
-RETURN sourceAccount.id, sourceAccount.displayName, r, targetAccount.id, targetAccount.displayName`
+RETURN sourceAccount.accountID, sourceAccount.displayName, r, targetAccount.accountID, targetAccount.displayName`
 		createTxParams := map[string]interface{}{}
 		createTxParams["sourceAccountID"] = transaction.SourceAccountID
 		createTxParams["targetAccountID"] = transaction.TargetAccountID
@@ -158,7 +158,7 @@ func (s *TransactionsService) Transactions(ctx context.Context, tenant *model.Te
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		const getTxQuery = `// Get databases representing tenants
 MATCH (src:Account)-[tx:Transaction]->(dst:Account)
-RETURN src.id, src.displayName, dst.id, dst.displayName, tx.id, tx.date, tx.referenceID, tx.amount, tx.description`
+RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.id, tx.date, tx.referenceID, tx.amount, tx.description`
 
 		result, err := tx.Run(ctx, getTxQuery, nil)
 		if err != nil {

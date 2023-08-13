@@ -2,7 +2,7 @@ type Tenant {
     id: ID!
     displayName: String!
 
-    accounts(rootsOnly: Boolean): [Account!]!
+    accounts: [Account!]!
     account(id: ID!): Account
     transactions: [Transaction!]!
 }

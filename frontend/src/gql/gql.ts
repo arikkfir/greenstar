@@ -13,6 +13,8 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
+    "\n    query rootAccounts ($tenantID: ID!) {\n        tenant(id: $tenantID) {\n            id\n            accounts {\n                id\n                displayName\n                childCount\n            }\n        }\n    }\n": types.RootAccountsDocument,
+    "\n    query accountChildren ($tenantID: ID!, $accountID: ID!) {\n        tenant(id: $tenantID) {\n            id\n            account(id: $accountID) {\n                id\n                children {\n                    id\n                    displayName\n                    childCount\n                }\n            }\n        }\n    }\n": types.AccountChildrenDocument,
     "\n    query allTenants {\n        tenants {\n            id, displayName\n        }\n    }\n": types.AllTenantsDocument,
     "\n    mutation CreateTenant($id: String, $displayName: String!) {\n        createTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n": types.CreateTenantDocument,
     "\n    mutation DeleteTenant($id: String!) {\n        deleteTenant(tenantID: $id)\n    }\n": types.DeleteTenantDocument,
@@ -33,6 +35,14 @@ const documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    query rootAccounts ($tenantID: ID!) {\n        tenant(id: $tenantID) {\n            id\n            accounts {\n                id\n                displayName\n                childCount\n            }\n        }\n    }\n"): (typeof documents)["\n    query rootAccounts ($tenantID: ID!) {\n        tenant(id: $tenantID) {\n            id\n            accounts {\n                id\n                displayName\n                childCount\n            }\n        }\n    }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n    query accountChildren ($tenantID: ID!, $accountID: ID!) {\n        tenant(id: $tenantID) {\n            id\n            account(id: $accountID) {\n                id\n                children {\n                    id\n                    displayName\n                    childCount\n                }\n            }\n        }\n    }\n"): (typeof documents)["\n    query accountChildren ($tenantID: ID!, $accountID: ID!) {\n        tenant(id: $tenantID) {\n            id\n            account(id: $accountID) {\n                id\n                children {\n                    id\n                    displayName\n                    childCount\n                }\n            }\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

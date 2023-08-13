@@ -3,6 +3,7 @@ type Account {
     id: ID!
     displayName: String!
     labels: [KeyAndValue!]!
+    childCount: Int!
     children: [Account!]!
     parent: Account
 

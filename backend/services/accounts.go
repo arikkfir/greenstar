@@ -7,6 +7,7 @@ import (
 	"github.com/arikkfir/greenstar/backend/util"
 	"github.com/arikkfir/greenstar/backend/web"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/rs/zerolog/log"
 	"github.com/secureworks/errors"
 	"strconv"
 	"time"
@@ -37,8 +38,7 @@ func (s *AccountsService) CreateAccount(ctx context.Context, tenantID string, ac
 
 	createAccountParams := map[string]interface{}{}
 
-	createAccountQuery := `// Create account
-CREATE (account:Account {accountID: $accountID, displayName: $displayName})`
+	createAccountQuery := `CREATE (account:Account {accountID: $accountID, displayName: $displayName})`
 	createAccountParams["accountID"] = id
 	createAccountParams["displayName"] = account.DisplayName
 
@@ -56,7 +56,7 @@ CREATE (account:Account {accountID: $accountID, displayName: $displayName})`
 		createAccountParams["labelValue"+strconv.Itoa(i)] = kv.Value
 	}
 
-	createAccountQuery += "RETURN account.id, account.displayName"
+	createAccountQuery += "RETURN account.accountID, account.displayName"
 
 	v, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(ctx, createAccountQuery, createAccountParams)
@@ -94,8 +94,7 @@ func (s *AccountsService) UpdateAccount(ctx context.Context, tenantID, accountID
 
 	updateAccountParams := map[string]interface{}{}
 
-	updateAccountQuery := `// Update account
-MATCH (account:Account {accountID: $accountID}) `
+	updateAccountQuery := `MATCH (account:Account {accountID: $accountID}) `
 	updateAccountParams["accountID"] = accountID
 
 	if account.DisplayName != nil {
@@ -124,7 +123,7 @@ MATCH (account:Account {accountID: $accountID}) `
 		updateAccountParams["labelValue"+strconv.Itoa(i)] = kv.Value
 	}
 
-	updateAccountQuery += "RETURN account.id, account.displayName"
+	updateAccountQuery += "RETURN account.accountID, account.displayName"
 
 	v, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		result, err := tx.Run(ctx, updateAccountQuery, updateAccountParams)
@@ -157,9 +156,7 @@ func (s *AccountsService) DeleteAccount(ctx context.Context, tenantID, accountID
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteWrite(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const deleteAccountQuery = `// Delete account
-MATCH (account:Account {accountID: $accountID})
-DELETE account`
+		const deleteAccountQuery = `MATCH (account:Account {accountID: $accountID}) DELETE account`
 
 		result, err := tx.Run(ctx, deleteAccountQuery, map[string]any{"accountID": accountID})
 		if err != nil {
@@ -179,7 +176,7 @@ DELETE account`
 	return v.(string), err
 }
 
-func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant, rootsOnly *bool) ([]*model.Account, error) {
+func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant) ([]*model.Account, error) {
 	if tenant.ID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
 	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "Read accounts") {
@@ -190,18 +187,8 @@ func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant, ro
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const getRootAccountsCypher = `// Get root accounts
-MATCH (a:Account) 
-WHERE NOT exists ((a)-[:ChildOf]->(:Account)) 
-RETURN a.id, a.displayName`
-		const getAllAccountsCypher = `// Get all accounts
-MATCH (a:Account) 
-RETURN a.id, a.displayName`
+		const query = `MATCH (a:Account)  WHERE NOT exists ((a)-[:ChildOf]->(:Account))  RETURN a.accountID, a.displayName`
 
-		query := getAllAccountsCypher
-		if rootsOnly != nil && *rootsOnly == true {
-			query = getRootAccountsCypher
-		}
 		result, err := tx.Run(ctx, query, nil)
 		if err != nil {
 			return nil, errors.New("failed to execute query: %w\n%s", err, query)
@@ -236,9 +223,7 @@ func (s *AccountsService) Account(ctx context.Context, tenant *model.Tenant, acc
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const getAccountCypher = `// Get account by ID
-MATCH (account:Account {id: $accountID})
-RETURN account.id, account.displayName`
+		const getAccountCypher = `MATCH (account:Account {accountID: $accountID}) RETURN account.accountID, account.displayName`
 
 		result, err := tx.Run(ctx, getAccountCypher, map[string]any{"accountID": accountID})
 		if err != nil {
@@ -268,9 +253,7 @@ func (s *AccountsService) Labels(ctx context.Context, obj *model.Account) ([]*mo
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const getLabelsCypher = `// Get account labels
-MATCH (acc:Account {accountID: $accountID})-[r:HasLabel]->(l:Label)
-RETURN l.name, r.value`
+		const getLabelsCypher = `MATCH (acc:Account {accountID: $accountID})-[r:HasLabel]->(l:Label) RETURN l.name, r.value`
 
 		result, err := tx.Run(ctx, getLabelsCypher, map[string]any{"accountID": obj.ID})
 		if err != nil {
@@ -294,6 +277,42 @@ RETURN l.name, r.value`
 	return v.([]*model.KeyAndValue), err
 }
 
+func (s *AccountsService) ChildCount(ctx context.Context, obj *model.Account) (int, error) {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
+		return 0, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
+	}
+
+	session := s.getNeo4jSessionForTenant(ctx, neo4j.AccessModeRead, obj.Tenant.ID)
+	defer session.Close(ctx)
+
+	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
+		const getChildCountCypher = `MATCH (acc:Account)-[:ChildOf]->(parent:Account {accountID: $accountID}) RETURN count(acc)`
+
+		result, err := tx.Run(ctx, getChildCountCypher, map[string]any{"accountID": obj.ID})
+		if err != nil {
+			return 0, errors.New("failed to execute query: %w\n%s", err, getChildCountCypher)
+		}
+
+		rec, err := result.Single(ctx)
+		if err != nil {
+			return 0, errors.New("failed to collect record: %w", err)
+		}
+
+		if len(rec.Values) != 1 {
+			return 0, errors.New("incorrect record returned: %d values", len(rec.Values))
+		} else if rec.Values[0] == nil {
+			return 0, nil
+		} else if cnt, ok := rec.Values[0].(int64); !ok {
+			return 0, errors.New("incorrect record returned: %T(%+v)", rec.Values[0], rec.Values[0])
+		} else {
+			return int(cnt), nil
+		}
+	})
+
+	log.Ctx(ctx).Debug().Interface("results", v).Msgf("With final result: %T, %v", v, err)
+	return v.(int), err
+}
+
 func (s *AccountsService) Children(ctx context.Context, obj *model.Account) ([]*model.Account, error) {
 	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
@@ -303,9 +322,7 @@ func (s *AccountsService) Children(ctx context.Context, obj *model.Account) ([]*
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const getChildrenCypher = `// Get account children
-MATCH (acc:Account)-[:ChildOf]->(parent:Account {accountID: $accountID})
-RETURN acc.id, acc.displayName`
+		const getChildrenCypher = `MATCH (acc:Account)-[:ChildOf]->(parent:Account {accountID: $accountID}) RETURN acc.accountID, acc.displayName`
 
 		result, err := tx.Run(ctx, getChildrenCypher, map[string]any{"accountID": obj.ID})
 		if err != nil {
@@ -320,6 +337,7 @@ RETURN acc.id, acc.displayName`
 		accounts := make([]*model.Account, 0)
 		for _, rec := range records {
 			accounts = append(accounts, &model.Account{
+				Tenant:      obj.Tenant,
 				ID:          rec.Values[0].(string),
 				DisplayName: rec.Values[1].(string),
 			})
@@ -338,9 +356,7 @@ func (s *AccountsService) Parent(ctx context.Context, obj *model.Account) (*mode
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const getParentCypher = `// Get account parent
-MATCH (child:Account {accountID: $accountID})-[:ChildOf]->(parent:Account) 
-RETURN parent.id, parent.displayName`
+		const getParentCypher = `MATCH (child:Account {accountID: $accountID})-[:ChildOf]->(parent:Account) RETURN parent.accountID, parent.displayName`
 
 		result, err := tx.Run(ctx, getParentCypher, map[string]any{"accountID": obj.ID})
 		if err != nil {
@@ -361,6 +377,7 @@ RETURN parent.id, parent.displayName`
 		}
 
 		return &model.Account{
+			Tenant:      obj.Tenant,
 			ID:          records[0].Values[0].(string),
 			DisplayName: records[0].Values[1].(string),
 		}, nil
@@ -380,10 +397,10 @@ func (s *AccountsService) OutgoingTransactions(ctx context.Context, obj *model.A
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		const getTxQuery = `// Get databases representing tenants
-MATCH (origin:Account {id: $sourceAccountID})
+MATCH (origin:Account {accountID: $sourceAccountID})
 MATCH (src:Account)-[tx:Transaction]->(dst:Account)
 WHERE exists ( (origin)-[:ChildOf*0..]->(src) )
-RETURN src.id, src.displayName, dst.id, dst.displayName, tx.id, tx.date, tx.referenceID, tx.amount, tx.description`
+RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.id, tx.date, tx.referenceID, tx.amount, tx.description`
 
 		result, err := tx.Run(ctx, getTxQuery, map[string]any{"sourceAccountID": obj.ID})
 		if err != nil {
@@ -426,10 +443,10 @@ func (s *AccountsService) IncomingTransactions(ctx context.Context, obj *model.A
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		const getTxQuery = `// Get databases representing tenants
-MATCH (target:Account {id: $targetAccountID})
+MATCH (target:Account {accountID: $targetAccountID})
 MATCH (src:Account)-[tx:Transaction]->(dst:Account)
 WHERE exists ( (target)-[:ChildOf*0..]->(dst) )
-RETURN src.id, src.displayName, dst.id, dst.displayName, tx.id, tx.date, tx.referenceID, tx.amount, tx.description`
+RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.id, tx.date, tx.referenceID, tx.amount, tx.description`
 
 		result, err := tx.Run(ctx, getTxQuery, map[string]any{"targetAccountID": obj.ID})
 		if err != nil {

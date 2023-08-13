@@ -42,6 +42,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Account struct {
+		ChildCount           func(childComplexity int) int
 		Children             func(childComplexity int) int
 		DisplayName          func(childComplexity int) int
 		ID                   func(childComplexity int) int
@@ -88,7 +89,7 @@ type ComplexityRoot struct {
 
 	Tenant struct {
 		Account      func(childComplexity int, id string) int
-		Accounts     func(childComplexity int, rootsOnly *bool) int
+		Accounts     func(childComplexity int) int
 		DisplayName  func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Transactions func(childComplexity int) int
@@ -119,6 +120,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e, 0, 0, nil}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Account.childCount":
+		if e.complexity.Account.ChildCount == nil {
+			break
+		}
+
+		return e.complexity.Account.ChildCount(childComplexity), true
 
 	case "Account.children":
 		if e.complexity.Account.Children == nil {
@@ -407,12 +415,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Tenant_accounts_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Tenant.Accounts(childComplexity, args["rootsOnly"].(*bool)), true
+		return e.complexity.Tenant.Accounts(childComplexity), true
 
 	case "Tenant.displayName":
 		if e.complexity.Tenant.DisplayName == nil {
@@ -599,6 +602,7 @@ var sources = []*ast.Source{
     id: ID!
     displayName: String!
     labels: [KeyAndValue!]!
+    childCount: Int!
     children: [Account!]!
     parent: Account
 
@@ -681,7 +685,7 @@ input OperationChanges {
     id: ID!
     displayName: String!
 
-    accounts(rootsOnly: Boolean): [Account!]!
+    accounts: [Account!]!
     account(id: ID!): Account
     transactions: [Transaction!]!
 }

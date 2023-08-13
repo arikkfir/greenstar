@@ -11,6 +11,7 @@ import {Descope, useSession, useUser} from "@descope/react-sdk";
 import {Tenants} from "./pages/Tenants";
 import {GrowthBook, GrowthBookProvider, useFeatureIsOn} from "@growthbook/growthbook-react";
 import {useEffect} from "react";
+import {Accounts} from "./pages/Accounts";
 import {APIExplorer} from "./pages/APIExplorer";
 
 interface AppProps {
@@ -27,6 +28,7 @@ function AppRoutes({tenant}: AppRoutesProps) {
     return (
         <Routes>
             <Route path="/" element={<HomePage/>}/>
+            <Route path="/accounts" element={<Accounts tenantID={tenant}/>}/>
             {tenant === "global" && (<Route path="/tenants" element={<Tenants/>}/>)}
             {showGraphQLQueryLink && (<Route path="/api" element={<APIExplorer/>}/>)}
             <Route path="*" element={<NotFoundPage/>}/>
