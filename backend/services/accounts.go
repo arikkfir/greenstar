@@ -7,7 +7,6 @@ import (
 	"github.com/arikkfir/greenstar/backend/util"
 	"github.com/arikkfir/greenstar/backend/web"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
-	"github.com/rs/zerolog/log"
 	"github.com/secureworks/errors"
 	"strconv"
 	"time"
@@ -309,7 +308,6 @@ func (s *AccountsService) ChildCount(ctx context.Context, obj *model.Account) (i
 		}
 	})
 
-	log.Ctx(ctx).Debug().Interface("results", v).Msgf("With final result: %T, %v", v, err)
 	return v.(int), err
 }
 
