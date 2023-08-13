@@ -38,6 +38,48 @@ patches:
             memory: 128Mi
           requests:
             memory: 128Mi
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-exclude-remote-addr
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=accept.*
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=access-control-.*
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=authorization
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=content-.*
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=cookie
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=origin
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=referer
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=sec\-.*
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=user-agent
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=vary
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=x-forwarded-.*
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=x-real-ip
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --http.access-log-excluded-headers=x-request-id
 
   # Locally we use frontend Dockerfile.debug which runs Node.js directly (no NGINX) thus longer startup time is required
   - target:

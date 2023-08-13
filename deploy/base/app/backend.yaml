@@ -55,6 +55,7 @@ spec:
     spec:
       containers:
         - image: ghcr.io/arikkfir/greenstar/backend
+          args: []
           name: backend
           env:
             - name: NEO4J_HOST
