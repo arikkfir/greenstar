@@ -72,7 +72,7 @@ export function App({tenant, growthBook}: AppProps) {
         <GrowthBookProvider growthbook={growthBook}>
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
-                <ApolloWrapper tenant={tenant}>
+                <ApolloWrapper>
                     <AppLayout tenant={tenant}>
                         <AppRoutes tenant={tenant}/>
                     </AppLayout>

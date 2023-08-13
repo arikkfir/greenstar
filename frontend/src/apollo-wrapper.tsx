@@ -3,13 +3,10 @@ import {ApolloClient, ApolloProvider, InMemoryCache} from "@apollo/client";
 import {gqlQueryURL} from "./config";
 import {useSession} from "@descope/react-sdk";
 
-const TenantIDHeader = "x-greenstar-tenant-id"
-
 interface ApolloWrapperProps {
-    tenant: string
 }
 
-export function ApolloWrapper({tenant, children}: PropsWithChildren<ApolloWrapperProps>) {
+export function ApolloWrapper({children}: PropsWithChildren<ApolloWrapperProps>) {
     const {sessionToken} = useSession()
 
     const apolloClient = React.useMemo(() => new ApolloClient({
@@ -17,17 +14,10 @@ export function ApolloWrapper({tenant, children}: PropsWithChildren<ApolloWrappe
             uri: gqlQueryURL,
             headers: {
                 authorization: `Bearer ${sessionToken}`,
-                [TenantIDHeader]: tenant,
             },
             credentials: 'include',
-            defaultOptions: {
-                watchQuery: {
-                    fetchPolicy: 'network-only',
-                    nextFetchPolicy: 'cache-only'
-                },
-            },
         }),
-        [sessionToken, tenant],
+        [sessionToken],
     )
 
     return (
