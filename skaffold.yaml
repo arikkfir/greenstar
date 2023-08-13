@@ -51,3 +51,11 @@ deploy:
   kubeContext: kind-greenstar
   kubectl:
     defaultNamespace: default
+    hooks:
+      before:
+        - host:
+            command:
+              - kubectl
+              - delete
+              - event
+              - --all
