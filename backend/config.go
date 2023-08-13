@@ -25,10 +25,12 @@ type RedisConfig struct {
 }
 
 type HTTPConfig struct {
-	Port             int        `env:"PORT" value-name:"PORT" long:"port" description:"Port to listen on" default:"8000"`
-	DisableAccessLog bool       `env:"DISABLE_ACCESS_LOG" long:"disable-access-log" description:"Disable access log"`
-	HealthPort       int        `env:"HEALTH_PORT" value-name:"PORT" long:"health-port" description:"Port to listen on for health checks" default:"9000"`
-	CORS             CORSConfig `group:"cors" namespace:"cors" env-namespace:"CORS"`
+	Port                       int        `env:"PORT" value-name:"PORT" long:"port" description:"Port to listen on" default:"8000"`
+	DisableAccessLog           bool       `env:"DISABLE_ACCESS_LOG" long:"disable-access-log" description:"Disable access log"`
+	HealthPort                 int        `env:"HEALTH_PORT" value-name:"PORT" long:"health-port" description:"Port to listen on for health checks" default:"9000"`
+	CORS                       CORSConfig `group:"cors" namespace:"cors" env-namespace:"CORS"`
+	AccessLogExcludedHeaders   []string   `env:"ACCESS_LOG_EXCLUDED_HEADERS" value-name:"PATTERN" long:"access-log-excluded-headers" description:"List of header patterns to exclude from the access log"`
+	AccessLogExcludeRemoteAddr bool       `env:"ACCESS_LOG_EXCLUDE_REMOTE_ADDR" long:"access-log-exclude-remote-addr" description:"Exclude the client remote address from the access log"`
 }
 
 type CORSConfig struct {

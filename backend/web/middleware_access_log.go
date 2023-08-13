@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -26,7 +27,19 @@ func (r *responseRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-func AccessLogMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func AccessLogMiddleware(excludeRemoteAddr bool, excludedHeaderPatterns []string, next http.HandlerFunc) http.HandlerFunc {
+	patterns := make([]regexp.Regexp, len(excludedHeaderPatterns))
+	for i, pattern := range excludedHeaderPatterns {
+		patterns[i] = *regexp.MustCompile(pattern)
+	}
+	includeHeader := func(name string) bool {
+		for _, pattern := range patterns {
+			if pattern.MatchString(name) {
+				return false
+			}
+		}
+		return true
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Create the logger event which we will start adding request & response data to
 		event := log.Ctx(r.Context()).With()
@@ -37,8 +50,11 @@ func AccessLogMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			Str("http:req:host", r.Host).
 			Str("http:req:method", r.Method).
 			Str("http:req:proto", r.Proto).
-			Str("http:req:remoteAddr", r.RemoteAddr).
 			Str("http:req:requestURI", r.RequestURI)
+
+		if !excludeRemoteAddr {
+			event = event.Str("http:req:remoteAddr", r.RemoteAddr)
+		}
 
 		// Add transfer encoding
 		if len(r.TransferEncoding) > 0 {
@@ -52,21 +68,25 @@ func AccessLogMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// Add headers (excluding some)
 		for name, values := range r.Header {
 			name = strings.ToLower(name)
-			arr := zerolog.Arr()
-			for _, value := range values {
-				arr.Str(value)
+			if includeHeader(name) {
+				arr := zerolog.Arr()
+				for _, value := range values {
+					arr.Str(value)
+				}
+				event = event.Array("http:req:header:"+name, arr)
 			}
-			event = event.Array("http:req:header:"+name, arr)
 		}
 
 		// Add trailer headers (excluding some)
 		for name, values := range r.Trailer {
 			name = strings.ToLower(name)
-			arr := zerolog.Arr()
-			for _, value := range values {
-				arr.Str(value)
+			if includeHeader(name) {
+				arr := zerolog.Arr()
+				for _, value := range values {
+					arr.Str(value)
+				}
+				event = event.Array("http:req:trailer:"+name, arr)
 			}
-			event = event.Array("http:req:trailer:"+name, arr)
 		}
 
 		// Keep a copy of the request body
@@ -95,11 +115,14 @@ func AccessLogMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		// Add response headers
 		for name, values := range w.Header() {
-			arr := zerolog.Arr()
-			for _, value := range values {
-				arr.Str(value)
+			name := strings.ToLower(name)
+			if includeHeader(name) {
+				arr := zerolog.Arr()
+				for _, value := range values {
+					arr.Str(value)
+				}
+				event = event.Array("http:res:header:"+name, arr)
 			}
-			event = event.Array("http:res:header:"+strings.ToLower(name), arr)
 		}
 
 		// Perform the logging with all the information we've added so far

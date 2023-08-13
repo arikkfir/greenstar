@@ -24,6 +24,8 @@ func flatten(a []string) []string {
 func NewServer(
 	port int,
 	accessLog bool,
+	accessLogExcludedHeaders []string,
+	accessLogExcludeRemoteAddr bool,
 	allowedOrigins []string,
 	allowedMethods []string,
 	allowedHeaders []string,
@@ -33,7 +35,8 @@ func NewServer(
 	redisClient rueidis.Client,
 	neo4jDriver neo4j.DriverWithContext,
 	descopeClient *descope.DescopeClient,
-	graphHandler http.HandlerFunc) *http.Server {
+	graphHandler http.HandlerFunc,
+) *http.Server {
 
 	allowedOrigins = flatten(allowedOrigins)
 	allowedMethods = flatten(allowedMethods)
@@ -47,7 +50,7 @@ func NewServer(
 	handler = Neo4jClientMiddleware(neo4jDriver, handler)
 	handler = RedisClientMiddleware(redisClient, handler)
 	if accessLog {
-		handler = AccessLogMiddleware(handler)
+		handler = AccessLogMiddleware(accessLogExcludeRemoteAddr, accessLogExcludedHeaders, handler)
 	}
 	handler = CORSMiddleware(allowedOrigins, allowedMethods, allowedHeaders, disableCredentials, exposeHeaders, maxAge, handler)
 	handler = RequestIDMiddleware(handler)

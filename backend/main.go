@@ -88,6 +88,8 @@ func main() {
 	server := web.NewServer(
 		cfg.HTTP.Port,
 		!cfg.HTTP.DisableAccessLog,
+		cfg.HTTP.AccessLogExcludedHeaders,
+		cfg.HTTP.AccessLogExcludeRemoteAddr,
 		cfg.HTTP.CORS.AllowedOrigins,
 		cfg.HTTP.CORS.AllowMethods,
 		cfg.HTTP.CORS.AllowHeaders,
