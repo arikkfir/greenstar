@@ -19,7 +19,10 @@
     </option>
     <option name="skaffoldConfigurationFilePath" value="$PROJECT_DIR$/skaffold.yaml" />
     <option name="skaffoldModules">
-      <list />
+      <list>
+        <option value="platform" />
+        <option value="app" />
+      </list>
     </option>
     <option name="skaffoldNamespace" />
     <option name="skaffoldProfile" />
