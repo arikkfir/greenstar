@@ -19,7 +19,6 @@ import (
 
 func main() {
 	ctx := context.Background()
-	log.Ctx(ctx).Info().Msg("Starting server")
 
 	// Create the Redis client
 	redisClient, err := util.CreateRedisClient(cfg.Redis.Host, cfg.Redis.Port, "greenstar-admin", cfg.Redis.TLS)
@@ -27,7 +26,6 @@ func main() {
 		log.Ctx(ctx).Fatal().Err(err).Msg("Failed to connect to Redis")
 	}
 	defer redisClient.Close()
-	log.Ctx(ctx).Info().Msg("Connected to Redis")
 
 	// Create the Neo4j client
 	neo4jDriver, err := util.NewNeo4jDriver(cfg.Neo4j.Host, cfg.Neo4j.Port, cfg.Neo4j.TLS)
@@ -35,7 +33,6 @@ func main() {
 		log.Ctx(ctx).Fatal().Err(err).Msg("Failed to connect to Neo4j")
 	}
 	defer neo4jDriver.Close(ctx)
-	log.Ctx(ctx).Info().Msg("Connected to Neo4j")
 
 	// Descope
 	var ll logger.LogLevel
@@ -56,13 +53,11 @@ func main() {
 	if err != nil {
 		log.Ctx(ctx).Fatal().Err(err).Msg("Failed to setup Descope client")
 	}
-	log.Ctx(ctx).Info().Msg("Initialized Descope")
 
 	// Setup health check
 	hc := web.NewHealthCheck(cfg.HTTP.HealthPort)
 	go hc.Start(ctx)
 	defer hc.Stop(ctx)
-	log.Ctx(ctx).Info().Msg("Initialized health check")
 
 	// Admin routes
 	service := services.Service{Neo4j: neo4jDriver, Redis: redisClient, Descope: descopeClient}
