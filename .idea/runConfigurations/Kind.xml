@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Kind" type="google-container-tools-skaffold-run-config" factoryName="google-container-tools-skaffold-run-config-dev" show_console_on_std_err="false" show_console_on_std_out="false">
     <option name="allowRunningInParallel" value="false" />
-    <option name="buildEnvironment" />
+    <option name="buildEnvironment" value="Local" />
     <option name="cleanupDeployments" value="true" />
     <option name="deployToCurrentContext" value="false" />
     <option name="deployToMinikube" value="false" />
