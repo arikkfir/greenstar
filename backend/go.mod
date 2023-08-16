@@ -2,7 +2,7 @@ module github.com/arikkfir/greenstar/backend
 
 go 1.20
 
-replace github.com/secureworks/errors => github.com/arikkfir/go-errors v0.0.8
+replace github.com/secureworks/errors => github.com/arikkfir/go-errors v0.0.9
 
 require (
 	cloud.google.com/go/pubsub v1.33.0

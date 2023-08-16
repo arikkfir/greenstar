@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/jessevdk/go-flags"
-	"github.com/kr/text"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/secureworks/errors"
@@ -28,7 +27,9 @@ func init() {
 		// the log message line
 		// This creates a similar effect to Java & Python log output experience
 		zerolog.ErrorStackMarshaler = func(err error) interface{} {
-			return fmt.Sprintf("%+v", fmt.Sprintf("%+v", errors.New(err)))
+			buffer := bytes.Buffer{}
+			errors.PrintStackChain(&buffer, err)
+			return buffer.String()
 		}
 		writer := zerolog.ConsoleWriter{
 			Out:           os.Stderr,
@@ -36,7 +37,9 @@ func init() {
 			FormatExtra: func(event map[string]interface{}, b *bytes.Buffer) error {
 				stack, ok := event[zerolog.ErrorStackFieldName]
 				if ok {
-					_, err := fmt.Fprint(b, text.Indent(stack.(string), "     "))
+					stackString := stack.(string)
+					//indentedStackString := text.Indent(stackString, "     ")
+					_, err := fmt.Fprintf(b, "\n%5s", stackString)
 					if err != nil {
 						panic(err)
 					}
@@ -48,7 +51,9 @@ func init() {
 		zerolog.DefaultContextLogger = &log.Logger
 	} else {
 		zerolog.ErrorStackMarshaler = func(err error) interface{} {
-			return fmt.Sprintf("%+v", fmt.Sprintf("%+v", errors.New(err)))
+			buffer := bytes.Buffer{}
+			errors.PrintStackChain(&buffer, err)
+			return buffer.String()
 		}
 	}
 	if level, err := zerolog.ParseLevel(cfg.LogLevel); err != nil {
