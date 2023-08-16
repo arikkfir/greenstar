@@ -13,6 +13,7 @@ import {GrowthBook, GrowthBookProvider, useFeatureIsOn} from "@growthbook/growth
 import {useEffect} from "react";
 import {Accounts} from "./pages/Accounts";
 import {APIExplorer} from "./pages/APIExplorer";
+import {SnackbarProvider} from "notistack";
 
 interface AppProps {
     tenant: string
@@ -72,11 +73,13 @@ export function App({tenant, growthBook}: AppProps) {
         <GrowthBookProvider growthbook={growthBook}>
             <ThemeProvider theme={theme}>
                 <CssBaseline/>
-                <ApolloWrapper>
-                    <AppLayout tenant={tenant}>
-                        <AppRoutes tenant={tenant}/>
-                    </AppLayout>
-                </ApolloWrapper>
+                <SnackbarProvider>
+                    <ApolloWrapper>
+                        <AppLayout tenant={tenant}>
+                            <AppRoutes tenant={tenant}/>
+                        </AppLayout>
+                    </ApolloWrapper>
+                </SnackbarProvider>
             </ThemeProvider>
         </GrowthBookProvider>
     )

@@ -1,4 +1,4 @@
-import {Alert, AlertProps, AlertTitle, Box, Button, Snackbar, Typography} from "@mui/material";
+import {Box, Button, Typography} from "@mui/material";
 import {
     DataGridPremium,
     GridActionsCellItem,
@@ -11,6 +11,7 @@ import {
 import {useCallback, useMemo, useState} from "react";
 import {GridValidRowModel} from "@mui/x-data-grid/models/gridRows";
 import {Add as AddIcon, Cancel as CancelIcon, Delete as DeleteIcon, Save as SaveIcon} from "@mui/icons-material";
+import {useSnackbar} from "notistack";
 
 export type Row = GridValidRowModel & { id: string, isNew: boolean }
 
@@ -61,8 +62,7 @@ export interface GridProps<R extends Row> {
 }
 
 export function CrudGrid<R extends Row>(props: GridProps<R>) {
-    const [message, setMessage] = useState<Pick<AlertProps, 'children' | 'severity'> | null>(null);
-    const handleCloseMessageSnackbar = () => setMessage(null);
+    const {enqueueSnackbar} = useSnackbar();
     const [overlayRows, setOverlayRows] = useState<R[]>([]);
     const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
     const {
@@ -88,9 +88,9 @@ export function CrudGrid<R extends Row>(props: GridProps<R>) {
     const onDeleteClicked = useCallback(
         (row: R) => deleteRow(row)
             .then(() => removeOverlayRow(row))
-            .catch(e => setMessage({children: e.message, severity: "error"}))
+            .catch(e => enqueueSnackbar(e.message, {variant: "error"}))
             .finally(resetDeletion),
-        [removeOverlayRow, deleteRow, resetDeletion])
+        [removeOverlayRow, deleteRow, resetDeletion, enqueueSnackbar])
 
     const addNewRowToGrid = useCallback(() => {
         const r = newRow();
@@ -106,22 +106,22 @@ export function CrudGrid<R extends Row>(props: GridProps<R>) {
             .then(row => ({...row, isNew: false}))
             .then(removeOverlayRow)
             .catch(e => {
-                setMessage({children: e.message, severity: "error"})
+                enqueueSnackbar(e.message, {variant: "error"})
                 return row
             })
             .finally(resetCreation)
-    ), [createRow, removeOverlayRow, resetCreation])
+    ), [createRow, removeOverlayRow, resetCreation, enqueueSnackbar])
 
     const saveUpdatedRow = useCallback((row: R) => (
         updateRow(row)
             .then(row => ({...row, isNew: false}))
             .then(removeOverlayRow)
             .catch(e => {
-                setMessage({children: e.message, severity: "error"})
+                enqueueSnackbar(e.message, {variant: "error"})
                 return row
             })
             .finally(resetUpdate)
-    ), [updateRow, removeOverlayRow, resetUpdate])
+    ), [updateRow, removeOverlayRow, resetUpdate, enqueueSnackbar])
 
     const handleRowUpdate = useCallback((row: R) => {
         if (row.isNew) {
@@ -194,21 +194,6 @@ export function CrudGrid<R extends Row>(props: GridProps<R>) {
                                     },
                                 }}
             />
-            {!!message && (<Snackbar
-                open
-                anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center'
-                }}
-                onClose={handleCloseMessageSnackbar}
-                autoHideDuration={1000 * 10}>
-                <Alert severity={message.severity} onClose={handleCloseMessageSnackbar}>
-                    {!!message.severity && (
-                        <AlertTitle>{message.severity[0].toUpperCase() + message.severity.substring(1)}</AlertTitle>
-                    )}
-                    {message.children}
-                </Alert>
-            </Snackbar>)}
         </Box>
     )
 }
