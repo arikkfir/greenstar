@@ -98,7 +98,6 @@ func main() {
 	)
 
 	// Start server
-	log.Ctx(ctx).Info().Str("addr", server.Addr).Msg("Starting HTTP server")
 	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Err(err).Msg("HTTP server failed")
 	}
