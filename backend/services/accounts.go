@@ -141,7 +141,11 @@ func (s *AccountsService) UpdateAccount(ctx context.Context, tenantID, accountID
 			DisplayName: record.Values[1].(string),
 		}, nil
 	})
-	return v.(*model.Account), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.(*model.Account), err
+	}
 }
 
 func (s *AccountsService) DeleteAccount(ctx context.Context, tenantID, accountID string) (string, error) {
@@ -172,7 +176,11 @@ func (s *AccountsService) DeleteAccount(ctx context.Context, tenantID, accountID
 		}
 		return accountID, nil
 	})
-	return v.(string), err
+	if v == nil {
+		return "", err
+	} else {
+		return v.(string), err
+	}
 }
 
 func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant) ([]*model.Account, error) {
@@ -208,7 +216,11 @@ func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant) ([
 		}
 		return accounts, nil
 	})
-	return v.([]*model.Account), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.([]*model.Account), err
+	}
 }
 
 func (s *AccountsService) Account(ctx context.Context, tenant *model.Tenant, accountID string) (*model.Account, error) {
@@ -240,7 +252,11 @@ func (s *AccountsService) Account(ctx context.Context, tenant *model.Tenant, acc
 			DisplayName: record.Values[1].(string),
 		}, nil
 	})
-	return v.(*model.Account), err
+	if err != nil {
+		return nil, err
+	} else {
+		return v.(*model.Account), err
+	}
 }
 
 func (s *AccountsService) Labels(ctx context.Context, obj *model.Account) ([]*model.KeyAndValue, error) {
@@ -273,7 +289,11 @@ func (s *AccountsService) Labels(ctx context.Context, obj *model.Account) ([]*mo
 		}
 		return labels, nil
 	})
-	return v.([]*model.KeyAndValue), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.([]*model.KeyAndValue), err
+	}
 }
 
 func (s *AccountsService) ChildCount(ctx context.Context, obj *model.Account) (int, error) {
@@ -307,8 +327,11 @@ func (s *AccountsService) ChildCount(ctx context.Context, obj *model.Account) (i
 			return int(cnt), nil
 		}
 	})
-
-	return v.(int), err
+	if v == nil {
+		return 0, err
+	} else {
+		return v.(int), err
+	}
 }
 
 func (s *AccountsService) Children(ctx context.Context, obj *model.Account) ([]*model.Account, error) {
@@ -342,7 +365,11 @@ func (s *AccountsService) Children(ctx context.Context, obj *model.Account) ([]*
 		}
 		return accounts, nil
 	})
-	return v.([]*model.Account), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.([]*model.Account), err
+	}
 }
 
 func (s *AccountsService) Parent(ctx context.Context, obj *model.Account) (*model.Account, error) {
@@ -380,7 +407,11 @@ func (s *AccountsService) Parent(ctx context.Context, obj *model.Account) (*mode
 			DisplayName: records[0].Values[1].(string),
 		}, nil
 	})
-	return v.(*model.Account), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.(*model.Account), err
+	}
 }
 
 func (s *AccountsService) OutgoingTransactions(ctx context.Context, obj *model.Account) ([]*model.Transaction, error) {
@@ -426,7 +457,11 @@ RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, 
 		}
 		return transactions, nil
 	})
-	return v.([]*model.Transaction), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.([]*model.Transaction), err
+	}
 }
 
 func (s *AccountsService) IncomingTransactions(ctx context.Context, obj *model.Account) ([]*model.Transaction, error) {
@@ -472,5 +507,9 @@ RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, 
 		}
 		return transactions, nil
 	})
-	return v.([]*model.Transaction), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.([]*model.Transaction), err
+	}
 }

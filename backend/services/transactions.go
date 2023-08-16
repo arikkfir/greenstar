@@ -83,7 +83,11 @@ RETURN sourceAccount.accountID, sourceAccount.displayName, r, targetAccount.acco
 			Description:   txRel.Props["description"].(string),
 		}, nil
 	})
-	return v.(*model.Transaction), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.(*model.Transaction), err
+	}
 }
 
 func (s *TransactionsService) CreateTransactions(ctx context.Context, tenantID string, transactions []*model.TransactionChanges) (int, error) {
@@ -138,7 +142,11 @@ CREATE (sourceAccount%d)-[:TransferredTo {
 
 		return relationshipsCreated, nil
 	})
-	return v.(int), err
+	if v == nil {
+		return 0, err
+	} else {
+		return v.(int), err
+	}
 }
 
 func (s *TransactionsService) ScrapeIsraelBankYahav(ctx context.Context, tenantID, username, id, password string) (string, error) {
@@ -186,5 +194,9 @@ RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, 
 		}
 		return transactions, nil
 	})
-	return v.([]*model.Transaction), err
+	if v == nil {
+		return nil, err
+	} else {
+		return v.([]*model.Transaction), err
+	}
 }
