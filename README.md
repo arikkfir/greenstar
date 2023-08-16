@@ -36,6 +36,7 @@ server=8.8.4.4
 EOF
 $ sudo brew services restart dnsmasq
 $ dig @127.0.0.1 foobar.greenstar.test # sanity test
+$ sudo mkdir /etc/resolver
 $ cat <<EOF | sudo tee /etc/resolver/greenstar
 domain greenstar.test
 search greenstar.test
