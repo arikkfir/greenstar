@@ -21,17 +21,6 @@ spec:
           ports:
             - containerPort: 6379
               name: client-nontls
-          startupProbe:
-            exec:
-              command:
-                - bash
-                - -c
-                - '[[ "$(redis-cli PING)" == "PONG" ]]'
-            failureThreshold: 5
-            initialDelaySeconds: 5
-            periodSeconds: 1
-            terminationGracePeriodSeconds: 60
-            timeoutSeconds: 5
           livenessProbe:
             exec:
               command:
@@ -43,6 +32,16 @@ spec:
             periodSeconds: 10
             terminationGracePeriodSeconds: 60
             timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - bash
+                - -c
+                - '[[ "$(redis-cli PING)" == "PONG" ]]'
+            successThreshold: 1
+            failureThreshold: 3
+            periodSeconds: 1
+            timeoutSeconds: 1
           resources:
             limits:
               cpu: 500m
@@ -50,6 +49,17 @@ spec:
             requests:
               cpu: 500m
               memory: 64Mi
+          startupProbe:
+            exec:
+              command:
+                - bash
+                - -c
+                - '[[ "$(redis-cli PING)" == "PONG" ]]'
+            failureThreshold: 5
+            initialDelaySeconds: 2
+            periodSeconds: 1
+            terminationGracePeriodSeconds: 60
+            timeoutSeconds: 5
           volumeMounts:
             - mountPath: /data
               name: data
