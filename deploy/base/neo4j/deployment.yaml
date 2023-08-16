@@ -20,51 +20,56 @@ spec:
           env:
             - name: NEO4J_ACCEPT_LICENSE_AGREEMENT
               value: "yes"
+            - name: NEO4J_db_import_csv_legacy__quote__escaping
+              value: "true"
+            - name: NEO4J_db_lock_acquisition_timeout
+              value: 10s
+            - name: NEO4J_db_logs_query_enabled
+              value: "INFO"
+            - name: NEO4J_db_logs_query_plan__description__enabled
+              value: "true"
+            - name: NEO4J_db_logs_query_threshold
+              value: "3s"
+            - name: NEO4J_db_logs_query_transaction_enabled
+              value: "INFO"
+            - name: NEO4J_db_logs_query_transaction_threshold
+              value: "5s"
+            - name: NEO4J_db_track__query__cpu__time
+              value: "true"
+            - name: NEO4J_db_transaction_timeout
+              value: "60s"
+            - name: NEO4J_db_transaction_tracing_level
+              value: "ALL"
+            - name: NEO4J_dbms_cypher_render__plan__description
+              value: "true"
+            - name: NEO4J_dbms_security_auth__enabled
+              value: "false"
+            - name: NEO4J_dbms_security_allow__csv__import__from__file__urls
+              value: "true"
+            - name: NEO4J_server_backup_enabled
+              value: "false"
+            - name: NEO4J_server_logs_debug_enabled
+              value: "false"
+            - name: NEO4J_server_logs_gc_enabled
+              value: "false"
+            - name: NEO4J_server_memory_heap_initial__size
+              value: 512MiB
+            - name: NEO4J_server_memory_heap_max__size
+              value: 512MiB
+            - name: NEO4J_server_memory_off__heap_block__cache__size
+              value: "128"
+            - name: NEO4J_server_memory_off__heap_max__cacheable__block__size
+              value: "512KiB"
+            - name: NEO4J_server_memory_pagecache_size
+              value: 128MiB
+            - name: NEO4J_server_metrics_csv_enabled
+              value: "false"
             - name: NEO4J_server_metrics_jmx_enabled
               value: "false"
             - name: NEO4J_server_metrics_prometheus_enabled
               value: "true"
-            - name: NEO4J_db_lock_acquisition_timeout
-              value: 10s
             - name: NEO4J_server_panic_shutdown__on__panic
               value: "true"
-            - name: NEO4J_server_memory_heap_initial__size
-              value: 512m
-            - name: NEO4J_server_memory_heap_max__size
-              value: 512m
-            - name: NEO4J_server_memory_off__heap_max__size
-              value: 256m
-            - name: NEO4J_server_memory_pagecache_size
-              value: 128m
-            - name: NEO4J_dbms_security_auth__enabled
-              value: "false"
-            - name: NEO4J_server_directories_data
-              value: /data
-            - name: NEO4J_server_directories_logs
-              value: /logs
-            - name: NEO4J_server_directories_metrics
-              value: /metrics
-            - name: NEO4J_server_directories_plugins
-              value: /plugins
-          ports:
-            - containerPort: 2004
-              name: metrics
-            - containerPort: 7687
-              name: client-nontls
-            - containerPort: 7474
-              name: http
-          startupProbe:
-            exec:
-              command:
-                - /var/lib/neo4j/bin/cypher-shell
-                - --non-interactive
-                - SHOW DATABASES
-            failureThreshold: 30
-            initialDelaySeconds: 10
-            periodSeconds: 1
-            successThreshold: 1
-            terminationGracePeriodSeconds: 120
-            timeoutSeconds: 5
           livenessProbe:
             exec:
               command:
@@ -73,16 +78,45 @@ spec:
                 - SHOW DATABASES
             successThreshold: 1
             failureThreshold: 3
-            periodSeconds: 10
+            periodSeconds: 60
             terminationGracePeriodSeconds: 60
-            timeoutSeconds: 15
+            timeoutSeconds: 30
+          ports:
+            - containerPort: 2004
+              name: metrics
+            - containerPort: 7687
+              name: client-nontls
+            - containerPort: 7474
+              name: http
+          readinessProbe:
+            exec:
+              command:
+                - /var/lib/neo4j/bin/cypher-shell
+                - --non-interactive
+                - SHOW DATABASES
+            successThreshold: 1
+            failureThreshold: 1
+            periodSeconds: 5
+            timeoutSeconds: 25
           resources:
             limits:
-              cpu: 2000m
-              memory: 1500Mi
+              cpu: "2"
+              memory: 2Gi
             requests:
-              cpu: 2000m
-              memory: 1500Mi
+              cpu: "1"
+              memory: 1Gi
+          startupProbe:
+            exec:
+              command:
+                - /var/lib/neo4j/bin/cypher-shell
+                - --non-interactive
+                - SHOW DATABASES
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            terminationGracePeriodSeconds: 300
+            timeoutSeconds: 60
           volumeMounts:
             - mountPath: /data
               name: data
