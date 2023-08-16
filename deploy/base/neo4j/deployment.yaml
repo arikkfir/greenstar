@@ -15,7 +15,7 @@ spec:
         app.kubernetes.io/name: neo4j
     spec:
       containers:
-        - image: neo4j:5.3-enterprise
+        - image: ghcr.io/arikkfir/greenstar/neo4j
           name: neo4j
           env:
             - name: NEO4J_ACCEPT_LICENSE_AGREEMENT
