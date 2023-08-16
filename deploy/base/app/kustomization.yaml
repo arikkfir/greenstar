@@ -2,16 +2,23 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 commonLabels:
   app.kubernetes.io/name: app
-namePrefix: app-
 configMapGenerator:
-  - name: migrations
+  - name: backend-config
     behavior: create
-    files:
-      - 01_acme.cypher=migrations/01_acme.cypher
-      - migrate.sh=migrations/migrate.sh
+    envs: [ backend-config.env ]
+  - name: frontend-config
+    behavior: create
+    envs: [ frontend-config.env ]
+secretGenerator:
+  - name: backend-secrets
+    behavior: create
+    envs: [ backend-secrets.env ]
+  - name: frontend-secrets
+    behavior: create
+    envs: [ frontend-secrets.env ]
 resources:
   - backend.yaml
   - frontend.yaml
-  - migrations-job.yaml
+  - migrations.yaml
 configurations:
   - kustomizeconfig.yaml

@@ -18,6 +18,14 @@ declare module '@mui/x-data-grid' {
     }
 }
 
+declare module 'react' {
+    // noinspection JSUnusedGlobalSymbols
+    interface CSSProperties {
+        '--tree-view-color'?: string;
+        '--tree-view-bg-color'?: string;
+    }
+}
+
 function getSubdomain(): string {
     const hostname = window.location.hostname;
     const parts = hostname.split('.');

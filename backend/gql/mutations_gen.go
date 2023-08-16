@@ -542,6 +542,8 @@ func (ec *executionContext) fieldContext_Mutation_createAccount(ctx context.Cont
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Account_displayName(ctx, field)
+			case "icon":
+				return ec.fieldContext_Account_icon(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
 			case "childCount":
@@ -617,6 +619,8 @@ func (ec *executionContext) fieldContext_Mutation_updateAccount(ctx context.Cont
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Account_displayName(ctx, field)
+			case "icon":
+				return ec.fieldContext_Account_icon(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
 			case "childCount":

@@ -47,6 +47,8 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: frontend
+  strategy:
+    type: RollingUpdate
   template:
     metadata:
       annotations:
@@ -60,27 +62,19 @@ spec:
           env: []
           envFrom:
             - configMapRef:
-                name: greenstar-frontend-config
+                name: frontend-config
                 optional: false
             - secretRef:
-                name: greenstar-frontend-secrets
+                name: frontend-secrets
                 optional: false
-          startupProbe:
-            httpGet:
-              port: http
-              path: /index.html
-            failureThreshold: 3
-            initialDelaySeconds: 5
-            periodSeconds: 3
-            timeoutSeconds: 1
           livenessProbe:
             httpGet:
               port: http
               path: /index.html
-            failureThreshold: 5
-            periodSeconds: 5
-            terminationGracePeriodSeconds: 10
-            timeoutSeconds: 1
+            failureThreshold: 3
+            periodSeconds: 30
+            terminationGracePeriodSeconds: 30
+            timeoutSeconds: 5
           ports:
             - containerPort: 80
               name: http
@@ -89,14 +83,22 @@ spec:
               port: http
               path: /index.html
             failureThreshold: 3
-            periodSeconds: 5
+            periodSeconds: 1
             timeoutSeconds: 1
           resources:
             limits:
-              cpu: 1000m
-              memory: 128Gi
+              cpu: 200m
+              memory: 64Gi
             requests:
               cpu: 200m
-              memory: 64Mi
+              memory: 32Mi
+          startupProbe:
+            httpGet:
+              port: http
+              path: /index.html
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 1
+            timeoutSeconds: 1
       enableServiceLinks: false
       serviceAccountName: frontend

@@ -1,43 +1,49 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ../../base
+  - ../base
 configMapGenerator:
   - name: greenstar-backend-config
-    behavior: create
-    envs: [ config/greenstar-backend-config.env ]
+    behavior: merge
+    envs: [ backend-config.env ]
   - name: greenstar-frontend-config
-    behavior: create
-    envs: [ config/greenstar-frontend-config.env ]
+    behavior: merge
+    envs: [ frontend-config.env ]
 secretGenerator:
   - name: greenstar-backend-secrets
-    behavior: create
-    envs: [ config/greenstar-backend-secrets.env ]
+    behavior: merge
+    envs: [ backend-secrets.env ]
   - name: greenstar-frontend-secrets
-    behavior: create
-    envs: [ config/greenstar-frontend-secrets.env ]
+    behavior: merge
+    envs: [ frontend-secrets.env ]
   - name: greenstar-wildcard-tls
     type: kubernetes.io/tls
     behavior: create
     files:
-      - tls.crt=tls/_wildcard.greenstar.test.pem
-      - tls.key=tls/_wildcard.greenstar.test-key.pem
+      - tls.crt=_wildcard.greenstar.test.pem
+      - tls.key=_wildcard.greenstar.test-key.pem
 patches:
 
-  # Debugging Go requires more memory
+  # Backend patches
   - target:
       group: apps
       version: v1
       kind: Deployment
       labelSelector: app.kubernetes.io/component=backend
     patch: |-
+
+      # locally more memory is required when running Go in debug mode
       - op: replace
         path: /spec/template/spec/containers/0/resources
         value:
           limits:
+            cpu: 500m
             memory: 128Mi
           requests:
+            cpu: 500m
             memory: 128Mi
+
+      # exclude some headers from the access log when running locally
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --http.access-log-exclude-remote-addr
@@ -81,33 +87,37 @@ patches:
         path: /spec/template/spec/containers/0/args/-
         value: --http.access-log-excluded-headers=x-request-id
 
-  # Locally we use frontend Dockerfile.debug which runs Node.js directly (no NGINX) thus longer startup time is required
+  # Frontend patches
   - target:
       group: apps
       version: v1
       kind: Deployment
       labelSelector: app.kubernetes.io/component=frontend
     patch: |-
+
+      # locally it takes longer to start, since it compiles it on the fly (and not during image build time)
       - op: replace
-        path: /spec/template/spec/containers/0/startupProbe/initialDelaySeconds
-        value: 10
+        path: /spec/template/spec/containers/0/livenessProbe/timeoutSeconds
+        value: 30
+      - op: replace
+        path: /spec/template/spec/containers/0/readinessProbe/timeoutSeconds
+        value: 30
       - op: replace
         path: /spec/template/spec/containers/0/startupProbe/timeoutSeconds
-        value: 30
+        value: 120
 
-  # Locally we use frontend Dockerfile.debug which runs Node.js directly (no NGINX) thus more memory is required
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      labelSelector: app.kubernetes.io/component=frontend
-    patch: |-
+      # locally more memory is required since we run the React server itself instead of NGINX with static files
       - op: replace
         path: /spec/template/spec/containers/0/resources
         value:
           limits:
             cpu: 2000m
-            memory: 4Gi
+            memory: 3Gi
           requests:
             cpu: 2000m
-            memory: 4Gi
+            memory: 3Gi
+      
+      # since we request much more memory, local cluster might not have enough memory to have 2 pods running at once
+      - op: replace
+        path: /spec/strategy/type
+        value: Recreate

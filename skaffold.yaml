@@ -2,31 +2,27 @@
 apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
-  name: platform
-deploy:
-  kubeContext: kind-greenstar
-  helm:
-    releases:
-      - name: greenstar-traefik
-        remoteChart: traefik
-        repo: https://traefik.github.io/charts
-        version: 23.2.0
-        wait: true
-        valuesFiles:
-          - deploy/local/platform/traefik-values.yaml
----
-apiVersion: skaffold/v4beta6
-kind: Config
-metadata:
   name: app
-requires:
-  - configs: [platform]
+profiles:
+  - name: traefik
+    patches:
+      - op: add
+        path: /requires
+        value: [ { path: deploy/etc/skaffold-traefik.yaml } ]
 build:
   local:
     concurrency: 0
     useBuildkit: true
     push: false
   artifacts:
+    - image: ghcr.io/arikkfir/greenstar/neo4j
+      context: deploy/base/neo4j
+      docker:
+        dockerfile: Dockerfile
+    - image: ghcr.io/arikkfir/greenstar/migrations
+      context: migrations
+      docker:
+        dockerfile: Dockerfile
     - image: ghcr.io/arikkfir/greenstar/backend
       context: backend
       docker:
@@ -44,7 +40,7 @@ build:
 manifests:
   kustomize:
     paths:
-      - deploy/local/app
+      - deploy/local
 deploy:
   tolerateFailuresUntilDeadline: true
   statusCheckDeadlineSeconds: 1200
@@ -57,5 +53,9 @@ deploy:
             command:
               - kubectl
               - delete
-              - event
-              - --all
+              - job
+              - greenstar-migrations
+              - --cascade=foreground
+              - --ignore-not-found=true
+              - --timeout=30s
+              - --wait=true

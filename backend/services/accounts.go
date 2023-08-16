@@ -37,9 +37,10 @@ func (s *AccountsService) CreateAccount(ctx context.Context, tenantID string, ac
 
 	createAccountParams := map[string]interface{}{}
 
-	createAccountQuery := `CREATE (account:Account {accountID: $accountID, displayName: $displayName})`
+	createAccountQuery := `CREATE (account:Account {accountID: $accountID, displayName: $displayName, icon: $icon})`
 	createAccountParams["accountID"] = id
 	createAccountParams["displayName"] = account.DisplayName
+	createAccountParams["icon"] = account.Icon
 
 	if account.ParentID != nil {
 		createAccountQuery += "WITH account\n"
@@ -99,6 +100,11 @@ func (s *AccountsService) UpdateAccount(ctx context.Context, tenantID, accountID
 	if account.DisplayName != nil {
 		updateAccountQuery += "SET account.displayName = $displayName\n"
 		updateAccountParams["displayName"] = *account.DisplayName
+	}
+
+	if account.Icon != nil {
+		updateAccountQuery += "SET account.icon = $icon\n"
+		updateAccountParams["icon"] = *account.Icon
 	}
 
 	if account.ParentID != nil {
@@ -194,7 +200,7 @@ func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant) ([
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const query = `MATCH (a:Account)  WHERE NOT exists ((a)-[:ChildOf]->(:Account))  RETURN a.accountID, a.displayName`
+		const query = `MATCH (a:Account)  WHERE NOT exists ((a)-[:ChildOf]->(:Account))  RETURN a.accountID, a.displayName, a.icon`
 
 		result, err := tx.Run(ctx, query, nil)
 		if err != nil {
@@ -212,6 +218,7 @@ func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant) ([
 				Tenant:      tenant,
 				ID:          rec.Values[0].(string),
 				DisplayName: rec.Values[1].(string),
+				Icon:        rec.Values[2].(string),
 			})
 		}
 		return accounts, nil
@@ -234,7 +241,7 @@ func (s *AccountsService) Account(ctx context.Context, tenant *model.Tenant, acc
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const getAccountCypher = `MATCH (account:Account {accountID: $accountID}) RETURN account.accountID, account.displayName`
+		const getAccountCypher = `MATCH (account:Account {accountID: $accountID}) RETURN account.accountID, account.displayName, account.icon`
 
 		result, err := tx.Run(ctx, getAccountCypher, map[string]any{"accountID": accountID})
 		if err != nil {
@@ -250,6 +257,7 @@ func (s *AccountsService) Account(ctx context.Context, tenant *model.Tenant, acc
 			Tenant:      tenant,
 			ID:          record.Values[0].(string),
 			DisplayName: record.Values[1].(string),
+			Icon:        record.Values[2].(string),
 		}, nil
 	})
 	if err != nil {
@@ -343,7 +351,7 @@ func (s *AccountsService) Children(ctx context.Context, obj *model.Account) ([]*
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const getChildrenCypher = `MATCH (acc:Account)-[:ChildOf]->(parent:Account {accountID: $accountID}) RETURN acc.accountID, acc.displayName`
+		const getChildrenCypher = `MATCH (acc:Account)-[:ChildOf]->(parent:Account {accountID: $accountID}) RETURN acc.accountID, acc.displayName, acc.icon`
 
 		result, err := tx.Run(ctx, getChildrenCypher, map[string]any{"accountID": obj.ID})
 		if err != nil {
@@ -361,6 +369,7 @@ func (s *AccountsService) Children(ctx context.Context, obj *model.Account) ([]*
 				Tenant:      obj.Tenant,
 				ID:          rec.Values[0].(string),
 				DisplayName: rec.Values[1].(string),
+				Icon:        rec.Values[2].(string),
 			})
 		}
 		return accounts, nil
@@ -381,7 +390,7 @@ func (s *AccountsService) Parent(ctx context.Context, obj *model.Account) (*mode
 	defer session.Close(ctx)
 
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
-		const getParentCypher = `MATCH (child:Account {accountID: $accountID})-[:ChildOf]->(parent:Account) RETURN parent.accountID, parent.displayName`
+		const getParentCypher = `MATCH (child:Account {accountID: $accountID})-[:ChildOf]->(parent:Account) RETURN parent.accountID, parent.displayName, parent.icon`
 
 		result, err := tx.Run(ctx, getParentCypher, map[string]any{"accountID": obj.ID})
 		if err != nil {
@@ -405,6 +414,7 @@ func (s *AccountsService) Parent(ctx context.Context, obj *model.Account) (*mode
 			Tenant:      obj.Tenant,
 			ID:          records[0].Values[0].(string),
 			DisplayName: records[0].Values[1].(string),
+			Icon:        records[0].Values[2].(string),
 		}, nil
 	})
 	if v == nil {
@@ -429,7 +439,7 @@ func (s *AccountsService) OutgoingTransactions(ctx context.Context, obj *model.A
 MATCH (origin:Account {accountID: $sourceAccountID})
 MATCH (src:Account)-[tx:Transaction]->(dst:Account)
 WHERE exists ( (origin)<-[:ChildOf*0..]-(src) )
-RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, tx.date, tx.referenceID, tx.amount, tx.description`
+RETURN src.accountID, src.displayName, src.icon, dst.accountID, dst.displayName, dst.icon, tx.txID, tx.date, tx.referenceID, tx.amount, tx.description`
 
 		result, err := tx.Run(ctx, getTxQuery, map[string]any{"sourceAccountID": obj.ID})
 		if err != nil {
@@ -443,16 +453,16 @@ RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, 
 
 		transactions := make([]*model.Transaction, 0)
 		for _, rec := range records {
-			src := &model.Account{Tenant: obj.Tenant, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)}
-			dst := &model.Account{Tenant: obj.Tenant, ID: rec.Values[2].(string), DisplayName: rec.Values[3].(string)}
+			src := &model.Account{Tenant: obj.Tenant, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string), Icon: rec.Values[2].(string)}
+			dst := &model.Account{Tenant: obj.Tenant, ID: rec.Values[3].(string), DisplayName: rec.Values[4].(string), Icon: rec.Values[5].(string)}
 			transactions = append(transactions, &model.Transaction{
-				ID:            rec.Values[4].(string),
-				Date:          rec.Values[5].(time.Time),
+				ID:            rec.Values[6].(string),
+				Date:          rec.Values[7].(time.Time),
 				TargetAccount: dst,
 				SourceAccount: src,
-				ReferenceID:   rec.Values[6].(string),
-				Amount:        model.MustParseMoney(rec.Values[7].(string)),
-				Description:   rec.Values[8].(string),
+				ReferenceID:   rec.Values[8].(string),
+				Amount:        model.MustParseMoney(rec.Values[9].(string)),
+				Description:   rec.Values[10].(string),
 			})
 		}
 		return transactions, nil
@@ -479,7 +489,7 @@ func (s *AccountsService) IncomingTransactions(ctx context.Context, obj *model.A
 MATCH (target:Account {accountID: $targetAccountID})
 MATCH (src:Account)-[tx:Transaction]->(dst:Account)
 WHERE exists ( (target)<-[:ChildOf*0..]-(dst) )
-RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, tx.date, tx.referenceID, tx.amount, tx.description`
+RETURN src.accountID, src.displayName, src.icon, dst.accountID, dst.displayName, dst.icon, tx.txID, tx.date, tx.referenceID, tx.amount, tx.description`
 
 		result, err := tx.Run(ctx, getTxQuery, map[string]any{"targetAccountID": obj.ID})
 		if err != nil {
@@ -493,16 +503,16 @@ RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, 
 
 		transactions := make([]*model.Transaction, 0)
 		for _, rec := range records {
-			src := &model.Account{Tenant: obj.Tenant, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)}
-			dst := &model.Account{Tenant: obj.Tenant, ID: rec.Values[2].(string), DisplayName: rec.Values[3].(string)}
+			src := &model.Account{Tenant: obj.Tenant, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string), Icon: rec.Values[2].(string)}
+			dst := &model.Account{Tenant: obj.Tenant, ID: rec.Values[3].(string), DisplayName: rec.Values[4].(string), Icon: rec.Values[5].(string)}
 			transactions = append(transactions, &model.Transaction{
-				ID:            rec.Values[4].(string),
-				Date:          rec.Values[5].(time.Time),
+				ID:            rec.Values[6].(string),
+				Date:          rec.Values[7].(time.Time),
 				TargetAccount: dst,
 				SourceAccount: src,
-				ReferenceID:   rec.Values[6].(string),
-				Amount:        model.MustParseMoney(rec.Values[7].(string)),
-				Description:   rec.Values[8].(string),
+				ReferenceID:   rec.Values[8].(string),
+				Amount:        model.MustParseMoney(rec.Values[9].(string)),
+				Description:   rec.Values[10].(string),
 			})
 		}
 		return transactions, nil

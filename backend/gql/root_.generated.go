@@ -46,6 +46,7 @@ type ComplexityRoot struct {
 		Children             func(childComplexity int) int
 		DisplayName          func(childComplexity int) int
 		ID                   func(childComplexity int) int
+		Icon                 func(childComplexity int) int
 		IncomingTransactions func(childComplexity int) int
 		Labels               func(childComplexity int) int
 		OutgoingTransactions func(childComplexity int) int
@@ -148,6 +149,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Account.ID(childComplexity), true
+
+	case "Account.icon":
+		if e.complexity.Account.Icon == nil {
+			break
+		}
+
+		return e.complexity.Account.Icon(childComplexity), true
 
 	case "Account.incomingTransactions":
 		if e.complexity.Account.IncomingTransactions == nil {
@@ -601,6 +609,7 @@ var sources = []*ast.Source{
     tenant: Tenant!
     id: ID!
     displayName: String!
+    icon: String!
     labels: [KeyAndValue!]!
     childCount: Int!
     children: [Account!]!
@@ -612,6 +621,7 @@ var sources = []*ast.Source{
 
 input AccountChanges {
     displayName: String
+    icon: String
     labels: [KeyAndValueInput!]
     parentID: ID
 }

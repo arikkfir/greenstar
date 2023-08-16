@@ -182,6 +182,50 @@ func (ec *executionContext) fieldContext_Account_displayName(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Account_icon(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Account_icon(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Icon, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Account_icon(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Account",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Account_labels(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Account_labels(ctx, field)
 	if err != nil {
@@ -321,6 +365,8 @@ func (ec *executionContext) fieldContext_Account_children(ctx context.Context, f
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Account_displayName(ctx, field)
+			case "icon":
+				return ec.fieldContext_Account_icon(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
 			case "childCount":
@@ -382,6 +428,8 @@ func (ec *executionContext) fieldContext_Account_parent(ctx context.Context, fie
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Account_displayName(ctx, field)
+			case "icon":
+				return ec.fieldContext_Account_icon(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
 			case "childCount":
@@ -532,7 +580,7 @@ func (ec *executionContext) unmarshalInputAccountChanges(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"displayName", "labels", "parentID"}
+	fieldsInOrder := [...]string{"displayName", "icon", "labels", "parentID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -548,6 +596,15 @@ func (ec *executionContext) unmarshalInputAccountChanges(ctx context.Context, ob
 				return it, err
 			}
 			it.DisplayName = data
+		case "icon":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("icon"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Icon = data
 		case "labels":
 			var err error
 
@@ -603,6 +660,11 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "displayName":
 			out.Values[i] = ec._Account_displayName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "icon":
+			out.Values[i] = ec._Account_icon(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}

@@ -12,8 +12,8 @@ metadata:
     app.kubernetes.io/component: migrations
   name: migrations
 spec:
-  backoffLimit: 5
-  activeDeadlineSeconds: 300
+  backoffLimit: 10
+  activeDeadlineSeconds: 600
   completions: 1
   template:
     metadata:
@@ -21,31 +21,19 @@ spec:
         app.kubernetes.io/component: migrations
     spec:
       containers:
-        - image: neo4j:5.3-enterprise
-          command:
-            - bash
-          args:
-            - migrate.sh
-          workingDir: /migrations
+        - image: ghcr.io/arikkfir/greenstar/migrations
+          env:
+            - name: NEO4J_ADDRESS
+              value: "neo4j://greenstar-neo4j"
           name: migrations
           resources:
             limits:
-              cpu: 500m
-              memory: 256Mi
+              cpu: "1"
+              memory: 512Mi
             requests:
               cpu: 500m
               memory: 256Mi
-          volumeMounts:
-            - name: migrations
-              mountPath: /migrations
-              readOnly: true
       enableServiceLinks: false
       restartPolicy: OnFailure
       serviceAccountName: migrations
-      volumes:
-        - name: migrations
-          configMap:
-            name: greenstar-app-migrations
-            optional: false
-            defaultMode: 0444
   ttlSecondsAfterFinished: 1200

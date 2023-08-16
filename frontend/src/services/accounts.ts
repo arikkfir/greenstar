@@ -8,6 +8,7 @@ export const rootAccounts = graphql(/* GraphQL */ `
                 id
                 displayName
                 childCount
+                icon
             }
         }
     }
@@ -23,6 +24,7 @@ export const accountChildren = graphql(/* GraphQL */ `
                     id
                     displayName
                     childCount
+                    icon
                 }
             }
         }

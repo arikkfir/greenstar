@@ -60,7 +60,7 @@ actions:
 
 ```shell
 $ mkcert -install
-$ cd deploy/local/app/tls
+$ cd deploy/local
 $ mkcert '*.greenstar.test'
 ```
 
@@ -74,7 +74,7 @@ project associated with this ID, to differentiate it from similar resources used
 don't use something secret - a name or nickname is perfectly fine here.
 
 ```shell
-$ cat deploy/local/kind/cluster-config.yaml | kind create cluster --config=- --name=greenstar
+$ kind create cluster --name=greenstar --config=deploy/etc/kind-cluster-config.yaml
 ```
 
 ### Personal secrets & values
@@ -84,16 +84,33 @@ those available while running, perform the following (assuming you have access t
 
 ```shell
 $ touch frontend/apply-patches.sh
-$ cat > deploy/local/app/config/greenstar-backend-secrets.env <<EOF
+$ cat > deploy/local/backend-secrets.env <<EOF
 AUTH_DESCOPE_PROJECT_ID=descope_project_id
 AUTH_DESCOPE_MANAGEMENT_KEY=descope_management_key
 DEV_MODE_ID=your_own_made_up_id
 EOF
-$ cat > deploy/local/app/config/greenstar-frontend-secrets.env <<EOF
+$ cat > deploy/local/frontend-secrets.env <<EOF
 EOF
 ```
 
 ### Running
+
+#### Traefik
+
+Greenstar is relying on Traefik as an ingress controller, and thus needs it to be deployed in the cluster. Since there's
+no need to redeploy it on every change, you can deploy it once to your local cluster and forget about it, like so:
+
+```shell
+$ skaffold run -f deploy/etc/skaffold-traefik.yaml
+```
+
+This will install Traefik to the `default` namespace of the `kind` cluster you just set up. It will start responding to
+requests to `*.greenstar.test` though it will not have any backends to route to (see below).
+
+#### Application
+
+To run the application in a dev-loop mode, so that changes you make will get redeployed to the local cluster, simply
+run this:
 
 ```shell
 $ skaffold dev
@@ -106,3 +123,14 @@ then make the following URLs available:
 - https://neo4j.greenstar.test - neo4j console
 - https://global.greenstar.test - administration frontend (no tenant)
 - [https://*.greenstar.test](https://*.greenstar.test) - tenant frontend (replace `*` with the tenant ID)
+
+#### Application & Traefik together
+
+You can also deploy both Traefik and the application in one dev-loop command, so that they are both redeployed on
+changes you make, like so:
+
+```shell
+$ skaffold dev -p traefik
+```
+
+This activates the `traefik` Skaffold profile, which simply includes the Traefik skaffold module as a dependency.

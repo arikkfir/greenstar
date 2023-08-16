@@ -13,6 +13,7 @@ type Account struct {
 	Tenant               *Tenant        `json:"tenant"`
 	ID                   string         `json:"id"`
 	DisplayName          string         `json:"displayName"`
+	Icon                 string         `json:"icon"`
 	Labels               []*KeyAndValue `json:"labels"`
 	ChildCount           int            `json:"childCount"`
 	Children             []*Account     `json:"children"`
@@ -23,6 +24,7 @@ type Account struct {
 
 type AccountChanges struct {
 	DisplayName *string             `json:"displayName,omitempty"`
+	Icon        *string             `json:"icon,omitempty"`
 	Labels      []*KeyAndValueInput `json:"labels,omitempty"`
 	ParentID    *string             `json:"parentID,omitempty"`
 }

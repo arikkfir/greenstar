@@ -72,19 +72,11 @@ spec:
                   fieldPath: metadata.namespace
           envFrom:
             - configMapRef:
-                name: greenstar-backend-config
+                name: backend-config
                 optional: false
             - secretRef:
-                name: greenstar-backend-secrets
+                name: backend-secrets
                 optional: false
-          startupProbe:
-            httpGet:
-              port: health
-              path: /healthz
-            failureThreshold: 3
-            initialDelaySeconds: 5
-            periodSeconds: 5
-            timeoutSeconds: 1
           livenessProbe:
             httpGet:
               port: health
@@ -98,6 +90,13 @@ spec:
               name: http
             - containerPort: 9000
               name: health
+          readinessProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            failureThreshold: 3
+            periodSeconds: 1
+            timeoutSeconds: 1
           resources:
             limits:
               cpu: 500m
@@ -105,7 +104,13 @@ spec:
             requests:
               cpu: 500m
               memory: 64Mi
-          volumeMounts: []
+          startupProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            failureThreshold: 5
+            periodSeconds: 1
+            timeoutSeconds: 1
       enableServiceLinks: false
       serviceAccountName: backend
       volumes: []

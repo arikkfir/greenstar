@@ -2,6 +2,7 @@ type Account {
     tenant: Tenant!
     id: ID!
     displayName: String!
+    icon: String!
     labels: [KeyAndValue!]!
     childCount: Int!
     children: [Account!]!
@@ -13,6 +14,7 @@ type Account {
 
 input AccountChanges {
     displayName: String
+    icon: String
     labels: [KeyAndValueInput!]
     parentID: ID
 }

@@ -163,6 +163,8 @@ func (ec *executionContext) fieldContext_Transaction_targetAccount(ctx context.C
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Account_displayName(ctx, field)
+			case "icon":
+				return ec.fieldContext_Account_icon(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
 			case "childCount":
@@ -227,6 +229,8 @@ func (ec *executionContext) fieldContext_Transaction_sourceAccount(ctx context.C
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Account_displayName(ctx, field)
+			case "icon":
+				return ec.fieldContext_Account_icon(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
 			case "childCount":

@@ -183,6 +183,8 @@ func (ec *executionContext) fieldContext_Tenant_accounts(ctx context.Context, fi
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Account_displayName(ctx, field)
+			case "icon":
+				return ec.fieldContext_Account_icon(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
 			case "childCount":
@@ -244,6 +246,8 @@ func (ec *executionContext) fieldContext_Tenant_account(ctx context.Context, fie
 				return ec.fieldContext_Account_id(ctx, field)
 			case "displayName":
 				return ec.fieldContext_Account_displayName(ctx, field)
+			case "icon":
+				return ec.fieldContext_Account_icon(ctx, field)
 			case "labels":
 				return ec.fieldContext_Account_labels(ctx, field)
 			case "childCount":

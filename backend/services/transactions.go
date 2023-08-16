@@ -166,7 +166,7 @@ func (s *TransactionsService) Transactions(ctx context.Context, tenant *model.Te
 	v, err := session.ExecuteRead(ctx, func(tx neo4j.ManagedTransaction) (any, error) {
 		const getTxQuery = `// Get databases representing tenants
 MATCH (src:Account)-[tx:Transaction]->(dst:Account)
-RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, tx.date, tx.referenceID, tx.amount, tx.description`
+RETURN src.accountID, src.displayName, src.icon, dst.accountID, dst.displayName, dst.icon, tx.txID, tx.date, tx.referenceID, tx.amount, tx.description`
 
 		result, err := tx.Run(ctx, getTxQuery, nil)
 		if err != nil {
@@ -180,16 +180,16 @@ RETURN src.accountID, src.displayName, dst.accountID, dst.displayName, tx.txID, 
 
 		transactions := make([]*model.Transaction, 0)
 		for _, rec := range records {
-			src := &model.Account{Tenant: tenant, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string)}
-			dst := &model.Account{Tenant: tenant, ID: rec.Values[2].(string), DisplayName: rec.Values[3].(string)}
+			src := &model.Account{Tenant: tenant, ID: rec.Values[0].(string), DisplayName: rec.Values[1].(string), Icon: rec.Values[2].(string)}
+			dst := &model.Account{Tenant: tenant, ID: rec.Values[3].(string), DisplayName: rec.Values[4].(string), Icon: rec.Values[5].(string)}
 			transactions = append(transactions, &model.Transaction{
-				ID:            rec.Values[4].(string),
-				Date:          rec.Values[5].(time.Time),
+				ID:            rec.Values[6].(string),
+				Date:          rec.Values[7].(time.Time),
 				TargetAccount: dst,
 				SourceAccount: src,
-				ReferenceID:   rec.Values[6].(string),
-				Amount:        model.MustParseMoney(rec.Values[7].(string)),
-				Description:   rec.Values[8].(string),
+				ReferenceID:   rec.Values[8].(string),
+				Amount:        model.MustParseMoney(rec.Values[9].(string)),
+				Description:   rec.Values[10].(string),
 			})
 		}
 		return transactions, nil
