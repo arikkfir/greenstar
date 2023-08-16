@@ -90,12 +90,6 @@ spec:
             - mountPath: /logs
               name: logs
               readOnly: false
-            - mountPath: /metrics
-              name: metrics
-              readOnly: false
-            - mountPath: /plugins
-              name: plugins
-              readOnly: false
       enableServiceLinks: false
       serviceAccountName: neo4j
       volumes:
@@ -106,12 +100,4 @@ spec:
         - name: logs
           persistentVolumeClaim:
             claimName: neo4j-logs
-            readOnly: false
-        - name: metrics
-          persistentVolumeClaim:
-            claimName: neo4j-metrics
-            readOnly: false
-        - name: plugins
-          persistentVolumeClaim:
-            claimName: neo4j-plugins
             readOnly: false
