@@ -1,43 +1,21 @@
-import CssBaseline from "@mui/material/CssBaseline";
-import {ThemeProvider} from "@mui/material/styles";
-import {Route, Routes} from "react-router-dom";
-import {PageLoader} from "./components/layout/PageLoader";
-import {useTheme} from "./hooks/theme";
-import {HomePage} from "./pages/HomePage";
-import {NotFoundPage} from "./pages/NotFoundPage";
-import {ApolloWrapper} from "./apollo-wrapper";
-import {AppLayout} from "./app-layout";
+import {useEffect} from 'react'
+import {GrowthBook, GrowthBookProvider} from "@growthbook/growthbook-react";
+import {useTheme} from "./hooks/theme.tsx";
 import {Descope, useSession, useUser} from "@descope/react-sdk";
-import {Tenants} from "./pages/Tenants";
-import {GrowthBook, GrowthBookProvider, useFeatureIsOn} from "@growthbook/growthbook-react";
-import {useEffect} from "react";
-import {Accounts} from "./pages/Accounts";
-import {APIExplorer} from "./pages/APIExplorer";
+import {PageLoader} from "./PageLoader.tsx";
+import {ThemeProvider} from "@mui/system";
+import {CssBaseline} from "@mui/material";
 import {SnackbarProvider} from "notistack";
+import {ApolloWrapper} from "./ApolloWrapper.tsx";
+import {AppLayout} from "./AppLayout.tsx";
+import {AppRoutes} from "./AppRoutes.tsx";
 
 interface AppProps {
     tenant: string
     growthBook: GrowthBook
 }
 
-interface AppRoutesProps {
-    tenant: string
-}
-
-function AppRoutes({tenant}: AppRoutesProps) {
-    const showGraphQLQueryLink = useFeatureIsOn("show-graphql-console");
-    return (
-        <Routes>
-            <Route path="/" element={<HomePage/>}/>
-            <Route path="/accounts" element={<Accounts tenantID={tenant}/>}/>
-            {tenant === "global" && (<Route path="/tenants" element={<Tenants/>}/>)}
-            {showGraphQLQueryLink && (<Route path="/api" element={<APIExplorer/>}/>)}
-            <Route path="*" element={<NotFoundPage/>}/>
-        </Routes>
-    )
-}
-
-export function App({tenant, growthBook}: AppProps) {
+function App({tenant, growthBook}: AppProps) {
     const theme = useTheme()
 
     const {isAuthenticated, isSessionLoading} = useSession();
@@ -84,3 +62,5 @@ export function App({tenant, growthBook}: AppProps) {
         </GrowthBookProvider>
     )
 }
+
+export default App

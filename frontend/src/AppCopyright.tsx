@@ -1,6 +1,6 @@
 import {Link, Stack, Typography} from "@mui/material";
 
-export function Copyright() {
+export function AppCopyright() {
     return (
         <Stack direction="row" justifyContent="center" alignItems="center" sx={{flexGrow: 0}}>
             <Typography variant="body2" color="text.secondary" align="center">

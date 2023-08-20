@@ -6,6 +6,7 @@ import (
 	"github.com/arikkfir/greenstar/backend/util"
 	"github.com/arikkfir/greenstar/backend/web"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
+	"github.com/rs/zerolog/log"
 	"github.com/secureworks/errors"
 )
 
@@ -14,10 +15,6 @@ type TenantsService struct {
 }
 
 func (s *TenantsService) Tenants(ctx context.Context) ([]*model.Tenant, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
-		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
-	}
-
 	descopeTenants, err := s.Descope.Management.Tenant().LoadAll()
 	if err != nil {
 		return nil, errors.New("failed loading tenants: %w", err)
@@ -25,36 +22,34 @@ func (s *TenantsService) Tenants(ctx context.Context) ([]*model.Tenant, error) {
 
 	tenants := make([]*model.Tenant, 0)
 	for _, tenant := range descopeTenants {
-		tenants = append(tenants, &model.Tenant{
-			ID:          tenant.ID,
-			DisplayName: tenant.Name,
-		})
+		if web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "tenant:read") || web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "tenant:read") {
+			tenants = append(tenants, &model.Tenant{
+				ID:          tenant.ID,
+				DisplayName: tenant.Name,
+			})
+		}
 	}
 	return tenants, nil
 }
 
 func (s *TenantsService) Tenant(ctx context.Context, id string) (*model.Tenant, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(id, "tenant:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
-	descopeTenants, err := s.Descope.Management.Tenant().LoadAll()
+	tenant, err := s.Descope.Management.Tenant().Load(id)
 	if err != nil {
 		return nil, errors.New("failed loading tenant: %w", err)
 	}
-	for _, tenant := range descopeTenants {
-		if tenant.ID == id {
-			return &model.Tenant{
-				ID:          tenant.ID,
-				DisplayName: tenant.Name,
-			}, nil
-		}
-	}
-	return nil, errors.New("tenant not found")
+
+	return &model.Tenant{
+		ID:          tenant.ID,
+		DisplayName: tenant.Name,
+	}, nil
 }
 
 func (s *TenantsService) CreateTenant(ctx context.Context, tenantID *string, tenant model.TenantChanges) (*model.Tenant, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "tenant:write") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -62,7 +57,7 @@ func (s *TenantsService) CreateTenant(ctx context.Context, tenantID *string, ten
 	if tenantID == nil {
 		id = util.RandomHash(7)
 	} else if *tenantID == GlobalTenantID {
-		return nil, errors.New("Tenant already exists.", util.ErrBadRequest, util.UserFacingTag)
+		return nil, errors.New("This tenant ID is reserved.", util.ErrBadRequest, util.UserFacingTag)
 	} else {
 		id = *tenantID
 	}
@@ -85,7 +80,9 @@ func (s *TenantsService) CreateTenant(ctx context.Context, tenantID *string, ten
 	defer createDBSession.Close(ctx)
 
 	if _, err := createDBSession.ExecuteWrite(ctx, createDBFunc); err != nil {
-		// TODO: delete tenant in Descope via Descope Management API
+		if err := web.GetDescopeClient(ctx).Management.Tenant().Delete(id); err != nil {
+			log.Ctx(ctx).Error().Stack().Err(err).Msg("failed to delete Descope tenant as a cleanup due to a failure to create its Neo4j DB")
+		}
 		return nil, errors.New("failed to create tenant: %w", err)
 	}
 
@@ -96,12 +93,13 @@ func (s *TenantsService) CreateTenant(ctx context.Context, tenantID *string, ten
 }
 
 func (s *TenantsService) UpdateTenant(ctx context.Context, tenantID string, tenant model.TenantChanges) (*model.Tenant, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
-		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
-	}
-
 	if tenantID == GlobalTenantID {
 		return nil, errors.New("Updating the global tenant is not allowed.", util.ErrBadRequest, util.UserFacingTag)
+	}
+
+	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "tenant:write") &&
+		!web.GetToken(ctx).IsPermittedPerTenant(tenantID, "tenant:write") {
+		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
 	if err := s.Descope.Management.Tenant().Update(tenantID, tenant.DisplayName, nil); err != nil {
@@ -114,12 +112,13 @@ func (s *TenantsService) UpdateTenant(ctx context.Context, tenantID string, tena
 }
 
 func (s *TenantsService) DeleteTenant(ctx context.Context, tenantID string) (string, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "Manage tenants") {
-		return "", errors.New(util.ErrPermissionDenied, util.UserFacingTag)
-	}
-
 	if tenantID == GlobalTenantID {
 		return "", errors.New("Deleting the global tenant is not allowed.", util.ErrBadRequest, util.UserFacingTag)
+	}
+
+	if !web.GetToken(ctx).IsPermittedPerTenant(GlobalTenantID, "tenant:write") &&
+		!web.GetToken(ctx).IsPermittedPerTenant(tenantID, "tenant:write") {
+		return "", errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
 	if err := s.Descope.Management.Tenant().Delete(tenantID); err != nil {

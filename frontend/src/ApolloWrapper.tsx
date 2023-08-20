@@ -1,6 +1,6 @@
 import React, {PropsWithChildren} from "react";
 import {ApolloClient, ApolloProvider, InMemoryCache} from "@apollo/client";
-import {gqlQueryURL} from "./config";
+import {gqlQueryURL} from "./config.ts";
 import {useSession} from "@descope/react-sdk";
 
 interface ApolloWrapperProps {

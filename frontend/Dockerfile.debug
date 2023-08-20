@@ -1,20 +1,21 @@
 # syntax=docker/dockerfile:1
 
 ### Build executable
-FROM node:19.4 as builder
+FROM node:20.5.1 as builder
 WORKDIR /workspace
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/workspace/.npm \
     npm set cache /workspace/.npm && \
-    npm ci
+    npm install
+COPY apply-patches.sh ./
+RUN chmod +x ./apply-patches.sh && ./apply-patches.sh
 COPY public ./public
 COPY src ./src
-COPY apply-patches.sh ./
+COPY .eslintrc.cjs ./
+COPY index.html ./
 COPY tsconfig.json ./
-RUN chmod +x ./apply-patches.sh && ./apply-patches.sh
-ENV PORT=80
-ENV WDS_SOCKET_PORT=443
+COPY tsconfig.node.json ./
+COPY vite.docker.config.ts ./
 EXPOSE 80
-EXPOSE 443
-ENTRYPOINT ["npm"]
-CMD ["run", "start"]
+ENTRYPOINT ["npx"]
+CMD ["vite", "--config=vite.docker.config.ts"]

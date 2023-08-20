@@ -111,11 +111,11 @@ patches:
         path: /spec/template/spec/containers/0/resources
         value:
           limits:
-            cpu: 2000m
-            memory: 3Gi
+            cpu: 500m
+            memory: 1500Mi
           requests:
-            cpu: 2000m
-            memory: 3Gi
+            cpu: 500m
+            memory: 1500Mi
       
       # since we request much more memory, local cluster might not have enough memory to have 2 pods running at once
       - op: replace

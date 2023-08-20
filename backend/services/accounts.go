@@ -19,7 +19,7 @@ type AccountsService struct {
 func (s *AccountsService) CreateAccount(ctx context.Context, tenantID string, accountID *string, account model.AccountChanges) (*model.Account, error) {
 	if tenantID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Manage accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "accounts:write") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -85,7 +85,7 @@ func (s *AccountsService) CreateAccount(ctx context.Context, tenantID string, ac
 func (s *AccountsService) UpdateAccount(ctx context.Context, tenantID, accountID string, account model.AccountChanges) (*model.Account, error) {
 	if tenantID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Manage accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "accounts:write") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -157,7 +157,7 @@ func (s *AccountsService) UpdateAccount(ctx context.Context, tenantID, accountID
 func (s *AccountsService) DeleteAccount(ctx context.Context, tenantID, accountID string) (string, error) {
 	if tenantID == GlobalTenantID {
 		return "", errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Manage accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "accounts:write") {
 		return "", errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -192,7 +192,7 @@ func (s *AccountsService) DeleteAccount(ctx context.Context, tenantID, accountID
 func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant) ([]*model.Account, error) {
 	if tenant.ID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "Read accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "accounts:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -233,7 +233,7 @@ func (s *AccountsService) Accounts(ctx context.Context, tenant *model.Tenant) ([
 func (s *AccountsService) Account(ctx context.Context, tenant *model.Tenant, accountID string) (*model.Account, error) {
 	if tenant.ID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "Read accounts") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "accounts:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -268,7 +268,7 @@ func (s *AccountsService) Account(ctx context.Context, tenant *model.Tenant, acc
 }
 
 func (s *AccountsService) Labels(ctx context.Context, obj *model.Account) ([]*model.KeyAndValue, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "accounts:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -305,7 +305,7 @@ func (s *AccountsService) Labels(ctx context.Context, obj *model.Account) ([]*mo
 }
 
 func (s *AccountsService) ChildCount(ctx context.Context, obj *model.Account) (int, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "accounts:read") {
 		return 0, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -343,7 +343,7 @@ func (s *AccountsService) ChildCount(ctx context.Context, obj *model.Account) (i
 }
 
 func (s *AccountsService) Children(ctx context.Context, obj *model.Account) ([]*model.Account, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "accounts:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -382,7 +382,7 @@ func (s *AccountsService) Children(ctx context.Context, obj *model.Account) ([]*
 }
 
 func (s *AccountsService) Parent(ctx context.Context, obj *model.Account) (*model.Account, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "accounts:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -425,9 +425,9 @@ func (s *AccountsService) Parent(ctx context.Context, obj *model.Account) (*mode
 }
 
 func (s *AccountsService) OutgoingTransactions(ctx context.Context, obj *model.Account) ([]*model.Transaction, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "accounts:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "transactions:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -475,9 +475,9 @@ RETURN src.accountID, src.displayName, src.icon, dst.accountID, dst.displayName,
 }
 
 func (s *AccountsService) IncomingTransactions(ctx context.Context, obj *model.Account) ([]*model.Transaction, error) {
-	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read accounts") {
+	if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "accounts:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "Read transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(obj.Tenant.ID, "transactions:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 

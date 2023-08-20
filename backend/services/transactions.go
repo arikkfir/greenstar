@@ -38,7 +38,7 @@ type TransactionsService struct {
 func (s *TransactionsService) CreateTransaction(ctx context.Context, tenantID string, transaction model.TransactionChanges) (*model.Transaction, error) {
 	if tenantID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Create transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "transactions:write") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -93,7 +93,7 @@ RETURN sourceAccount.accountID, sourceAccount.displayName, r, targetAccount.acco
 func (s *TransactionsService) CreateTransactions(ctx context.Context, tenantID string, transactions []*model.TransactionChanges) (int, error) {
 	if tenantID == GlobalTenantID {
 		return 0, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "Create transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenantID, "transactions:write") {
 		return 0, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 
@@ -156,7 +156,7 @@ func (s *TransactionsService) ScrapeIsraelBankYahav(ctx context.Context, tenantI
 func (s *TransactionsService) Transactions(ctx context.Context, tenant *model.Tenant) ([]*model.Transaction, error) {
 	if tenant.ID == GlobalTenantID {
 		return nil, errors.New(util.ErrBadRequest, util.UserFacingTag)
-	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "Read transactions") {
+	} else if !web.GetToken(ctx).IsPermittedPerTenant(tenant.ID, "transactions:read") {
 		return nil, errors.New(util.ErrPermissionDenied, util.UserFacingTag)
 	}
 

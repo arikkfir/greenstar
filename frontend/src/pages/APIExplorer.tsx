@@ -1,5 +1,5 @@
 import {Stack} from "@mui/material";
-import {gqlQueryURL} from "../config";
+import {gqlQueryURL} from "../config.ts";
 import {createGraphiQLFetcher} from '@graphiql/toolkit';
 import {GraphiQL} from "graphiql";
 import {useSession} from "@descope/react-sdk";

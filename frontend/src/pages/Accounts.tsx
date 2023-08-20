@@ -1,14 +1,44 @@
+import {Account} from "../gql/graphql.ts";
+import {useApolloClient, useQuery} from "@apollo/client";
+import {graphql} from "../gql";
+import {useSnackbar} from "notistack";
+import {useCallback, useMemo, useState} from "react";
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import {Box, CircularProgress, Icon, LinearProgress, Paper, Stack, Typography} from "@mui/material";
 import {TreeItem, TreeView} from "@mui/lab";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import {Box, CircularProgress, Icon, LinearProgress, Paper, Stack, Typography} from "@mui/material";
-import {Account} from "../gql/graphql";
-import {useApolloClient, useQuery} from "@apollo/client";
-import {accountChildren, rootAccounts} from "../services/accounts";
-import * as React from "react";
-import {useCallback, useMemo, useState} from "react";
-import {useSnackbar} from "notistack";
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+
+export const rootAccounts = graphql(/* GraphQL */ `
+    query rootAccounts ($tenantID: ID!) {
+        tenant(id: $tenantID) {
+            id
+            accounts {
+                id
+                displayName
+                childCount
+                icon
+            }
+        }
+    }
+`)
+
+export const accountChildren = graphql(/* GraphQL */ `
+    query accountChildren ($tenantID: ID!, $accountID: ID!) {
+        tenant(id: $tenantID) {
+            id
+            account(id: $accountID) {
+                id
+                children {
+                    id
+                    displayName
+                    childCount
+                    icon
+                }
+            }
+        }
+    }
+`)
 
 type AccountNode = {
     id: Account['id'],
@@ -21,21 +51,18 @@ type ChildMappings = {
     [key: AccountNode['id']]: Array<AccountNode>
 }
 
-export function Accounts({tenantID}: { tenantID: string }) {
+interface AccountsProps {
+    tenantID: string
+}
+
+export function Accounts({tenantID}: AccountsProps) {
     const {enqueueSnackbar} = useSnackbar();
     const client = useApolloClient();
-
-    const {
-        data: roots,
-        loading: rootsLoading,
-        error: rootsLoadingError
-    } = useQuery(rootAccounts, {variables: {tenantID}});
-
+    const {data: roots, loading: rootsLoading, error: rootsLoadingError} = useQuery(rootAccounts, {variables: {tenantID}});
     const rootNodes: AccountNode[] = useMemo(
         () => (roots?.tenant?.accounts || []),
         [roots?.tenant?.accounts],
     )
-
     const [childMappings, setChildMappings] = useState<ChildMappings>({})
     const [loadingNodes, setLoadingNodes] = useState<Array<AccountNode['id']>>([])
 
@@ -61,7 +88,7 @@ export function Accounts({tenantID}: { tenantID: string }) {
                           <Box sx={{alignItems: "center", display: 'flex'}}>
                               <Box sx={{mr: 0.5}}>
                                   {loadingNodes.includes(node.id) && <CircularProgress size={24}/>}
-                                  {!loadingNodes.includes(node.id) && <AccountBalanceWalletIcon/>}
+                                  {!loadingNodes.includes(node.id) && icon}
                               </Box>
                               <Typography variant="body2" sx={{fontWeight: 'inherit', flexGrow: 1, mr: 2}}>
                                   {node.displayName}
@@ -70,7 +97,9 @@ export function Accounts({tenantID}: { tenantID: string }) {
                                   {"labelInfo"}
                               </Typography>
                           </Box>
-                      }>{children}</TreeItem>
+                      }>
+                {children}
+            </TreeItem>
         )
     }, [childMappings, loadingNodes]);
 

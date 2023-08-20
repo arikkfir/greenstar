@@ -15,10 +15,10 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
     "\n    query rootAccounts ($tenantID: ID!) {\n        tenant(id: $tenantID) {\n            id\n            accounts {\n                id\n                displayName\n                childCount\n                icon\n            }\n        }\n    }\n": types.RootAccountsDocument,
     "\n    query accountChildren ($tenantID: ID!, $accountID: ID!) {\n        tenant(id: $tenantID) {\n            id\n            account(id: $accountID) {\n                id\n                children {\n                    id\n                    displayName\n                    childCount\n                    icon\n                }\n            }\n        }\n    }\n": types.AccountChildrenDocument,
-    "\n    query allTenants {\n        tenants {\n            id, displayName\n        }\n    }\n": types.AllTenantsDocument,
-    "\n    mutation CreateTenant($id: String, $displayName: String!) {\n        createTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n": types.CreateTenantDocument,
-    "\n    mutation DeleteTenant($id: String!) {\n        deleteTenant(tenantID: $id)\n    }\n": types.DeleteTenantDocument,
-    "\n    mutation UpdateTenant($id: String!, $displayName: String!) {\n        updateTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n": types.UpdateTenantDocument,
+    "\n    query allTenants {\n        tenants {\n            id\n            displayName\n        }\n    }\n": types.AllTenantsDocument,
+    "\n    mutation CreateTenant($id: String, $displayName: String!) {\n        tenant: createTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n": types.CreateTenantDocument,
+    "\n    mutation DeleteTenant($id: String!) {\n        id: deleteTenant(tenantID: $id)\n    }\n": types.DeleteTenantDocument,
+    "\n    mutation UpdateTenant($id: String!, $displayName: String!) {\n        tenant: updateTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n": types.UpdateTenantDocument,
 };
 
 /**
@@ -46,19 +46,19 @@ export function graphql(source: "\n    query accountChildren ($tenantID: ID!, $a
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    query allTenants {\n        tenants {\n            id, displayName\n        }\n    }\n"): (typeof documents)["\n    query allTenants {\n        tenants {\n            id, displayName\n        }\n    }\n"];
+export function graphql(source: "\n    query allTenants {\n        tenants {\n            id\n            displayName\n        }\n    }\n"): (typeof documents)["\n    query allTenants {\n        tenants {\n            id\n            displayName\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    mutation CreateTenant($id: String, $displayName: String!) {\n        createTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n"): (typeof documents)["\n    mutation CreateTenant($id: String, $displayName: String!) {\n        createTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n"];
+export function graphql(source: "\n    mutation CreateTenant($id: String, $displayName: String!) {\n        tenant: createTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n"): (typeof documents)["\n    mutation CreateTenant($id: String, $displayName: String!) {\n        tenant: createTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    mutation DeleteTenant($id: String!) {\n        deleteTenant(tenantID: $id)\n    }\n"): (typeof documents)["\n    mutation DeleteTenant($id: String!) {\n        deleteTenant(tenantID: $id)\n    }\n"];
+export function graphql(source: "\n    mutation DeleteTenant($id: String!) {\n        id: deleteTenant(tenantID: $id)\n    }\n"): (typeof documents)["\n    mutation DeleteTenant($id: String!) {\n        id: deleteTenant(tenantID: $id)\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    mutation UpdateTenant($id: String!, $displayName: String!) {\n        updateTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n"): (typeof documents)["\n    mutation UpdateTenant($id: String!, $displayName: String!) {\n        updateTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n"];
+export function graphql(source: "\n    mutation UpdateTenant($id: String!, $displayName: String!) {\n        tenant: updateTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n"): (typeof documents)["\n    mutation UpdateTenant($id: String!, $displayName: String!) {\n        tenant: updateTenant(tenantID: $id, tenant: {displayName: $displayName}) {\n            id\n            displayName\n        }\n    }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

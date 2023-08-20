@@ -1,11 +1,20 @@
-import {LogoutRounded as LogoutRoundedIcon, PersonRounded as PersonRoundedIcon} from "@mui/icons-material";
-import {Avatar, Divider, IconButton, ListItemIcon, Menu, MenuItem} from "@mui/material";
-import {useState, MouseEvent, useCallback} from "react";
+import {
+    AppBar as MuiAppBar,
+    Avatar,
+    Box,
+    Divider,
+    IconButton,
+    ListItemIcon,
+    Menu,
+    MenuItem,
+    Toolbar,
+    Typography
+} from "@mui/material";
 import {useDescope, useUser} from "@descope/react-sdk";
+import {LogoutRounded as LogoutRoundedIcon, PersonRounded as PersonRoundedIcon} from "@mui/icons-material";
+import {MouseEvent, useCallback, useState} from "react";
 
-const menuId = 'primary-search-account-menu';
-
-export function UserMenu() {
+function UserMenu() {
     const {user} = useUser()
     const {logout} = useDescope()
     const handleLogout = useCallback(() => logout(), [logout])
@@ -20,7 +29,7 @@ export function UserMenu() {
                         alt={user.name ? user.name[0] : "??"}
                         src={user.picture}></Avatar>
             </IconButton>
-            <Menu id={menuId}
+            <Menu id="primary-search-account-menu"
                   keepMounted
                   anchorEl={anchorEl}
                   anchorOrigin={{vertical: 'top', horizontal: 'right'}}
@@ -42,5 +51,19 @@ export function UserMenu() {
                 </MenuItem>
             </Menu>
         </>
+    )
+}
+
+export function AppBar() {
+    return (
+        <MuiAppBar position="static" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
+            <Toolbar>
+                <Typography variant="h6" noWrap>
+                    GreenSTAR
+                </Typography>
+                <Box sx={{flexGrow: 1}}/>
+                <UserMenu/>
+            </Toolbar>
+        </MuiAppBar>
     )
 }
