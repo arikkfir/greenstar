@@ -20,7 +20,6 @@
     <option name="skaffoldConfigurationFilePath" value="$PROJECT_DIR$/skaffold.yaml" />
     <option name="skaffoldModules">
       <list>
-        <option value="platform" />
         <option value="app" />
       </list>
     </option>
@@ -29,6 +28,8 @@
     <option name="skaffoldWatchMode" value="ON_FILE_SAVE" />
     <option name="statusCheck" value="true" />
     <option name="verbosity" value="WARN" />
-    <method v="2" />
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="Delete kubectl events" run_configuration_type="ShConfigurationType" />
+    </method>
   </configuration>
 </component>
