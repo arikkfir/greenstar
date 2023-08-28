@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ${flux_environment}
+resources:
+  - ../base
+  - certificate.yaml
+  - dnsrecord.yaml
+patches:
+  - target:
+      group: traefik.io
+      version: v1alpha1
+      kind: IngressRouteTCP
+      name: redis-tls-tcp
+    patch: |-
+      - op: replace
+        path: /spec/routes/0/match
+        value: HostSNI(`redis.${flux_environment}.kfirs.com`)
+  - target:
+      group: traefik.io
+      version: v1alpha1
+      kind: IngressRoute
+      name: neo4j-tls
+    patch: |-
+      - op: replace
+        path: /spec/routes/0/match
+        value: HostSNI(`neo4j.${flux_environment}.kfirs.com`)
+  - target:
+      group: traefik.io
+      version: v1alpha1
+      kind: IngressRouteTCP
+      name: neo4j-tls-tcp
+    patch: |-
+      - op: replace
+        path: /spec/routes/0/match
+        value: HostSNI(`neo4j.${flux_environment}.kfirs.com`)
+  - target:
+      group: traefik.io
+      version: v1alpha1
+      kind: IngressRoute
+      name: backend-tls
+    patch: |-
+      - op: replace
+        path: /spec/routes/0/match
+        value: HostSNI(`api.${flux_environment}.kfirs.com`)
+  - target:
+      group: traefik.io
+      version: v1alpha1
+      kind: IngressRoute
+      name: frontend-tls
+    patch: |-
+      - op: replace
+        path: /spec/routes/0/match
+        value: HostRegexp(`{tenant:[a-zA-Z][a-zA-Z0-9_-]*}.${flux_environment}.kfirs.com`)

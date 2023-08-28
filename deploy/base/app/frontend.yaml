@@ -51,8 +51,6 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      annotations:
-        debug.cloud.google.com/config: "{}"
       labels:
         app.kubernetes.io/component: frontend
     spec:
@@ -60,13 +58,6 @@ spec:
         - image: ghcr.io/arikkfir/greenstar/frontend
           name: frontend
           env: [ ]
-          envFrom:
-            - configMapRef:
-                name: frontend-config
-                optional: false
-            - secretRef:
-                name: frontend-secrets
-                optional: false
           livenessProbe:
             httpGet:
               port: http

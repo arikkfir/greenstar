@@ -70,13 +70,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-          envFrom:
-            - configMapRef:
-                name: backend-config
-                optional: false
-            - secretRef:
-                name: backend-secrets
-                optional: false
           livenessProbe:
             httpGet:
               port: health

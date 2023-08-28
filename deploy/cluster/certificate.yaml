@@ -1,0 +1,11 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: greenstar-wildcard
+spec:
+  secretName: greenstar-wildcard-tls
+  issuerRef:
+    kind: ClusterIssuer
+    name: google-clouddns
+  dnsNames:
+    - "*.${flux_environment}.kfirs.com"

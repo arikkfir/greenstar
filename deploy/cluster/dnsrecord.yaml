@@ -1,0 +1,14 @@
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: greenstar-wildcard-cname-record
+spec:
+  name: "*.${flux_environment}.kfirs.com."
+  type: CNAME
+  ttl: 300
+  managedZoneRef:
+    name: kfirs-com
+    namespace: dns
+  # noinspection KubernetesDeprecatedKeys
+  rrdatas:
+    - traefik.kfirs.com.
