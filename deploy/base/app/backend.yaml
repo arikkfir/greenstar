@@ -26,7 +26,7 @@ kind: IngressRoute
 metadata:
   name: backend-tls
 spec:
-  entryPoints: [websecure]
+  entryPoints: [ websecure ]
   routes:
     - kind: Rule
       match: Host(`api.greenstar.test`)
@@ -55,7 +55,7 @@ spec:
     spec:
       containers:
         - image: ghcr.io/arikkfir/greenstar/backend
-          args: []
+          args: [ ]
           name: backend
           env:
             - name: NEO4J_HOST
@@ -113,4 +113,4 @@ spec:
             timeoutSeconds: 1
       enableServiceLinks: false
       serviceAccountName: backend
-      volumes: []
+      volumes: [ ]
