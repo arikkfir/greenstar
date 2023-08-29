@@ -23,7 +23,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/routes/0/match
-        value: HostSNI(`neo4j.${flux_environment}.kfirs.com`)
+        value: Host(`neo4j.${flux_environment}.kfirs.com`)
   - target:
       group: traefik.io
       version: v1alpha1
@@ -41,7 +41,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/routes/0/match
-        value: HostSNI(`api.${flux_environment}.kfirs.com`)
+        value: Host(`api.${flux_environment}.kfirs.com`)
   - target:
       group: traefik.io
       version: v1alpha1
