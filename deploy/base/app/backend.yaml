@@ -36,7 +36,7 @@ spec:
           port: http
           kind: Service
   tls:
-    secretName: greenstar-wildcard-tls
+    secretName: greenstar-api-tls
 ---
 apiVersion: apps/v1
 kind: Deployment

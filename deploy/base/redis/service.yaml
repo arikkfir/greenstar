@@ -25,4 +25,4 @@ spec:
         - name: redis
           port: client-nontls
   tls:
-    secretName: greenstar-wildcard-tls
+    secretName: greenstar-redis-tls

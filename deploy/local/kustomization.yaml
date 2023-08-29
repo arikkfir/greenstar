@@ -16,6 +16,24 @@ secretGenerator:
   - name: greenstar-frontend-secrets
     behavior: create
     envs: [ frontend-secrets.env ]
+  - name: greenstar-redis-tls
+    type: kubernetes.io/tls
+    behavior: create
+    files:
+      - tls.crt=_wildcard.greenstar.test.pem
+      - tls.key=_wildcard.greenstar.test-key.pem
+  - name: greenstar-neo4j-tls
+    type: kubernetes.io/tls
+    behavior: create
+    files:
+      - tls.crt=_wildcard.greenstar.test.pem
+      - tls.key=_wildcard.greenstar.test-key.pem
+  - name: greenstar-api-tls
+    type: kubernetes.io/tls
+    behavior: create
+    files:
+      - tls.crt=_wildcard.greenstar.test.pem
+      - tls.key=_wildcard.greenstar.test-key.pem
   - name: greenstar-wildcard-tls
     type: kubernetes.io/tls
     behavior: create
