@@ -8,6 +8,8 @@ metadata:
 apiVersion: batch/v1
 kind: Job
 metadata:
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
   labels:
     app.kubernetes.io/component: migrations
   name: migrations
