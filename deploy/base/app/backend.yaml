@@ -55,7 +55,10 @@ spec:
     spec:
       containers:
         - image: ghcr.io/arikkfir/greenstar/backend
-          args: [ ]
+          args:
+            - --http.access-log-excluded-headers=sec\-.*
+            - --http.access-log-excluded-headers=vary
+            - --http.access-log-excluded-headers=x-request-id
           name: backend
           env:
             - name: NEO4J_HOST

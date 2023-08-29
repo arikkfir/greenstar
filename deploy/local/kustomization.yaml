@@ -81,22 +81,13 @@ patches:
         value: --http.access-log-excluded-headers=referer
       - op: add
         path: /spec/template/spec/containers/0/args/-
-        value: --http.access-log-excluded-headers=sec\-.*
-      - op: add
-        path: /spec/template/spec/containers/0/args/-
         value: --http.access-log-excluded-headers=user-agent
-      - op: add
-        path: /spec/template/spec/containers/0/args/-
-        value: --http.access-log-excluded-headers=vary
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --http.access-log-excluded-headers=x-forwarded-.*
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --http.access-log-excluded-headers=x-real-ip
-      - op: add
-        path: /spec/template/spec/containers/0/args/-
-        value: --http.access-log-excluded-headers=x-request-id
 
   # Frontend patches
   - target:
