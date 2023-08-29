@@ -17,7 +17,7 @@ kind: IngressRouteTCP
 metadata:
   name: redis-tls-tcp
 spec:
-  entryPoints: [redis]
+  entryPoints: [ redis ]
   routes:
     - match: HostSNI(`redis.greenstar.test`)
       priority: 100
