@@ -8,4 +8,7 @@ spec:
     kind: ClusterIssuer
     name: google-clouddns
   dnsNames:
+    - redis.${flux_environment}.kfirs.com
+    - neo4j.${flux_environment}.kfirs.com
+    - api.${flux_environment}.kfirs.com
     - "*.${flux_environment}.kfirs.com"
