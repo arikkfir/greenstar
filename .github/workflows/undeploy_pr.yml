@@ -1,0 +1,26 @@
+name: Undeploy
+
+on:
+  pull_request:
+    types: [ closed ]
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+jobs:
+
+  undeploy-from-environment:
+    name: Undeploy from environment
+    uses: arikkfir/delivery/.github/workflows/undeploy-from-environment.yml@main
+    concurrency:
+      group: deployment
+      cancel-in-progress: false
+    with:
+      branch: ${{ github.head_ref }}
+      images: |-
+        ghcr.io/${{ github.repository }}/backend
+        ghcr.io/${{ github.repository }}/frontend
+        ghcr.io/${{ github.repository }}/migrations
+        ghcr.io/${{ github.repository }}/neo4j
+    secrets: inherit
