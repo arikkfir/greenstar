@@ -21,7 +21,7 @@ kind: IngressRoute
 metadata:
   name: neo4j-tls
 spec:
-  entryPoints: [websecure]
+  entryPoints: [ websecure ]
   routes:
     - kind: Rule
       priority: 100
@@ -38,7 +38,7 @@ kind: IngressRouteTCP
 metadata:
   name: neo4j-tls-tcp
 spec:
-  entryPoints: [bolt]
+  entryPoints: [ bolt ]
   routes:
     - match: HostSNI(`neo4j.greenstar.test`)
       priority: 999
