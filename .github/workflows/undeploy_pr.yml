@@ -4,10 +4,6 @@ on:
   pull_request:
     types: [ closed ]
 
-defaults:
-  run:
-    shell: bash -euxo pipefail {0}
-
 jobs:
 
   undeploy-from-environment:
