@@ -15,7 +15,7 @@ jobs:
       group: deployment
       cancel-in-progress: false
     with:
-      branch: github.head_ref
+      branch: ${{ github.head_ref }}
       images: |-
         ghcr.io/${{ github.repository }}/backend: ${{ github.event.pull_request.head.sha }}
         ghcr.io/${{ github.repository }}/frontend: ${{ github.event.pull_request.head.sha }}
