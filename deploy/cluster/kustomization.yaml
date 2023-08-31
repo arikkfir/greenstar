@@ -5,6 +5,8 @@ resources:
   - ../base
   - certificate.yaml
   - dnsrecord.yaml
+  - gcp-iam.yaml
+  - secrets.yaml
 patches:
   - target:
       group: apps
@@ -12,6 +14,12 @@ patches:
       kind: Deployment
       labelSelector: app.kubernetes.io/component=backend
     patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom
+        value:
+          - secretRef:
+              name: greenstar-descope
+              optional: false
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:

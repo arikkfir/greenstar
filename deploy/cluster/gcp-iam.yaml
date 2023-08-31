@@ -1,0 +1,74 @@
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMServiceAccount
+metadata:
+  name: greenstar-backend
+spec:
+  displayName: GreenSTAR Backend
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: greenstar-backend-ksa-link
+spec:
+  member: serviceAccount:arikkfir.svc.id.goog[${flux_environment}/greenstar-backend]
+  role: roles/iam.workloadIdentityUser
+  resourceRef:
+    apiVersion: iam.cnrm.cloud.google.com/v1beta1
+    kind: IAMServiceAccount
+    name: greenstar-backend
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: greenstar-backend-descope-project-secret-viewer
+spec:
+  memberFrom:
+    serviceAccountRef:
+      name: greenstar-backend
+  role: roles/secretmanager.viewer
+  resourceRef:
+    apiVersion: secretmanager.cnrm.cloud.google.com/v1beta1
+    kind: SecretManagerSecret
+    external: projects/8909046976/secrets/greenstar-descope-project-id
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: greenstar-backend-descope-project-secret-accessor
+spec:
+  memberFrom:
+    serviceAccountRef:
+      name: greenstar-backend
+  role: roles/secretmanager.secretAccessor
+  resourceRef:
+    apiVersion: secretmanager.cnrm.cloud.google.com/v1beta1
+    kind: SecretManagerSecret
+    external: projects/8909046976/secrets/greenstar-descope-project-id
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: greenstar-backend-descope-key-secret-viewer
+spec:
+  memberFrom:
+    serviceAccountRef:
+      name: greenstar-backend
+  role: roles/secretmanager.viewer
+  resourceRef:
+    apiVersion: secretmanager.cnrm.cloud.google.com/v1beta1
+    kind: SecretManagerSecret
+    external: projects/8909046976/secrets/greenstar-descope-management-key
+---
+apiVersion: iam.cnrm.cloud.google.com/v1beta1
+kind: IAMPolicyMember
+metadata:
+  name: greenstar-backend-descope-key-secret-accessor
+spec:
+  memberFrom:
+    serviceAccountRef:
+      name: greenstar-backend
+  role: roles/secretmanager.secretAccessor
+  resourceRef:
+    apiVersion: secretmanager.cnrm.cloud.google.com/v1beta1
+    kind: SecretManagerSecret
+    external: projects/8909046976/secrets/greenstar-descope-management-key
