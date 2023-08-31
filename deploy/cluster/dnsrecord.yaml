@@ -3,7 +3,7 @@ kind: DNSRecordSet
 metadata:
   name: greenstar-wildcard-cname-record
 spec:
-  name: "*.${flux_environment}.kfirs.com."
+  name: "*.${flux_environment}.greenstar.kfirs.com."
   type: CNAME
   ttl: 300
   managedZoneRef:
