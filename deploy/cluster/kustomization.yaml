@@ -14,7 +14,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/routes/0/match
-        value: HostSNI(`redis.${flux_environment}.kfirs.com`)
+        value: HostSNI(`redis.${flux_environment}.greenstar.kfirs.com`)
       - op: add
         path: /spec/routes/0/middlewares
         value:
@@ -28,7 +28,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/routes/0/match
-        value: Host(`neo4j.${flux_environment}.kfirs.com`)
+        value: Host(`neo4j.${flux_environment}.greenstar.kfirs.com`)
       - op: add
         path: /spec/routes/0/middlewares
         value:
@@ -42,7 +42,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/routes/0/match
-        value: HostSNI(`neo4j.${flux_environment}.kfirs.com`)
+        value: HostSNI(`neo4j.${flux_environment}.greenstar.kfirs.com`)
       - op: add
         path: /spec/routes/0/middlewares
         value:
@@ -56,7 +56,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/routes/0/match
-        value: Host(`api.${flux_environment}.kfirs.com`)
+        value: Host(`api.${flux_environment}.greenstar.kfirs.com`)
       - op: add
         path: /spec/routes/0/middlewares
         value:
@@ -70,7 +70,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/routes/0/match
-        value: HostRegexp(`{tenant:[a-zA-Z][a-zA-Z0-9_-]*}.${flux_environment}.kfirs.com`)
+        value: HostRegexp(`{tenant:[a-zA-Z][a-zA-Z0-9_-]*}.${flux_environment}.greenstar.kfirs.com`)
       - op: add
         path: /spec/routes/0/middlewares
         value:
