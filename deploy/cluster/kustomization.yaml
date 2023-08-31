@@ -20,6 +20,11 @@ patches:
           - secretRef:
               name: greenstar-descope
               optional: false
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: HTTP_CORS_ALLOWED_ORIGINS
+          value: "https://*.${flux_environment}.kfirs.com"
   - target:
       group: traefik.io
       version: v1alpha1
