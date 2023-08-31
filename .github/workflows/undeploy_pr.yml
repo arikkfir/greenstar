@@ -4,14 +4,15 @@ on:
   pull_request:
     types: [ closed ]
 
+concurrency:
+  group: deployment
+  cancel-in-progress: false
+
 jobs:
 
   undeploy-from-environment:
     name: Undeploy from environment
     uses: arikkfir/delivery/.github/workflows/undeploy-from-environment.yml@main
-    concurrency:
-      group: deployment
-      cancel-in-progress: false
     with:
       branch: ${{ github.head_ref }}
       images: |-
