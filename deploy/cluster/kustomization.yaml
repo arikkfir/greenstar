@@ -24,7 +24,7 @@ patches:
         path: /spec/template/spec/containers/0/env/-
         value:
           name: HTTP_CORS_ALLOWED_ORIGINS
-          value: "https://*.${flux_environment}.kfirs.com"
+          value: "https://*.${flux_environment}.greenstar.kfirs.com"
   - target:
       group: traefik.io
       version: v1alpha1
