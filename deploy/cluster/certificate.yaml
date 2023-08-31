@@ -8,7 +8,7 @@ spec:
     kind: ClusterIssuer
     name: google-clouddns
   dnsNames:
-    - redis.${flux_environment}.kfirs.com
+    - redis.${flux_environment}.greenstar.kfirs.com
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -20,7 +20,7 @@ spec:
     kind: ClusterIssuer
     name: google-clouddns
   dnsNames:
-    - neo4j.${flux_environment}.kfirs.com
+    - neo4j.${flux_environment}.greenstar.kfirs.com
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -32,7 +32,7 @@ spec:
     kind: ClusterIssuer
     name: google-clouddns
   dnsNames:
-    - api.${flux_environment}.kfirs.com
+    - api.${flux_environment}.greenstar.kfirs.com
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -44,4 +44,4 @@ spec:
     kind: ClusterIssuer
     name: google-clouddns
   dnsNames:
-    - "*.${flux_environment}.kfirs.com"
+    - "*.${flux_environment}.greenstar.kfirs.com"
