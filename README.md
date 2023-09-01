@@ -51,3 +51,25 @@ $ telepresence intercept --namespace=MY-ENV greenstar-frontend --port 8080:http 
 # If you want to intercept the frontend locally:
 $ telepresence intercept --namespace=MY-ENV greenstar-backend --port 8000:http --env-file ./backend/intercept.env
 ```
+
+### Testing
+
+End-to-end tests are available in the `e2e` directory. To run them use the following:
+
+```shell
+$ npx playwright test                     # Runs the end-to-end tests.
+$ npx playwright test --ui                # Starts the interactive UI mode.
+$ npx playwright test --project=chromium  # Runs the tests only on Desktop Chrome.
+$ npx playwright test example             # Runs the tests in a specific file.
+$ npx playwright test --debug             # Runs the tests in debug mode.
+```
+
+See [this blog post](https://playwright.dev/docs/intro) for more information.
+
+#### TBD
+
+Tests code generation:
+
+```shell
+$ npx playwright codegen # Auto generate tests with Codegen.
+```
