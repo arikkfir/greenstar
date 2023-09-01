@@ -6,15 +6,16 @@ on:
       - created
       - edited
 
+concurrency:
+  group: deployment
+  cancel-in-progress: false
+
 jobs:
 
   deploy-to-environment:
     name: Deploy
     uses: arikkfir/delivery/.github/workflows/deploy-to-environment.yml@main
     if: github.event.issue.pull_request && github.event.comment.body == "/deploy"
-    concurrency:
-      group: deployment
-      cancel-in-progress: false
     with:
       branch: ${{ github.head_ref }}
       images: |-

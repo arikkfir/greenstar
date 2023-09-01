@@ -6,14 +6,15 @@ on:
       - opened
       - synchronize
 
+concurrency:
+  group: deployment
+  cancel-in-progress: false
+
 jobs:
 
   deploy-to-environment:
     name: Deploy
     uses: arikkfir/delivery/.github/workflows/deploy-to-environment.yml@main
-    concurrency:
-      group: deployment
-      cancel-in-progress: false
     with:
       branch: ${{ github.head_ref }}
       images: |-
