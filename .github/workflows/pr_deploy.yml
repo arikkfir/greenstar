@@ -22,7 +22,7 @@ jobs:
     steps:
       - run: |
           cat <<EOF
-          ${{ github.event }}
+          ${{ toJson(github.event) }}
           EOF
 
   deploy:
