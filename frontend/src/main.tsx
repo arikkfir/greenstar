@@ -48,7 +48,7 @@ const growthBook = new GrowthBook({
 const rootElt = document.getElementById('root')!;
 const root = createRoot(rootElt);
 const tenant = getSubdomain();
-if (tenant == null) {
+if (tenant == null || tenant == "") {
     root.render(
         <StrictMode>
             <div>Tenant could not be found.</div>
