@@ -10,20 +10,37 @@ on:
       - opened
       - synchronize
 
+defaults:
+  run:
+    shell: bash -exuo pipefail {0}
+
 concurrency:
   group: deployment
   cancel-in-progress: false
 
 jobs:
 
-  debug:
-    name: Debug
+  get-ref:
+    name: Get ref
     runs-on: ubuntu-22.04
+    outputs:
+      ref: ${{ steps.get-ref-from-pr.outputs.ref || steps.get-ref-from-issue.outputs.ref }}
+      sha: ${{ steps.get-ref-from-pr.outputs.sha || steps.get-ref-from-issue.outputs.sha }}
     steps:
       - run: |
           cat <<EOF
           ${{ toJson(github.event) }}
           EOF
+      - id: get-ref-from-pr
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
+          echo "sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+      - id: get-ref-from-issue
+        if: github.event_name == 'issue_comment' && github.event.issue.pull_request
+        run: |
+          echo "ref=$(gh pr view ${{ github.event.issue.number }} --json headRefName | jq -r .headRefName)" >> "$GITHUB_OUTPUT"
+          echo "sha=$(gh pr view ${{ github.event.issue.number }} --json headRefOid | jq -r .headRefOid)" >> "$GITHUB_OUTPUT"
 
 #  deploy:
 #    name: Deploy
