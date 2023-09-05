@@ -1,4 +1,4 @@
-name: Automatic deployment
+name: Deploy branch
 
 on:
   push:
