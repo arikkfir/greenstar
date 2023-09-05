@@ -1,6 +1,10 @@
-name: Automatic deployment
+name: Deploy
 
 on:
+  issue_comment:
+    types:
+      - created
+      - edited
   pull_request:
     types:
       - opened
@@ -12,9 +16,10 @@ concurrency:
 
 jobs:
 
-  deploy-to-environment:
+  deploy:
     name: Deploy
     uses: arikkfir/delivery/.github/workflows/deploy-to-environment.yml@main
+    if: github.event_name == 'pull_request' || (github.event.issue.pull_request && github.event.comment.body == '/deploy')
     with:
       branch: ${{ github.head_ref }}
       images: |-
