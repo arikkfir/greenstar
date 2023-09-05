@@ -16,15 +16,24 @@ concurrency:
 
 jobs:
 
-  deploy:
-    name: Deploy
-    uses: arikkfir/delivery/.github/workflows/deploy-to-environment.yml@main
-    if: github.event_name == 'pull_request' || (github.event.issue.pull_request && github.event.comment.body == '/deploy')
-    with:
-      branch: ${{ github.head_ref }}
-      images: |-
-        ghcr.io/${{ github.repository }}/backend: ${{ github.event.pull_request.head.sha }}
-        ghcr.io/${{ github.repository }}/frontend: ${{ github.event.pull_request.head.sha }}
-        ghcr.io/${{ github.repository }}/migrations: ${{ github.event.pull_request.head.sha }}
-        ghcr.io/${{ github.repository }}/neo4j: ${{ github.event.pull_request.head.sha }}
-    secrets: inherit
+  debug:
+    name: Debug
+    runs-on: ubuntu-22.04
+    steps:
+      - run: |
+          cat <<EOF
+          ${{ toJson(github.event) }}
+          EOF
+
+#  deploy:
+#    name: Deploy
+#    uses: arikkfir/delivery/.github/workflows/deploy-to-environment.yml@main
+#    if: github.event_name == 'pull_request' || (github.event.issue.pull_request && github.event.comment.body == '/deploy')
+#    with:
+#      branch: ${{ github.event.pull_request.head.ref || github.event.issue.pull_request.head.ref }}
+#      images: |-
+#        ghcr.io/${{ github.repository }}/backend: ${{ github.event.pull_request.head.sha || github.event.issue.pull_request.head.sha }}
+#        ghcr.io/${{ github.repository }}/frontend: ${{ github.event.pull_request.head.sha || github.event.issue.pull_request.head.sha }}
+#        ghcr.io/${{ github.repository }}/migrations: ${{ github.event.pull_request.head.sha || github.event.issue.pull_request.head.sha }}
+#        ghcr.io/${{ github.repository }}/neo4j: ${{ github.event.pull_request.head.sha || github.event.issue.pull_request.head.sha }}
+#    secrets: inherit
