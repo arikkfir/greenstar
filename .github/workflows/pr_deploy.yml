@@ -16,8 +16,18 @@ concurrency:
 
 jobs:
 
+  debug:
+    name: Debug
+    runs-on: ubuntu-22.04
+    steps:
+      - run: |
+          cat <<EOF
+          ${{ github.event }}
+          EOF
+
   deploy:
     name: Deploy
+    needs: debug
     uses: arikkfir/delivery/.github/workflows/deploy-to-environment.yml@main
     if: github.event_name == 'pull_request' || (github.event.issue.pull_request && github.event.comment.body == '/deploy')
     with:
