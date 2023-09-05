@@ -43,7 +43,7 @@ function App({tenant, growthBook}: AppProps) {
 
     if (!isAuthenticated) {
         return (
-            <Descope flowId="welcome" tenant={tenant} theme={theme.palette.mode}/>
+            <Descope flowId="authenticate" tenant={tenant} theme={theme.palette.mode}/>
         )
     }
 
