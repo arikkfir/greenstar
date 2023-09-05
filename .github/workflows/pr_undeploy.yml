@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
 
-  undeploy-from-environment:
+  undeploy:
     name: Undeploy from environment
     uses: arikkfir/delivery/.github/workflows/undeploy-from-environment.yml@main
     with:
