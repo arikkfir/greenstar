@@ -10,31 +10,49 @@ on:
       - opened
       - synchronize
 
+defaults:
+  run:
+    shell: bash -exuo pipefail {0}
+
 concurrency:
   group: deployment
   cancel-in-progress: false
 
 jobs:
 
-  debug:
-    name: Debug
+  get-ref:
+    name: Get ref
     runs-on: ubuntu-22.04
+    outputs:
+      ref: ${{ steps.get-ref-from-pr.outputs.ref || steps.get-ref-from-issue.outputs.ref }}
+      sha: ${{ steps.get-ref-from-pr.outputs.sha || steps.get-ref-from-issue.outputs.sha }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - run: |
-          cat <<EOF
-          ${{ toJson(github.event) }}
-          EOF
+      - uses: actions/checkout@v3
+      - id: get-ref-from-pr
+        name: Get ref from PR
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
+          echo "sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+      - id: get-ref-from-issue
+        name: Get ref from issue
+        if: github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.body == '/deploy'
+        run: |
+          echo "ref=$(gh pr view ${{ github.event.issue.number }} --json headRefName | jq -r .headRefName)" >> "$GITHUB_OUTPUT"
+          echo "sha=$(gh pr view ${{ github.event.issue.number }} --json headRefOid | jq -r .headRefOid)" >> "$GITHUB_OUTPUT"
 
   deploy:
     name: Deploy
-    needs: debug
+    needs: get-ref
     uses: arikkfir/delivery/.github/workflows/deploy-to-environment.yml@main
-    if: github.event_name == 'pull_request' || (github.event.issue.pull_request && github.event.comment.body == '/deploy')
+    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
     with:
-      branch: ${{ github.head_ref || github.event.issue.pull_request.head.ref }}
+      branch: ${{ needs.get-ref.outputs.ref }}
       images: |-
-        ghcr.io/${{ github.repository }}/backend: ${{ github.event.pull_request.head.sha || github.event.issue.pull_request.head.sha }}
-        ghcr.io/${{ github.repository }}/frontend: ${{ github.event.pull_request.head.sha || github.event.issue.pull_request.head.sha }}
-        ghcr.io/${{ github.repository }}/migrations: ${{ github.event.pull_request.head.sha || github.event.issue.pull_request.head.sha }}
-        ghcr.io/${{ github.repository }}/neo4j: ${{ github.event.pull_request.head.sha || github.event.issue.pull_request.head.sha }}
+        ghcr.io/${{ github.repository }}/backend: ${{ needs.get-ref.outputs.sha }}
+        ghcr.io/${{ github.repository }}/frontend: ${{ needs.get-ref.outputs.sha }}
+        ghcr.io/${{ github.repository }}/migrations: ${{ needs.get-ref.outputs.sha }}
+        ghcr.io/${{ github.repository }}/neo4j: ${{ needs.get-ref.outputs.sha }}
     secrets: inherit
