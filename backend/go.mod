@@ -6,18 +6,17 @@ replace github.com/secureworks/errors => github.com/arikkfir/go-errors v0.0.9
 
 require (
 	cloud.google.com/go/pubsub v1.33.0
-	github.com/99designs/gqlgen v0.17.35
-	github.com/descope/go-sdk v1.5.4
-	github.com/google/uuid v1.3.0
+	github.com/99designs/gqlgen v0.17.36
+	github.com/descope/go-sdk v1.5.5
+	github.com/google/uuid v1.3.1
 	github.com/jessevdk/go-flags v1.5.0
-	github.com/kr/text v0.2.0
-	github.com/neo4j/neo4j-go-driver/v5 v5.10.0
-	github.com/redis/rueidis v1.0.13
-	github.com/rs/cors v1.9.0
-	github.com/rs/zerolog v1.29.1
+	github.com/neo4j/neo4j-go-driver/v5 v5.12.0
+	github.com/redis/rueidis v1.0.17
+	github.com/rs/cors v1.10.0
+	github.com/rs/zerolog v1.30.0
 	github.com/secureworks/errors v0.1.2
 	github.com/vektah/gqlparser/v2 v2.5.8
-	golang.org/x/oauth2 v0.10.0
+	golang.org/x/oauth2 v0.12.0
 )
 
 require (
@@ -59,16 +58,16 @@ require (
 	github.com/urfave/cli/v2 v2.25.7 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.11.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/exp v0.0.0-20230725093048-515e97ebf090 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
-	golang.org/x/tools v0.11.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/tools v0.13.0 // indirect
 	google.golang.org/api v0.133.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20230724170836-66ad5b6ff146 // indirect
 	google.golang.org/grpc v1.56.2 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
