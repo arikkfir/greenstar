@@ -40,7 +40,6 @@ jobs:
             type=sha,prefix=,suffix=,format=short
             type=sha,prefix=,suffix=,format=long
             type=ref,event=branch
-            type=ref,event=pr
       - uses: docker/build-push-action@v3
         with:
           builder: ${{ steps.buildx.outputs.name }}
