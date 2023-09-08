@@ -56,3 +56,64 @@ jobs:
         ghcr.io/${{ github.repository }}/migrations: ${{ needs.get-ref.outputs.sha }}
         ghcr.io/${{ github.repository }}/neo4j: ${{ needs.get-ref.outputs.sha }}
     secrets: inherit
+
+  e2e-tests:
+    name: End-to-end Tests
+    needs: [ get-ref, deploy ]
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: arikkfir/delivery-env-name@v1
+        id: env
+        with:
+          branch: ${{ needs.get-ref.outputs.ref }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: projects/8909046976/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
+          service_account: playwright-uploader@arikkfir.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: 443.0.0
+      - run: |
+          npm ci
+          npx playwright install --with-deps
+        working-directory: e2e
+      - id: test
+        continue-on-error: true
+        env:
+          ENV_NAME: ${{ steps.env.outputs.name }}
+        run: npx playwright test
+        working-directory: e2e
+      - run: |
+          UPLOAD_URL="gs://${BUCKET_NAME}/${BUCKET_PATH}/"
+          WEB_URL="https://playwright.kfirs.com/${BUCKET_PATH}/index.html"
+          gcloud storage cp -r -P ./playwright-report/* "${UPLOAD_URL}"
+          
+          touch comment.txt
+          echo "End to end tests *"${{ steps.test.outcome  == 'success' && 'succeeded' || 'failed' }}"* ([click here for a full report](${WEB_URL}))" >> comment.txt
+          echo "Application URL: https://acme.${ENV_NAME}.greenstar.kfirs.com" >> comment.txt
+          echo "" >> comment.txt
+          echo "---" >> comment.txt
+          echo "" >> comment.txt
+          cat custom-summary.txt >> comment.txt
+          gh pr comment ${PR} --body-file comment.txt --edit-last || gh pr comment ${PR} --body-file comment.txt
+          
+          if [[ "${FAILURE}" == "true" ]]; then
+            exit 1
+          fi
+        env:
+          BUCKET_NAME: arikkfir-playwright-reports
+          BUCKET_PATH: ${{ github.repository }}/actions/${{ github.run_number }}/${{ github.run_attempt }}
+          ENV_NAME: ${{ steps.env.outputs.name }}
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+          FAILURE: ${{ steps.test.outcome == 'failure' }}
+        working-directory: e2e
