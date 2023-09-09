@@ -45,8 +45,8 @@ jobs:
         name: Get ref from push
         if: github.event_name == 'push'
         run: |
-          echo "ref=${{ github.ref_name }} >> "$GITHUB_OUTPUT"
-          echo "sha=${{ github.sha }} >> "$GITHUB_OUTPUT"
+          echo "ref=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
   backend-format:
     needs: get-ref
