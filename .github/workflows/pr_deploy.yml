@@ -52,6 +52,7 @@ jobs:
     needs: get-ref
     name: Backend Code Format
     runs-on: ubuntu-22.04
+    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
     steps:
       - uses: actions/checkout@v3
         with:
@@ -72,6 +73,7 @@ jobs:
     needs: get-ref
     name: Backend Unit Tests
     runs-on: ubuntu-22.04
+    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
     steps:
       - uses: actions/checkout@v3
         with:
@@ -92,6 +94,7 @@ jobs:
     name: Build ${{ matrix.image }} image
     runs-on: ubuntu-22.04
     timeout-minutes: 30
+    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
     permissions:
       packages: write
     steps:
@@ -143,6 +146,7 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
     steps:
       - uses: actions/checkout@v3
         with:
