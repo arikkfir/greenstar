@@ -68,6 +68,8 @@ See [this blog post](https://playwright.dev/docs/intro) for more information.
 
 #### TBD
 
+NOTE: this has not been experimented with yet.
+
 Tests code generation:
 
 ```shell
