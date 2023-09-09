@@ -28,7 +28,7 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - id: pull_request
         name: Get ref from PR
         if: github.event_name == 'pull_request'
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.get-ref.outputs.sha }}
       - uses: actions/setup-go@v4
@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.get-ref.outputs.sha }}
       - uses: actions/setup-go@v4
@@ -98,7 +98,7 @@ jobs:
     permissions:
       packages: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.get-ref.outputs.sha }}
       - if: matrix.image == 'frontend'
@@ -148,7 +148,7 @@ jobs:
       id-token: write
     if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ needs.get-ref.outputs.sha }}
       - uses: arikkfir/delivery-env-name@v1
