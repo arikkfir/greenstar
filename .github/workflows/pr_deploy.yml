@@ -9,6 +9,9 @@ on:
     types:
       - opened
       - synchronize
+  push:
+    branches:
+      - main
 
 defaults:
   run:
@@ -38,6 +41,85 @@ jobs:
         run: |
           echo "ref=$(gh pr view ${{ github.event.issue.number }} --json headRefName | jq -r .headRefName)" >> "$GITHUB_OUTPUT"
           echo "sha=$(gh pr view ${{ github.event.issue.number }} --json headRefOid | jq -r .headRefOid)" >> "$GITHUB_OUTPUT"
+      - id: get-ref-from-push
+        name: Get ref from push
+        if: github.event_name == 'push'
+        run: |
+          echo "ref=${{ github.ref_name }} >> "$GITHUB_OUTPUT"
+          echo "sha=${{ github.sha }} >> "$GITHUB_OUTPUT"
+
+  backend-format:
+    needs: get-ref
+    name: Backend Code Format
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.get-ref.outputs.sha }}
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - run: |
+          go fmt ./... | tee output.txt
+          if [[ -s output.txt ]]; then
+            echo "Incorrect Go formatting detected."
+            exit 1
+          fi
+        working-directory: backend
+
+  backend-unit-tests:
+    needs: get-ref
+    name: Backend Unit Tests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.get-ref.outputs.sha }}
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - run: go test ./...
+        working-directory: backend
+
+  docker:
+    needs: get-ref
+    strategy:
+      matrix:
+        image: [ backend, frontend, neo4j, migrations ]
+      fail-fast: false
+    name: Build ${{ matrix.image }} image
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.get-ref.outputs.sha }}
+      - if: matrix.image == 'frontend'
+        run: |-
+          cat > frontend/apply-patches.sh <<PATCHES_EOF
+          ${{ secrets.FRONTEND_PATCHES }}
+          PATCHES_EOF
+      - uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v3
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          context: ${{ matrix.image }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.image }}:${{ needs.get-ref.outputs.sha }}
 
   deploy:
     name: Deploy
@@ -62,6 +144,8 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ needs.get-ref.outputs.sha }}
       - uses: arikkfir/delivery-env-name@v1
         id: env
         with:
@@ -78,32 +162,39 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v1
         with:
           version: 443.0.0
-      - run: |
-          npm ci
-          npx playwright install --with-deps
+      - run: npm ci
+        working-directory: e2e
+      - run: npx playwright install --with-deps
         working-directory: e2e
       - id: test
-        continue-on-error: true
-        env:
-          ENV_NAME: ${{ steps.env.outputs.name }}
         run: npx playwright test
         working-directory: e2e
-      - run: |
+        env:
+          ENV_NAME: ${{ steps.env.outputs.name }}
+      - if: success() || (failure() && steps.test.conclusion == 'failure')
+        run: |
           UPLOAD_URL="gs://${BUCKET_NAME}/${BUCKET_PATH}/"
           WEB_URL="https://playwright.kfirs.com/${BUCKET_PATH}/index.html"
           gcloud storage cp -r -P ./playwright-report/* "${UPLOAD_URL}"
           
+          # Format the comment contents into a file
           touch comment.txt
-          echo "End to end tests *"${{ steps.test.outcome  == 'success' && 'succeeded' || 'failed' }}"* ([click here for a full report](${WEB_URL}))" >> comment.txt
+          echo "End to end tests result: ${RESULT} ([click here for a full report](${WEB_URL}))" >> comment.txt
           echo "Application URL: https://acme.${ENV_NAME}.greenstar.kfirs.com" >> comment.txt
           echo "" >> comment.txt
           echo "---" >> comment.txt
           echo "" >> comment.txt
           cat custom-summary.txt >> comment.txt
-          gh pr comment ${PR} --body-file comment.txt --edit-last || gh pr comment ${PR} --body-file comment.txt
           
-          if [[ "${FAILURE}" == "true" ]]; then
-            exit 1
+          # If we're in a PR context, comment on the PR; otherwise, comment on the commit SHA directly
+          if [[ -z "${PR}" ]]; then
+            gh api --method POST \
+                    -H "Accept: application/vnd.github+json" \
+                    -H "X-GitHub-Api-Version: 2022-11-28" \
+                    "/repos/${REPOSITORY}/commits/${SHA}/comments" \
+                    -f body='@comment.txt'
+          else
+            gh pr comment "${PR}" --body-file comment.txt --edit-last || gh pr comment "${PR}" --body-file comment.txt
           fi
         env:
           BUCKET_NAME: arikkfir-playwright-reports
@@ -111,5 +202,7 @@ jobs:
           ENV_NAME: ${{ steps.env.outputs.name }}
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number || github.event.issue.number }}
-          FAILURE: ${{ steps.test.outcome == 'failure' }}
+          REPOSITORY: ${{ github.repository }}
+          RESULT: ${{ steps.test.outcome }}
+          SHA: ${{ needs.get-ref.outputs.sha }}
         working-directory: e2e
