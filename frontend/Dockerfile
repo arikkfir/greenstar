@@ -23,7 +23,7 @@ COPY vite.docker.config.ts ./
 RUN npm run build --config=vite.docker.config.ts
 
 ### Target layer
-FROM nginx:1.23
+FROM nginx:1.25
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN rm -fv /etc/nginx/conf.d/default.conf
 COPY --from=builder /workspace/dist /workspace/
