@@ -11,7 +11,7 @@
     "@fontsource/roboto": "^5.0.8",
     "@growthbook/growthbook-react": "^0.18.0",
     "@mui/icons-material": "^5.14.3",
-    "@mui/lab": "^5.0.0-alpha.140",
+    "@mui/lab": "^5.0.0-alpha.143",
     "@mui/material": "^5.14.8",
     "@mui/system": "^5.14.5",
     "@mui/x-data-grid-premium": "^6.13.0",
