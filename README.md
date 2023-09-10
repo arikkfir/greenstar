@@ -14,7 +14,7 @@ $ brew install kubernetes-cli # Kubernetes CLI
 
 ### Telepresence setup
 
-Install Telepresence by following [this guide](https://www.getambassador.io/docs/telepresence-oss/latest/install).
+Install Telepresence by following [this guide](https://www.getambassador.io/docs/telepresence-oss/latest/install). Note that this will add the `ambassador` namespace to the cluster.
 
 It's also possible you'll need to [apply these changes](https://www.getambassador.io/docs/telepresence-oss/latest/troubleshooting#volume-mounts-are-not-working-on-macos)
 if you need to have volume mounts working on macOS.

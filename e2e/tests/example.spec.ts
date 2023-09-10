@@ -14,6 +14,7 @@ test('has title', async ({page}) => {
     await page.goto(url, {
         timeout: 1000 * 60,
     });
+
     await expect(page).toHaveTitle("GreenSTAR", {
         timeout: 1000 * 60,
     });

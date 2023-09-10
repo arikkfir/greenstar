@@ -22,8 +22,9 @@ function App({tenant, growthBook}: AppProps) {
     const {user, isUserLoading} = useUser()
 
     useEffect(() => {
-        // noinspection JSIgnoredPromiseFromCall
-        growthBook.loadFeatures({autoRefresh: true});
+        growthBook.loadFeatures().catch(e => {
+            console.error("Failed to load features", e);
+        });
     }, [growthBook]);
 
     useEffect(() => {

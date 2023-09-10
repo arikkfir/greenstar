@@ -83,6 +83,11 @@ jobs:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
       - run: go test ./...
+        env:
+          CGO_ENABLED: "0"
+          GO111MODULE: "on"
+          GOOS: linux
+          GOARCH: amd64
         working-directory: backend
 
   docker:
@@ -117,8 +122,8 @@ jobs:
       - uses: docker/build-push-action@v4
         with:
           builder: ${{ steps.buildx.outputs.name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ needs.get-ref.outputs.ref }}-${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ needs.get-ref.outputs.ref }}-${{ matrix.image }}
           context: ${{ matrix.image }}
           push: true
           tags: |
@@ -142,11 +147,9 @@ jobs:
     name: End-to-end Tests
     needs: [ get-ref, deploy ]
     runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-      pull-requests: write
-      id-token: write
     if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
+    container:
+      image: mcr.microsoft.com/playwright:v1.37.1-jammy
     steps:
       - uses: actions/checkout@v4
         with:
@@ -160,38 +163,65 @@ jobs:
           node-version: 20.x
           cache: npm
           cache-dependency-path: e2e/package-lock.json
+      - run: npm ci
+        working-directory: e2e
+      - id: test
+        run: npx playwright test
+        working-directory: e2e
+        env:
+          CI: "true"
+          ENV_NAME: ${{ steps.env.outputs.name }}
+      - uses: actions/upload-artifact@v3
+        if: success() || (failure() && steps.test.conclusion == 'failure')
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/custom-summary.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  e2e-report:
+    name: End-to-end Report
+    needs: [ get-ref, deploy, e2e-tests ]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha && (success() || (failure() && needs.e2e-tests.result == 'failure'))
+    env:
+      BUCKET_NAME: arikkfir-playwright-reports
+      BUCKET_PATH: ${{ github.repository }}/actions/${{ github.run_number }}/${{ github.run_attempt }}
+    steps:
+      - uses: arikkfir/delivery-env-name@v1
+        id: env
+        with:
+          branch: ${{ needs.get-ref.outputs.ref }}
+      - uses: actions/download-artifact@v3
+        with:
+          name: playwright-report
+          path: report
       - uses: google-github-actions/auth@v1
         with:
           workload_identity_provider: projects/8909046976/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
           service_account: playwright-uploader@arikkfir.iam.gserviceaccount.com
       - uses: google-github-actions/setup-gcloud@v1
         with:
-          version: 443.0.0
-      - run: npm ci
-        working-directory: e2e
-      - run: npx playwright install --with-deps
-        working-directory: e2e
-      - id: test
-        run: npx playwright test
-        working-directory: e2e
-        env:
-          ENV_NAME: ${{ steps.env.outputs.name }}
-      - if: success() || (failure() && steps.test.conclusion == 'failure')
-        run: |
-          UPLOAD_URL="gs://${BUCKET_NAME}/${BUCKET_PATH}/"
-          WEB_URL="https://playwright.kfirs.com/${BUCKET_PATH}/index.html"
-          gcloud storage cp -r -P ./playwright-report/* "${UPLOAD_URL}"
+          skip_install: true
+      - run: gcloud storage cp -r -P ./report/playwright-report/* "gs://${BUCKET_NAME}/${BUCKET_PATH}/"
+      - run: |
+          APP_WEB_URL="https://acme.${ENV_NAME}.greenstar.kfirs.com"
+          REPORT_WEB_URL="https://playwright.kfirs.com/${BUCKET_PATH}/index.html"
           
-          # Format the comment contents into a file
           touch comment.txt
-          echo "End to end tests result: ${RESULT} ([click here for a full report](${WEB_URL}))" >> comment.txt
-          echo "Application URL: https://acme.${ENV_NAME}.greenstar.kfirs.com" >> comment.txt
+          echo "End to end tests result: ${RESULT} ([click here for a full report](${REPORT_WEB_URL}))" >> comment.txt
+          echo "Application URL: ${APP_WEB_URL}" >> comment.txt
           echo "" >> comment.txt
           echo "---" >> comment.txt
           echo "" >> comment.txt
-          cat custom-summary.txt >> comment.txt
+          cat ./report/custom-summary.txt >> comment.txt
           
-          # If we're in a PR context, comment on the PR; otherwise, comment on the commit SHA directly
           if [[ -z "${PR}" ]]; then
             gh api --method POST \
                     -H "Accept: application/vnd.github+json" \
@@ -199,15 +229,12 @@ jobs:
                     "/repos/${REPOSITORY}/commits/${SHA}/comments" \
                     -F 'body=@comment.txt'
           else
-            gh pr comment "${PR}" --body-file comment.txt --edit-last || gh pr comment "${PR}" --body-file comment.txt
+            gh pr comment --repo "${REPOSITORY}" "${PR}" --body-file comment.txt --edit-last || gh pr comment "${PR}" --body-file comment.txt
           fi
         env:
-          BUCKET_NAME: arikkfir-playwright-reports
-          BUCKET_PATH: ${{ github.repository }}/actions/${{ github.run_number }}/${{ github.run_attempt }}
           ENV_NAME: ${{ steps.env.outputs.name }}
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number || github.event.issue.number }}
           REPOSITORY: ${{ github.repository }}
-          RESULT: ${{ steps.test.outcome }}
+          RESULT: ${{ needs.e2e-tests.result }}
           SHA: ${{ needs.get-ref.outputs.sha }}
-        working-directory: e2e

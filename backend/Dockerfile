@@ -1,5 +1,4 @@
 # syntax=docker/dockerfile:1
-ARG SKAFFOLD_GO_GCFLAGS
 
 ### Build executable
 FROM golang:1.20 as builder
@@ -15,7 +14,9 @@ COPY web ./web
 COPY *.go ./
 ENV CGO_ENABLED="0"
 ENV GO111MODULE="on"
-RUN --mount=type=cache,target=/go/pkg go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /go/bin/server . && chmod +x /go/bin/server
+ENV GOOS="linux"
+ENV GOARCH="amd64"
+RUN --mount=type=cache,target=/go/pkg go build -o /go/bin/server . && chmod +x /go/bin/server
 
 ### Target layer
 FROM gcr.io/distroless/base-debian11
