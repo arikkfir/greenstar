@@ -11,8 +11,8 @@ cloud.google.com/go/iam v1.1.1/go.mod h1:A5avdyVL2tCppe4unb0951eI9jreack+RJ0/d+K
 cloud.google.com/go/kms v1.12.1 h1:xZmZuwy2cwzsocmKDOPu4BL7umg8QXagQx6fKVmf45U=
 cloud.google.com/go/pubsub v1.33.0 h1:6SPCPvWav64tj0sVX/+npCBKhUi/UjJehy9op/V3p2g=
 cloud.google.com/go/pubsub v1.33.0/go.mod h1:f+w71I33OMyxf9VpMVcZbnG5KSUkCOUHYpFd5U1GdRc=
-github.com/99designs/gqlgen v0.17.36 h1:u/o/rv2SZ9s5280dyUOOrkpIIkr/7kITMXYD3rkJ9go=
-github.com/99designs/gqlgen v0.17.36/go.mod h1:6RdyY8puhCoWAQVr2qzF2OMVfudQzc8ACxzpzluoQm4=
+github.com/99designs/gqlgen v0.17.37 h1:PDUH/4AhEYmXb9b1AfxX2JY+myp5TIaoSjNEY7ugt/4=
+github.com/99designs/gqlgen v0.17.37/go.mod h1:eov4+h4V+M6snvxWsGsUZskjv9r0vuIrSE7qjMkJYig=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/agnivade/levenshtein v1.1.1 h1:QY8M92nrzkmr798gCo3kmMyqXFzdQVpxLlGPRBij0P8=
 github.com/agnivade/levenshtein v1.1.1/go.mod h1:veldBMzWxcCG2ZvUTKD2kJNRdCk5hVbJomOvKkmgYbo=
