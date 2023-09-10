@@ -2,7 +2,7 @@
 ARG SKAFFOLD_GO_GCFLAGS
 
 ### Build executable
-FROM golang:1.20 as builder
+FROM golang:1.21 as builder
 WORKDIR /go/src
 COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg go mod download
