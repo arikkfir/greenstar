@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ### Build executable
-FROM node:20.5.1 as builder
+FROM node:20.6.0 as builder
 RUN apt-get update && apt-get install -y jq && rm -rf /var/lib/apt/lists/*
 WORKDIR /workspace
 COPY package.json package-lock.json ./
