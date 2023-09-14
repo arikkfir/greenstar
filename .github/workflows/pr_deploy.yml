@@ -172,7 +172,9 @@ jobs:
         run: npx playwright test
         working-directory: e2e
         env:
-          CI: "true"
+          DESCOPE_PROJECT_ID: ${{ secrets.DESCOPE_PROJECT_ID }}
+          DESCOPE_MANAGEMENT_KEY: ${{ secrets.DESCOPE_MANAGEMENT_KEY }}
+          DESCOPE_TENANT_ADMIN_ACCESS_KEY: ${{ secrets.DESCOPE_TENANT_ADMIN_ACCESS_KEY }}
           ENV_NAME: ${{ steps.env.outputs.name }}
       - uses: actions/upload-artifact@v3
         if: success() || (failure() && steps.test.conclusion == 'failure')
