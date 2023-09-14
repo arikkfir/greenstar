@@ -1,0 +1,17 @@
+query loadTenant($tenantID: ID!) {
+    tenant(id: $tenantID) {
+        id,
+        displayName
+    }
+}
+
+mutation createTenant($tenantID: String, $displayName: String!) {
+    createTenant(tenantID: $tenantID, tenant: {displayName: $displayName}) {
+        id
+        displayName
+    }
+}
+
+mutation deleteTenant($tenantID: String!) {
+    deleteTenant(tenantID: $tenantID)
+}

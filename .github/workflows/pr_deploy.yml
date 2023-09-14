@@ -151,6 +151,7 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.37.1-jammy
     steps:
+      - run: apt-get update && apt-get install -y patch
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.get-ref.outputs.sha }}
@@ -164,6 +165,8 @@ jobs:
           cache: npm
           cache-dependency-path: e2e/package-lock.json
       - run: npm ci
+        working-directory: e2e
+      - run: ./apply-patches.sh
         working-directory: e2e
       - id: test
         run: npx playwright test
@@ -229,7 +232,9 @@ jobs:
                     "/repos/${REPOSITORY}/commits/${SHA}/comments" \
                     -F 'body=@comment.txt'
           else
-            gh pr comment --repo "${REPOSITORY}" "${PR}" --body-file comment.txt --edit-last || gh pr comment "${PR}" --body-file comment.txt
+            # Purpose for the "||" expression is the "edit-last" does not work if this is the first comment
+            gh pr comment --repo "${REPOSITORY}" "${PR}" --body-file comment.txt --edit-last \
+              || gh pr comment --repo "${REPOSITORY}" "${PR}" --body-file comment.txt
           fi
         env:
           ENV_NAME: ${{ steps.env.outputs.name }}
