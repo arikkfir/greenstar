@@ -14,9 +14,11 @@ $ brew install kubernetes-cli # Kubernetes CLI
 
 ### Telepresence setup
 
-Install Telepresence by following [this guide](https://www.getambassador.io/docs/telepresence-oss/latest/install). Note that this will add the `ambassador` namespace to the cluster.
+Install Telepresence by following [this guide](https://www.getambassador.io/docs/telepresence-oss/latest/install). Note
+that this will add the `ambassador` namespace to the cluster.
 
-It's also possible you'll need to [apply these changes](https://www.getambassador.io/docs/telepresence-oss/latest/troubleshooting#volume-mounts-are-not-working-on-macos)
+It's also possible you'll need
+to [apply these changes](https://www.getambassador.io/docs/telepresence-oss/latest/troubleshooting#volume-mounts-are-not-working-on-macos)
 if you need to have volume mounts working on macOS.
 
 You'll also need to connect to the cluster once with a durable connection, like so:
@@ -59,19 +61,7 @@ End-to-end tests are available in the `e2e` directory. To run them use the follo
 ```shell
 $ npx playwright test                     # Runs the end-to-end tests.
 $ npx playwright test --ui                # Starts the interactive UI mode.
-$ npx playwright test --project=chromium  # Runs the tests only on Desktop Chrome.
-$ npx playwright test example             # Runs the tests in a specific file.
 $ npx playwright test --debug             # Runs the tests in debug mode.
 ```
 
 See [this blog post](https://playwright.dev/docs/intro) for more information.
-
-#### TBD
-
-NOTE: this has not been experimented with yet.
-
-Tests code generation:
-
-```shell
-$ npx playwright codegen # Auto generate tests with Codegen.
-```
