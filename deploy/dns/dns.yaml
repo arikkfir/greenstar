@@ -1,0 +1,26 @@
+apiVersion: dns.cnrm.cloud.google.com/v1beta1
+kind: DNSRecordSet
+metadata:
+  name: wildcard-cname-record
+spec:
+  name: "*.${deploy_environment}.greenstar.kfirs.com."
+  type: CNAME
+  ttl: 300
+  managedZoneRef:
+    name: kfirs-com
+    namespace: dns
+  # noinspection KubernetesDeprecatedKeys
+  rrdatas:
+    - traefik.kfirs.com.
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard
+spec:
+  dnsNames:
+    - "*.${deploy_environment}.greenstar.kfirs.com"
+  issuerRef:
+    kind: ClusterIssuer
+    name: google-clouddns
+  secretName: greenstar-wildcard-tls

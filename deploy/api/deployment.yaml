@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+    foo: "16528"
+  name: backend
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: backend
+  strategy:
+    rollingUpdate: { }
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: backend
+    spec:
+      initContainers:
+        - image: ghcr.io/arikkfir/greenstar/migrations:${FLUX_ARTIFACT_SHA}
+          env:
+            - name: NEO4J_ADDRESS
+              value: "neo4j://greenstar-neo4j:7687"
+          name: migrations
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 200m
+              memory: 256Mi
+      containers:
+        - image: ghcr.io/arikkfir/greenstar/backend:${FLUX_ARTIFACT_SHA}
+          args:
+            - --http.access-log-excluded-headers=sec\-.*
+            - --http.access-log-excluded-headers=vary
+            - --http.access-log-excluded-headers=x-request-id
+          name: backend
+          env:
+            - name: NEO4J_HOST
+              value: greenstar-neo4j
+            - name: NEO4J_PORT
+              value: "7687"
+            - name: REDIS_HOST
+              value: greenstar-redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: HTTP_CORS_ALLOWED_ORIGINS
+              value: "https://*.${flux_environment}.greenstar.kfirs.com"
+            - name: AUTH_DESCOPE_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: greenstar-api-descope
+                  key: AUTH_DESCOPE_PROJECT_ID
+                  optional: false
+            - name: AUTH_DESCOPE_MANAGEMENT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: greenstar-api-descope
+                  key: AUTH_DESCOPE_MANAGEMENT_KEY
+                  optional: false
+          livenessProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            failureThreshold: 3
+            periodSeconds: 5
+            terminationGracePeriodSeconds: 30
+            timeoutSeconds: 3
+          ports:
+            - containerPort: 8000
+              name: http
+            - containerPort: 9000
+              name: health
+          readinessProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            failureThreshold: 3
+            periodSeconds: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          startupProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            failureThreshold: 5
+            periodSeconds: 1
+            timeoutSeconds: 1
+      enableServiceLinks: false
+      serviceAccountName: backend

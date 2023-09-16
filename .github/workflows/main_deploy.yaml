@@ -1,0 +1,28 @@
+name: Deploy main
+
+on:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash -exuo pipefail {0}
+
+jobs:
+
+  deploy:
+    name: Deploy
+    needs: env
+    runs-on: ubuntu-22.04
+    environment:
+      name: main
+      url: https://acme.main.greenstar.kfirs.com
+    steps:
+      - uses: arikkfir/deploy@main
+        with:
+          repository: greenstar
+          branch: main
+          sha: ${{ github.sha }}
+          environment: main
+          token: ${{ secrets.ARIKKFIR_GHA_AUTOMATION }}
