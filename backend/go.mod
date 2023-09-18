@@ -7,7 +7,7 @@ replace github.com/secureworks/errors => github.com/arikkfir/go-errors v0.0.9
 require (
 	cloud.google.com/go/pubsub v1.33.0
 	github.com/99designs/gqlgen v0.17.37
-	github.com/descope/go-sdk v1.5.5
+	github.com/descope/go-sdk v1.5.6
 	github.com/google/uuid v1.3.1
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/neo4j/neo4j-go-driver/v5 v5.12.0
