@@ -3,43 +3,22 @@ import {getSdk} from "../generated/graphql";
 import {GraphQLClient} from "graphql-request";
 import * as https from "https";
 
-export interface Tenant {
-    id: string
-    displayName: string
-}
-
 export class BackendHelper {
-    private readonly graphClient: GraphQLClient;
+    private readonly _httpsAgent: https.Agent = new https.Agent({rejectUnauthorized: false})
 
     constructor(private readonly env: EnvironmentHelper) {
-        this.graphClient = new GraphQLClient(this.env.apiGraphURL, {
-            agent: new https.Agent({rejectUnauthorized: false}),
+    }
+
+    protected graphClient(token: string): GraphQLClient {
+        return new GraphQLClient(this.env.apiGraphURL, {
+            agent: this._httpsAgent,
             cache: "no-cache",
+            headers: {"Authorization": `Bearer ${token}`},
             method: "POST",
         })
     }
 
-    async createTenant(token: string, id: string, name: string): Promise<Tenant> {
-        const sdk = getSdk(this.graphClient)
-        const response = await sdk.createTenant({
-            tenantID: id,
-            displayName: name,
-        }, {"Authorization": `Bearer ${token}`})
-
-        return response.createTenant
-    }
-
-    async loadTenant(token: string, id: string): Promise<Tenant> {
-        const sdk = getSdk(this.graphClient)
-        const response = await sdk.loadTenant({tenantID: id}, {"Authorization": `Bearer ${token}`})
-        if (!response.tenant) {
-            throw new Error(`Empty tenant received`)
-        }
-        return response.tenant
-    }
-
-    async deleteTenant(token: string, id: string) {
-        const sdk = getSdk(this.graphClient)
-        await sdk.deleteTenant({tenantID: id}, {"Authorization": `Bearer ${token}`})
+    protected sdk(token: string) {
+        return getSdk(this.graphClient(token))
     }
 }

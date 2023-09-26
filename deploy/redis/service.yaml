@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  ports:
+    - name: client-nontls
+      port: 6379
+      protocol: TCP
+      targetPort: client-nontls
+  type: ClusterIP
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: redis-tls
+spec:
+  entryPoints: [ redis ]
+  routes:
+    - match: HostSNI(`redis.${deploy_environment}.greenstar.kfirs.com`)
+      middlewares:
+        - name: ip-whitelist-tcp
+          namespace: traefik
+      services:
+        - name: redis
+          port: client-nontls
+  tls:
+    secretName: greenstar-wildcard-tls # Keep the "greenstar-" prefix here; kustomize does not know to add it here

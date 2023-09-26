@@ -8,12 +8,15 @@ jobs:
 
   undeploy:
     name: Undeploy from environment
-    uses: arikkfir/delivery/.github/workflows/undeploy-from-environment.yml@main
-    with:
-      branch: ${{ github.head_ref }}
-      images: |-
-        ghcr.io/${{ github.repository }}/backend
-        ghcr.io/${{ github.repository }}/frontend
-        ghcr.io/${{ github.repository }}/migrations
-        ghcr.io/${{ github.repository }}/neo4j
-    secrets: inherit
+    runs-on: ubuntu-22.04
+    steps:
+      - id: env
+        uses: arikkfir/delivery-env-name@v1
+        with:
+          branch: ${{ github.event.pull_request.head.ref }}
+      - uses: arikkfir/undeploy@main
+        with:
+          repository: greenstar
+          environment: ${{ steps.env.outputs.name }}
+          branch: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.ARIKKFIR_GHA_AUTOMATION }}

@@ -27,8 +27,8 @@ export const test = base.extend<AdditionalFixtures>({
 
     env: new EnvironmentHelper(),
 
-    tenant: async ({backend, descope}, use) => {
-        const tenant = new TenantHelper(backend, descope);
+    tenant: async ({env, descope}, use) => {
+        const tenant = new TenantHelper(env, descope);
         await use(tenant)
         await tenant.cleanup()
     },

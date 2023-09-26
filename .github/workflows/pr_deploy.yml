@@ -1,17 +1,10 @@
 name: Deploy PR
 
 on:
-  issue_comment:
-    types:
-      - created
-      - edited
   pull_request:
     types:
       - opened
       - synchronize
-  push:
-    branches:
-      - main
 
 defaults:
   run:
@@ -19,229 +12,29 @@ defaults:
 
 jobs:
 
-  get-ref:
-    name: Get ref
+  env:
+    name: Environment
     runs-on: ubuntu-22.04
     outputs:
-      ref: ${{ steps[github.event_name].outputs.ref }}
-      sha: ${{ steps[github.event_name].outputs.sha }}
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      name: ${{ steps.env.outputs.name }}
     steps:
-      - uses: actions/checkout@v4
-      - id: pull_request
-        name: Get ref from PR
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
-          echo "sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
-      - id: issue_comment
-        name: Get ref from issue
-        if: github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.body == '/deploy'
-        run: |
-          echo "ref=$(gh pr view ${{ github.event.issue.number }} --json headRefName | jq -r .headRefName)" >> "$GITHUB_OUTPUT"
-          echo "sha=$(gh pr view ${{ github.event.issue.number }} --json headRefOid | jq -r .headRefOid)" >> "$GITHUB_OUTPUT"
-      - id: push
-        name: Get ref from push
-        if: github.event_name == 'push'
-        run: |
-          echo "ref=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-          echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-
-  backend-format:
-    needs: get-ref
-    name: Backend Code Format
-    runs-on: ubuntu-22.04
-    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
-    steps:
-      - uses: actions/checkout@v4
+      - id: env
+        uses: arikkfir/delivery-env-name@v1
         with:
-          ref: ${{ needs.get-ref.outputs.sha }}
-      - uses: actions/setup-go@v4
-        with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
-      - run: |
-          go fmt ./... | tee output.txt
-          if [[ -s output.txt ]]; then
-            echo "Incorrect Go formatting detected."
-            exit 1
-          fi
-        working-directory: backend
-
-  backend-unit-tests:
-    needs: get-ref
-    name: Backend Unit Tests
-    runs-on: ubuntu-22.04
-    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.get-ref.outputs.sha }}
-      - uses: actions/setup-go@v4
-        with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
-      - run: go test ./...
-        env:
-          CGO_ENABLED: "0"
-          GO111MODULE: "on"
-          GOOS: linux
-          GOARCH: amd64
-        working-directory: backend
-
-  docker:
-    needs: get-ref
-    strategy:
-      matrix:
-        image: [ backend, frontend, neo4j, migrations ]
-      fail-fast: false
-    name: Build ${{ matrix.image }} image
-    runs-on: ubuntu-22.04
-    timeout-minutes: 30
-    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
-    permissions:
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.get-ref.outputs.sha }}
-      - if: matrix.image == 'frontend'
-        run: |-
-          cat > frontend/apply-patches.sh <<PATCHES_EOF
-          ${{ secrets.FRONTEND_PATCHES }}
-          PATCHES_EOF
-      - uses: docker/setup-buildx-action@v2
-        with:
-          install: true
-      - uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v4
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          cache-from: type=gha,scope=${{ needs.get-ref.outputs.ref }}-${{ matrix.image }}
-          cache-to: type=gha,mode=max,scope=${{ needs.get-ref.outputs.ref }}-${{ matrix.image }}
-          context: ${{ matrix.image }}
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/${{ matrix.image }}:${{ needs.get-ref.outputs.sha }}
+          branch: ${{ github.event.pull_request.head.ref }}
 
   deploy:
     name: Deploy
-    needs: get-ref
-    uses: arikkfir/delivery/.github/workflows/deploy-to-environment.yml@main
-    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
-    with:
-      branch: ${{ needs.get-ref.outputs.ref }}
-      images: |-
-        ghcr.io/${{ github.repository }}/backend: ${{ needs.get-ref.outputs.sha }}
-        ghcr.io/${{ github.repository }}/frontend: ${{ needs.get-ref.outputs.sha }}
-        ghcr.io/${{ github.repository }}/migrations: ${{ needs.get-ref.outputs.sha }}
-        ghcr.io/${{ github.repository }}/neo4j: ${{ needs.get-ref.outputs.sha }}
-    secrets: inherit
-
-  e2e-tests:
-    name: End-to-end Tests
-    needs: [ get-ref, deploy ]
+    needs: env
     runs-on: ubuntu-22.04
-    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha
-    container:
-      image: mcr.microsoft.com/playwright:v1.37.1-jammy
+    environment:
+      name: ${{ needs.env.outputs.name }}
+      url: https://acme.${{ needs.env.outputs.name }}.greenstar.kfirs.com
     steps:
-      - run: apt-get update && apt-get install -y patch
-      - uses: actions/checkout@v4
+      - uses: arikkfir/deploy@main
         with:
-          ref: ${{ needs.get-ref.outputs.sha }}
-      - uses: arikkfir/delivery-env-name@v1
-        id: env
-        with:
-          branch: ${{ needs.get-ref.outputs.ref }}
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20.x
-          cache: npm
-          cache-dependency-path: e2e/package-lock.json
-      - run: npm ci
-        working-directory: e2e
-      - run: ./apply-patches.sh
-        working-directory: e2e
-      - id: test
-        run: npx playwright test
-        working-directory: e2e
-        env:
-          DESCOPE_PROJECT_ID: ${{ secrets.DESCOPE_PROJECT_ID }}
-          DESCOPE_MANAGEMENT_KEY: ${{ secrets.DESCOPE_MANAGEMENT_KEY }}
-          DESCOPE_TENANT_ADMIN_ACCESS_KEY: ${{ secrets.DESCOPE_TENANT_ADMIN_ACCESS_KEY }}
-          ENV_NAME: ${{ steps.env.outputs.name }}
-      - uses: actions/upload-artifact@v3
-        if: success() || (failure() && steps.test.conclusion == 'failure')
-        with:
-          name: playwright-report
-          path: |
-            e2e/playwright-report
-            e2e/custom-summary.txt
-          if-no-files-found: error
-          retention-days: 1
-
-  e2e-report:
-    name: End-to-end Report
-    needs: [ get-ref, deploy, e2e-tests ]
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write
-      pull-requests: write
-      id-token: write
-    if: needs.get-ref.outputs.ref && needs.get-ref.outputs.sha && (success() || (failure() && needs.e2e-tests.result == 'failure'))
-    env:
-      BUCKET_NAME: arikkfir-playwright-reports
-      BUCKET_PATH: ${{ github.repository }}/actions/${{ github.run_number }}/${{ github.run_attempt }}
-    steps:
-      - uses: arikkfir/delivery-env-name@v1
-        id: env
-        with:
-          branch: ${{ needs.get-ref.outputs.ref }}
-      - uses: actions/download-artifact@v3
-        with:
-          name: playwright-report
-          path: report
-      - uses: google-github-actions/auth@v1
-        with:
-          workload_identity_provider: projects/8909046976/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
-          service_account: playwright-uploader@arikkfir.iam.gserviceaccount.com
-      - uses: google-github-actions/setup-gcloud@v1
-        with:
-          skip_install: true
-      - run: gcloud storage cp -r -P ./report/playwright-report/* "gs://${BUCKET_NAME}/${BUCKET_PATH}/"
-      - run: |
-          APP_WEB_URL="https://acme.${ENV_NAME}.greenstar.kfirs.com"
-          REPORT_WEB_URL="https://playwright.kfirs.com/${BUCKET_PATH}/index.html"
-          
-          touch comment.txt
-          echo "End to end tests result: ${RESULT} ([click here for a full report](${REPORT_WEB_URL}))" >> comment.txt
-          echo "Application URL: ${APP_WEB_URL}" >> comment.txt
-          echo "" >> comment.txt
-          echo "---" >> comment.txt
-          echo "" >> comment.txt
-          cat ./report/custom-summary.txt >> comment.txt
-          
-          if [[ -z "${PR}" ]]; then
-            gh api --method POST \
-                    -H "Accept: application/vnd.github+json" \
-                    -H "X-GitHub-Api-Version: 2022-11-28" \
-                    "/repos/${REPOSITORY}/commits/${SHA}/comments" \
-                    -F 'body=@comment.txt'
-          else
-            # Purpose for the "||" expression is the "edit-last" does not work if this is the first comment
-            gh pr comment --repo "${REPOSITORY}" "${PR}" --body-file comment.txt --edit-last \
-              || gh pr comment --repo "${REPOSITORY}" "${PR}" --body-file comment.txt
-          fi
-        env:
-          ENV_NAME: ${{ steps.env.outputs.name }}
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
-          REPOSITORY: ${{ github.repository }}
-          RESULT: ${{ needs.e2e-tests.result }}
-          SHA: ${{ needs.get-ref.outputs.sha }}
+          repository: greenstar
+          branch: ${{ github.event.pull_request.head.ref }}
+          sha: ${{ github.event.pull_request.head.sha }}
+          environment: ${{ needs.env.outputs.name }}
+          token: ${{ secrets.ARIKKFIR_GHA_AUTOMATION }}
