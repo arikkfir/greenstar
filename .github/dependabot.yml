@@ -41,11 +41,3 @@ updates:
     directory: /frontend
     schedule:
       interval: weekly
-  - package-ecosystem: docker
-    directory: /neo4j
-    schedule:
-      interval: weekly
-  - package-ecosystem: docker
-    directory: /migrations
-    schedule:
-      interval: weekly

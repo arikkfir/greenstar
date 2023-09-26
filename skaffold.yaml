@@ -1,0 +1,76 @@
+# nonk8s
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: greenstar
+build:
+  artifacts:
+    - image: ghcr.io/arikkfir/greenstar/backend
+      context: backend
+      docker:
+        buildArgs:
+          VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
+        dockerfile: backend/Dockerfile.backend
+        target: production
+    - image: ghcr.io/arikkfir/greenstar/init-job
+      context: backend
+      docker:
+        buildArgs:
+          VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
+        dockerfile: backend/Dockerfile.initJob
+        target: production
+    - image: ghcr.io/arikkfir/greenstar/exchange-rates-job
+      context: backend
+      docker:
+        buildArgs:
+          VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
+        dockerfile: backend/Dockerfile.exchangeRatesJob
+        target: production
+    - image: ghcr.io/arikkfir/greenstar/frontend
+      context: frontend
+      docker:
+        dockerfile: frontend/Dockerfile
+        buildArgs:
+          VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
+        target: development
+      sync:
+        manual:
+          - src: public/**
+            dest: /app/
+          - src: src/**
+            dest: /app/
+  local:
+    push: false
+    useBuildkit: true
+    concurrency: 1
+deploy:
+  kubeContext: kind-greenstar
+  helm:
+    releases:
+      - name: local-greenstar
+        chartPath: ./deploy/chart
+        packaged:
+          appVersion: 0.0.0-{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
+        namespace: greenstar
+        createNamespace: true
+        wait: true
+        upgradeOnChange: true
+        valuesFiles:
+          - ./hack/chart-hack-values.yaml
+        setValueTemplates:
+          backend:
+            image:
+              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_backend}}"
+              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_backend}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_backend}}"
+          initJob:
+            image:
+              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_init_job}}"
+              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_init_job}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_init_job}}"
+          exchangeRatesCronJob:
+            image:
+              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_exchange_rates_job}}"
+              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_exchange_rates_job}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_exchange_rates_job}}"
+          frontend:
+            image:
+              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_frontend}}"
+              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_frontend}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_frontend}}"

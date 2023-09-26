@@ -11,37 +11,31 @@ defaults:
 
 jobs:
 
-  backend-format:
+  verify-format-and-code-generation:
     name: Backend Code Format
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
       - uses: actions/setup-go@v4
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
+      - run: make rest
       - run: go fmt ./...
         working-directory: backend
+      - run: git status --porcelain
 
   backend-unit-tests:
     name: Backend Unit Tests
     runs-on: ubuntu-22.04
+    needs: verify-format-and-code-generation
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
       - uses: actions/setup-go@v4
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
       - run: go test ./...
-        env:
-          CGO_ENABLED: "0"
-          GO111MODULE: "on"
-          GOOS: linux
-          GOARCH: amd64
         working-directory: backend
 
   docker:
@@ -50,14 +44,12 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        image: [ backend, frontend, neo4j, migrations ]
+        image: [ backend, frontend, init-job, exchange-rates-job ]
       fail-fast: false
     permissions:
       packages: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
       - if: matrix.image == 'frontend'
         run: |-
           cat > frontend/apply-patches.sh <<PATCHES_EOF

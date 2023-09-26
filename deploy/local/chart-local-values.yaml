@@ -1,0 +1,165 @@
+currencyAPI:
+  key: ""
+
+descope:
+  project:
+    id: ""
+  managementKey:
+    id: ""
+    key: ""
+  accessKey:
+    id: ""
+    key: ""
+
+configMaps:
+  - name: gcp-oidc
+    component: gcp
+    data: { }
+
+ingress:
+  domain: greenstar.local
+
+initJob:
+  extraEnv:
+    - name: DISABLE_JSON_LOGGING
+      value: "T"
+    - name: GENERATE_SAMPLE_DATA
+      value: "T"
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: "/etc/gcp-oidc/credential-configuration.json"
+    - name: LOG_LEVEL
+      value: "trace"
+    - name: OTEL_SDK_DISABLED
+      value: "true"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://otel-gateway.observability.svc:4318"
+    - name: OTEL_EXPORTER_OTLP_PROTOCOL
+      value: "http/protobuf"
+  volumes:
+    - name: token
+      projected:
+        sources:
+          - serviceAccountToken:
+              audience: ""
+              path: token
+    - name: gcp-oidc
+      configMap:
+        name: gcp-oidc
+  volumeMounts:
+    - name: token
+      mountPath: "/var/run/service-account"
+      readOnly: true
+    - name: gcp-oidc
+      mountPath: "/etc/gcp-oidc"
+      readOnly: true
+
+exchangeRatesCronJob:
+  extraEnv:
+    - name: DISABLE_JSON_LOGGING
+      value: "T"
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: "/etc/gcp-oidc/credential-configuration.json"
+    - name: LOG_LEVEL
+      value: "trace"
+    - name: OTEL_SDK_DISABLED
+      value: "true"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://otel-gateway.observability.svc:4318"
+    - name: OTEL_EXPORTER_OTLP_PROTOCOL
+      value: "http/protobuf"
+  volumeMounts:
+    - name: token
+      mountPath: "/var/run/service-account"
+      readOnly: true
+    - name: gcp-oidc
+      mountPath: "/etc/gcp-oidc"
+      readOnly: true
+
+backend:
+  extraEnv:
+    - name: DISABLE_JSON_LOGGING
+      value: "T"
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: "/etc/gcp-oidc/credential-configuration.json"
+    - name: HTTP_ACCESS_LOG_SUCCESSFUL_REQUESTS
+      value: "T"
+    - name: HTTP_ACCESS_LOG_EXCLUDED_HEADERS
+      value: "authorization,priority,sec-ch-ua,sec-ch-ua-mobile,user-agent,x-forwarded-.*"
+    - name: LOG_LEVEL
+      value: "trace"
+    - name: OTEL_SDK_DISABLED
+      value: "true"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://otel-gateway.observability.svc:4318"
+    - name: OTEL_EXPORTER_OTLP_PROTOCOL
+      value: "http/protobuf"
+  ingress:
+    enabled: true
+    parentRef:
+      kind: "Gateway"
+      name: local
+      namespace: ingress
+      httpSectionName: web
+      httpsSectionName: websecure
+  volumes:
+    - name: token
+      projected:
+        sources:
+          - serviceAccountToken:
+              audience: ""
+              path: token
+    - name: gcp-oidc
+      configMap:
+        name: gcp-oidc
+  volumeMounts:
+    - name: token
+      mountPath: "/var/run/service-account"
+      readOnly: true
+    - name: gcp-oidc
+      mountPath: "/etc/gcp-oidc"
+      readOnly: true
+
+frontend:
+  extraArgs:
+    - --
+    - --logLevel
+    - info
+    - --port
+    - "3000"
+    - --host
+    - "0.0.0.0"
+  extraEnv:
+    - name: "VITE_SLOW_REQUESTS"
+      value: "F"
+  ingress:
+    enabled: true
+    parentRef:
+      kind: "Gateway"
+      name: local
+      namespace: ingress
+      httpSectionName: web
+      httpsSectionName: websecure
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+postgres:
+  backendPassword: "local"
+  extraArgs:
+    - -c
+    - log_statement=mod
+  extraUsers:
+    local: local
+  ingress:
+    enabled: true
+    parentRef:
+      kind: "Gateway"
+      name: local
+      namespace: ingress
+      tlsSectionName: postgres
+  initJobPassword: "local"
+  initPassword: "local"

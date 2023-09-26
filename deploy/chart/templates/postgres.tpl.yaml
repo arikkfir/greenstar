@@ -1,0 +1,211 @@
+{{- $prefix := include "greenstar.prefix" . -}}
+{{- $componentName := "postgres" -}}
+{{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
+{{- $serviceName := printf "%s-%s" $prefix $componentName -}}
+{{- $secretName := printf "%s-%s" $prefix $componentName -}}
+{{- $pvcName := printf "%s-%s-data" $prefix $componentName -}}
+{{- $initPassword := .Values.postgres.initPassword | default (randAlphaNum 16) -}}
+{{- $initJobPassword := .Values.postgres.initJobPassword | default (randAlphaNum 16) -}}
+{{- $backendPassword := .Values.postgres.backendPassword | default (randAlphaNum 16) -}}
+{{- /*------------------------------------------------------------------------------------------------------------*/ -}}
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  {{- if not (empty .Values.postgres.rbac.annotations) }}
+  annotations:
+    {{ range $name, $value := .Values.postgres.rbac.annotations -}}
+    {{ $name }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceName | quote }}
+spec:
+  ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: postgres
+  selector:
+    {{- include "greenstar.versionAgnosticLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $pvcName | quote }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+    limits:
+      storage: 32Gi
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $secretName | quote }}
+type: Opaque
+immutable: false
+stringData:
+  init-pwd: {{ $initPassword | quote }}
+  backend-pwd: {{ $backendPassword | quote }}
+  init-job-pwd: {{ $initJobPassword | quote }}
+  init-users.sh: |-
+    #!/bin/bash
+    set -e
+
+    # TODO: restrict Postgres permissions
+
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    	CREATE ROLE greenstar_backend WITH LOGIN ENCRYPTED PASSWORD '{{ $backendPassword }}';
+    	CREATE ROLE greenstar_init_job WITH LOGIN ENCRYPTED PASSWORD '{{ $initJobPassword }}' SUPERUSER;
+    	CREATE DATABASE greenstar WITH OWNER=greenstar_backend;
+    	GRANT CONNECT, TEMPORARY ON DATABASE greenstar TO greenstar_backend;
+    	GRANT CONNECT, TEMPORARY ON DATABASE greenstar TO greenstar_init_job;
+        {{ range $user, $pwd := .Values.postgres.extraUsers -}}
+        CREATE ROLE {{ $user }} WITH LOGIN ENCRYPTED PASSWORD '{{ $pwd }}' SUPERUSER;
+        {{- end }}
+    EOSQL
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix "postgres" | quote }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "greenstar.versionAgnosticLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $componentName | quote }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        {{- include "greenstar.commonLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $componentName | quote }}
+    spec:
+      containers:
+        - image: postgres:16.4
+          {{- if not (empty .Values.postgres.extraArgs) }}
+          args:
+            {{- toYaml .Values.postgres.extraArgs | nindent 12 }}
+          {{- end }}
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: init-pwd
+                  optional: false
+            {{- if not (empty .Values.postgres.extraEnv) }}
+            {{- toYaml .Values.postgres.extraEnv | nindent 12 }}
+            {{- end }}
+          name: {{ $componentName | quote }}
+          ports:
+            - containerPort: 5432
+              name: postgres
+          resources:
+            limits:
+              cpu: {{ .Values.postgres.resources.limits.cpu | default "2000m" | quote }}
+              memory: {{ .Values.postgres.resources.limits.memory | default "2Gi" | quote }}
+            requests:
+              cpu: {{ .Values.postgres.resources.requests.cpu | default "1000m" | quote }}
+              memory: {{ .Values.postgres.resources.requests.memory | default "1Gi" | quote }}
+          livenessProbe:
+            exec:
+              command: [ pg_isready, --user, postgres ]
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 30
+            periodSeconds: 60
+            terminationGracePeriodSeconds: 60
+          readinessProbe:
+            exec:
+              command: [ pg_isready, --user, postgres ]
+            successThreshold: 1
+            failureThreshold: 1
+            timeoutSeconds: 3
+            periodSeconds: 3
+          startupProbe:
+            exec:
+              command: [ pg_isready, --user, postgres ]
+            initialDelaySeconds: 5
+            successThreshold: 1
+            failureThreshold: 10
+            periodSeconds: 3
+            timeoutSeconds: 3
+            terminationGracePeriodSeconds: 60
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              readOnly: false
+            - name: init-scripts
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+      enableServiceLinks: false
+      serviceAccountName: {{ $serviceAccountName | quote }}
+      volumes:
+        - name: init-scripts
+          secret:
+            secretName: {{ $secretName | quote }}
+            optional: false
+            items:
+              - key: init-users.sh
+                path: init-users.sh
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ $pvcName | quote }}
+            readOnly: false
+{{- if .Values.postgres.ingress.enabled }}
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix "postgres-tls" | quote }}
+spec:
+  parentRefs:
+    - name: {{ .Values.postgres.ingress.parentRef.name }}
+      namespace: {{ .Values.postgres.ingress.parentRef.namespace }}
+      sectionName: {{ .Values.postgres.ingress.parentRef.tlsSectionName }}
+      kind: {{ .Values.postgres.ingress.parentRef.kind }}
+  hostnames:
+    - {{ printf "postgres.%s" .Values.ingress.domain | quote }}
+  rules:
+    - backendRefs:
+        - name: {{ $serviceName | quote }}
+          namespace: {{ .Release.Namespace | quote }}
+          port: 5432
+          kind: Service
+{{- end }}

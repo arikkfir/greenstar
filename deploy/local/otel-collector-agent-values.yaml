@@ -1,0 +1,136 @@
+fullnameOverride: otel-node
+mode: daemonset
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+command:
+  extraArgs:
+    - "--feature-gates=receiver.prometheusreceiver.RemoveLegacyResourceAttributes"
+ports:
+  prometheus:
+    enabled: true
+    servicePort: 9090
+    containerPort: 9090
+    protocol: TCP
+presets:
+  kubernetesAttributes:
+    enabled: true
+    extractAllPodLabels: true
+    extractAllPodAnnotations: true
+clusterRole:
+  rules:
+    - apiGroups: [ "" ]
+      resources: [ "nodes" ]
+      verbs: [ "get", "list", "watch" ]
+config:
+  receivers:
+    prometheus:
+      config:
+        global:
+          scrape_interval: 10s
+          scrape_timeout: 3s
+        scrape_configs:
+          - job_name: k8s-pods
+            kubernetes_sd_configs:
+              - role: pod
+            relabel_configs:
+              - source_labels: [ __meta_kubernetes_pod_node_name ]
+                regex: ${env:K8S_NODE_NAME}
+                action: keep
+              - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scrape ]
+                regex: "true"
+                action: keep
+              - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_path ]
+                action: replace
+                target_label: __metrics_path__
+                regex: (.+)
+              - source_labels: [ __address__, __meta_kubernetes_pod_annotation_prometheus_io_port ]
+                action: replace
+                regex: ([^:]+)(?::\d+)?;(\d+)
+                replacement: $$1:$$2
+                target_label: __address__
+  processors:
+    k8sattributes:
+      extract:
+        metadata:
+          - container.image.name
+          - container.image.tag
+          - k8s.container.name
+          - k8s.cronjob.name
+          - k8s.daemonset.name
+          - k8s.daemonset.uid
+          - k8s.deployment.name
+          - k8s.deployment.uid
+          - k8s.job.name
+          - k8s.job.uid
+          - k8s.namespace.name
+          - k8s.node.name
+          - k8s.node.uid
+          - k8s.pod.hostname
+          - k8s.pod.ip
+          - k8s.pod.name
+          - k8s.pod.uid
+          - k8s.replicaset.name
+          - k8s.replicaset.uid
+          - k8s.statefulset.name
+          - k8s.statefulset.uid
+        annotations:
+          - tag_name: app.kubernetes.io/commit-hash
+            key: app.kubernetes.io/commit-hash
+        labels:
+          - tag_name: app.kubernetes.io/name
+            key: app.kubernetes.io/name
+          - tag_name: app.kubernetes.io/instance
+            key: app.kubernetes.io/instance
+          - tag_name: app.kubernetes.io/version
+            key: app.kubernetes.io/version
+          - tag_name: app.kubernetes.io/component
+            key: app.kubernetes.io/component
+    transform/prometheus-labels:
+      metric_statements:
+        - context: datapoint
+          statements:
+            - set(attributes["app_kubernetes_io_name"], resource.attributes["app.kubernetes.io/name"])
+            - set(attributes["app_kubernetes_io_instance"], resource.attributes["app.kubernetes.io/instance"])
+            - set(attributes["app_kubernetes_io_version"], resource.attributes["app.kubernetes.io/version"])
+            - set(attributes["app_kubernetes_io_component"], resource.attributes["app.kubernetes.io/component"])
+            - set(attributes["app_kubernetes_io_commit_hash"], resource.attributes["app.kubernetes.io/commit-hash"])
+            - set(attributes["k8s_container_image_name"], resource.attributes["container.image.name"])
+            - set(attributes["k8s_container_image_tag"], resource.attributes["container.image.tag"])
+            - set(attributes["k8s_container_name"], resource.attributes["k8s.container.name"])
+            - set(attributes["k8s.cronjob.name"], resource.attributes["k8s.cronjob.name"])
+            - set(attributes["k8s.daemonset.name"], resource.attributes["k8s.daemonset.name"])
+            - set(attributes["k8s.daemonset.uid"], resource.attributes["k8s.daemonset.uid"])
+            - set(attributes["k8s_deployment_name"], resource.attributes["k8s.deployment.name"])
+            - set(attributes["k8s_deployment_uid"], resource.attributes["k8s.deployment.uid"])
+            - set(attributes["k8s_job_name"], resource.attributes["k8s.job.name"])
+            - set(attributes["k8s_job_uid"], resource.attributes["k8s.job.uid"])
+            - set(attributes["k8s_namespace_name"], resource.attributes["k8s.namespace.name"])
+            - set(attributes["k8s_node_name"], resource.attributes["k8s.node.name"])
+            - set(attributes["k8s_node_uid"], resource.attributes["k8s.node.uid"])
+            - set(attributes["k8s_pod_hostname"], resource.attributes["k8s.pod.hostname"])
+            - set(attributes["k8s_pod_ip"], resource.attributes["k8s.pod.ip"])
+            - set(attributes["k8s_pod_name"], resource.attributes["k8s.pod.name"])
+            - set(attributes["k8s_pod_uid"], resource.attributes["k8s.pod.uid"])
+            - set(attributes["k8s_replicaset_name"], resource.attributes["k8s.replicaset.name"])
+            - set(attributes["k8s_replicaset_name"], resource.attributes["k8s.replicaset.uid"])
+            - set(attributes["k8s_statefulset_name"], resource.attributes["k8s.statefulset.name"])
+            - set(attributes["k8s_statefulset_name"], resource.attributes["k8s.statefulset.uid"])
+  exporters:
+    prometheus:
+      endpoint: "0.0.0.0:9090"
+  service:
+    pipelines:
+      metrics:
+        receivers: [ prometheus ]
+        processors: [ transform/prometheus-labels ]
+        exporters: [ prometheus ]
+serviceAccount:
+  name: otel-agent
+image:
+  repository: "otel/opentelemetry-collector-contrib"
+  tag: "0.104.0"

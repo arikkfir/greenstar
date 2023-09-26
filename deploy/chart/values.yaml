@@ -1,0 +1,134 @@
+commitSHA: "unknown"
+
+descope:
+  project:
+    id: ""
+  managementKey:
+    id: ""
+    key: ""
+  accessKey:
+    id: ""
+    key: ""
+
+currencyAPI:
+  key: ""
+
+ingress:
+  domain: ""
+
+configMaps: [ ]
+
+backend:
+  extraArgs: [ ]
+  extraEnv: [ ]
+  image:
+    repository: ghcr.io/arikkfir/greenstar/backend
+    tag: local
+    pullPolicy: IfNotPresent
+  ingress:
+    enabled: false
+  postgres:
+    connectTimeout: 1
+  rbac:
+    annotations: { }
+  resources:
+    limits:
+      cpu: ""
+      memory: ""
+    requests:
+      cpu: ""
+      memory: ""
+  volumeMounts: [ ]
+  volumes: [ ]
+
+frontend:
+  extraArgs: [ ]
+  extraEnv: [ ]
+  image:
+    repository: ghcr.io/arikkfir/greenstar/frontend
+    tag: local
+    pullPolicy: IfNotPresent
+  ingress:
+    enabled: false
+  rbac:
+    annotations: { }
+  resources:
+    limits:
+      cpu: ""
+      memory: ""
+    requests:
+      cpu: ""
+      memory: ""
+  volumeMounts: [ ]
+  volumes: [ ]
+
+initJob:
+  extraArgs: [ ]
+  extraEnv: [ ]
+  image:
+    repository: ghcr.io/arikkfir/greenstar/init-job
+    tag: local
+    pullPolicy: IfNotPresent
+  postgres:
+    connectTimeout: 1
+  rbac:
+    annotations: { }
+  resources:
+    limits:
+      cpu: ""
+      memory: ""
+    requests:
+      cpu: ""
+      memory: ""
+  volumeMounts: [ ]
+  volumes: [ ]
+
+exchangeRatesCronJob:
+  extraArgs: [ ]
+  extraEnv: [ ]
+  image:
+    repository: ghcr.io/arikkfir/greenstar/exchange-rates-job
+    tag: local
+    pullPolicy: IfNotPresent
+  postgres:
+    connectTimeout: 1
+  rbac:
+    annotations: { }
+  resources:
+    limits:
+      cpu: ""
+      memory: ""
+    requests:
+      cpu: ""
+      memory: ""
+  volumeMounts: [ ]
+  volumes: [ ]
+
+postgres:
+  # Set backend user's password (defaults to random alphanumeric passwords)
+  # NOTE: this is NOT updated on helm upgrade! to change, manually login to Postgres and update
+  backendPassword: ""
+
+  extraArgs: [ ]
+  extraEnv: [ ]
+  extraUsers: { }
+
+  # Set init job's password (defaults to random alphanumeric passwords)
+  # NOTE: this is NOT updated on helm upgrade! to change, manually login to Postgres and update
+  initJobPassword: ""
+
+  # Set postgres user's password (defaults to random alphanumeric passwords)
+  # NOTE: this is NOT updated on helm upgrade! to change, manually login to Postgres and update
+  initPassword: ""
+
+  ingress:
+    enabled: false
+  rbac:
+    annotations: { }
+  resources:
+    limits:
+      cpu: ""
+      memory: ""
+    requests:
+      cpu: ""
+      memory: ""

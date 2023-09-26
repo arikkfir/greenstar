@@ -1,7 +1,10 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="backend (telepresence)" type="GoApplicationRunConfiguration" factoryName="Go Application">
-    <module name="backend" />
+    <module name="greenstar" />
     <working_directory value="$PROJECT_DIR$/backend" />
+    <EXTENSION ID="io.datawire.telepresence.products.goland.GolandRunConfigurationExtension">
+      <INTERCEPT_ENTRIES />
+    </EXTENSION>
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />
       <option name="IS_SUBST" value="false" />
@@ -10,13 +13,14 @@
       <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
       <ENTRIES>
         <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
-        <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH="backend/intercept.env" />
+        <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH="backend/telepresence.env" />
+        <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH="hack/backend.local.env" />
       </ENTRIES>
     </EXTENSION>
-    <kind value="DIRECTORY" />
-    <package value="github.com/arikkfir/greenstar/backend" />
-    <directory value="$PROJECT_DIR$/backend" />
-    <filePath value="$PROJECT_DIR$/backend" />
+    <kind value="PACKAGE" />
+    <package value="github.com/arikkfir/greenstar/backend/cmd/backend" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/backend/cmd/backend/main.go" />
     <method v="2" />
   </configuration>
 </component>

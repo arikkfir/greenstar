@@ -1,0 +1,179 @@
+metadata:
+  contact:
+    email: arik@kfirs.com
+  displayName: GreenSTAR public API
+  description: |-
+    Public APIs used in the GreenSTAR Personal Accountant applications.
+  server: https://api.greenstar.local
+  version: 0.0.0+local
+models:
+  Tenant:
+    scope: global
+    path: /tenants
+    properties:
+      DisplayName:
+        type: string
+        optional: false
+        sortable: true
+    create:
+      permissions:
+        - scope: global
+          permission: tenants:create
+      transactional: true
+      allowExplicitID: true
+    list:
+      transactional: true
+      filterProperties:
+        - name: ID
+          type: string
+        - DisplayName
+    get:
+      permissions:
+        - scope: tenant
+          permission: tenants:read
+          tenantPathVariableName: id
+      transactional: true
+    update:
+      permissions:
+        - scope: tenant
+          permission: tenants:update
+          tenantPathVariableName: id
+      transactional: true
+    delete:
+      permissions:
+        - scope: tenant
+          permission: tenants:delete
+          tenantPathVariableName: id
+      transactional: true
+  Account:
+    scope: tenant
+    path: /accounts
+    properties:
+      DisplayName:
+        type: string
+        optional: false
+        sortable: true
+      Icon:
+        type: string
+        optional: true
+      ParentID:
+        type: string
+        optional: true
+      TotalIncomingAmount:
+        type: decimal
+        optional: true
+      TotalOutgoingAmount:
+        type: decimal
+        optional: true
+      Balance:
+        type: decimal
+        optional: true
+    create:
+      permissions:
+        - scope: tenant
+          permission: accounts:read
+      transactional: true
+    list:
+      permissions:
+        - scope: tenant
+          permission: accounts:read
+      transactional: true
+      filterProperties:
+        - name: Currency
+          type: string
+        - DisplayName
+    get:
+      permissions:
+        - scope: tenant
+          permission: accounts:read
+      parameters:
+        - name: Currency
+          type: string
+      transactional: true
+    update:
+      permissions:
+        - scope: tenant
+          permission: accounts:update
+      transactional: true
+    delete:
+      permissions:
+        - scope: tenant
+          permission: accounts:delete
+      transactional: true
+  Transaction:
+    scope: tenant
+    path: /transactions
+    properties:
+      Date:
+        type: timestamp
+        optional: false
+        sortable: true
+      ReferenceID:
+        type: string
+        optional: false
+        sortable: true
+      Amount:
+        type: decimal
+        optional: false
+        sortable: true
+      Currency:
+        type: string
+        optional: false
+        sortable: true
+      ConvertedAmount:
+        type: decimal
+        sortable: true
+        readOnly: true
+      Description:
+        type: string
+        optional: true
+        sortable: true
+      SourceAccountID:
+        type: string
+        optional: false
+      TargetAccountID:
+        type: string
+        optional: false
+    create:
+      permissions:
+        - scope: tenant
+          permission: transactions:create
+      transactional: true
+    list:
+      permissions:
+        - scope: tenant
+          permission: transactions:read
+      transactional: true
+      filterProperties:
+        - name: Currency
+          type: string
+        - name: MinDate
+          type: timestamp
+        - name: MaxDate
+          type: timestamp
+        - ReferenceID
+        - name: MinAmount
+          type: decimal
+        - name: MaxAmount
+          type: decimal
+        - Description
+        - SourceAccountID
+        - TargetAccountID
+    get:
+      permissions:
+        - scope: tenant
+          permission: transactions:read
+      transactional: true
+      parameters:
+        - name: Currency
+          type: string
+    update:
+      permissions:
+        - scope: tenant
+          permission: transactions:update
+      transactional: true
+    delete:
+      permissions:
+        - scope: tenant
+          permission: transactions:delete
+      transactional: true

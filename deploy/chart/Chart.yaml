@@ -1,0 +1,21 @@
+apiVersion: v2
+name: greenstar
+description: |
+  GreenSTAR Personal Accountant is your own personal assistant with everything related to your personal expenses, income
+  and how to balance them.
+type: application
+version: 0.0.0-local
+appVersion: 0.0.0-local
+home: https://github.com/arikkfir/greenstar
+maintainers:
+  - name: Arik Kfir
+    email: arik@kfirs.com
+    url: https://github.com/arikkfir
+icon: https://raw.githubusercontent.com/arikkfir/greenstar/main/assets/logo.png
+keywords:
+  - money
+  - finance
+  - accounting
+deprecated: false
+sources:
+  - https://github.com/arikkfir/greenstar

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DdlMappings">
+    <mapping uuid="a3994030-f219-4462-86a8-473c55fbf8db" name="GreenSTAR DDL Mapping">
+      <data-sources db="ab6ab156-ff28-4d58-b356-a072164c3375" ddl="c71df2fa-9fdb-4af9-a8b8-ccd70337c9c0" />
+      <scope>
+        <node kind="database" qname="greenstar">
+          <node kind="schema" qname="public" />
+        </node>
+      </scope>
+    </mapping>
+  </component>
+  <component name="SqlDataSourceStorage">
+    <option name="dataSources">
+      <list>
+        <State>
+          <option name="id" value="c71df2fa-9fdb-4af9-a8b8-ccd70337c9c0" />
+          <option name="name" value="GreenSTAR DDL" />
+          <option name="dbmsName" value="POSTGRES" />
+          <option name="urls">
+            <array>
+              <option value="file://$PROJECT_DIR$/backend/internal/migration/schema/001_initial_version.up.sql" />
+            </array>
+          </option>
+          <option name="outLayout" value="File per object by schema.groovy" />
+        </State>
+      </list>
+    </option>
+  </component>
+</project>
