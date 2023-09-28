@@ -31,7 +31,7 @@ jobs:
       name: ${{ needs.env.outputs.name }}
       url: https://acme.${{ needs.env.outputs.name }}.greenstar.kfirs.com
     steps:
-      - uses: arikkfir/deploy@24e954c8d068a6bd7a2cf715521ea0cab03fc4b4
+      - uses: arikkfir/deploy@f67ff7c7dd5280898253f2bec540b7187a34e26a
         with:
           repository: greenstar
           branch: ${{ github.event.pull_request.head.ref }}
