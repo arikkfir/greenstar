@@ -12,7 +12,7 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/neo4j/neo4j-go-driver/v5 v5.12.0
 	github.com/redis/rueidis v1.0.17
-	github.com/rs/cors v1.10.0
+	github.com/rs/cors v1.10.1
 	github.com/rs/zerolog v1.30.0
 	github.com/secureworks/errors v0.1.2
 	github.com/vektah/gqlparser/v2 v2.5.9
