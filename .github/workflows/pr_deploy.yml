@@ -32,6 +32,7 @@ jobs:
       url: https://acme.${{ needs.env.outputs.name }}.greenstar.kfirs.com
     steps:
       - uses: arikkfir/deploy@22db8e0bdd18893f795672714ad9146a8a35e117
+        timeout-minutes: 15
         with:
           repository: greenstar
           branch: ${{ github.event.pull_request.head.ref }}
