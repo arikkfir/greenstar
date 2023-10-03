@@ -31,7 +31,7 @@ jobs:
       name: ${{ needs.env.outputs.name }}
       url: https://acme.${{ needs.env.outputs.name }}.greenstar.kfirs.com
     steps:
-      - uses: arikkfir/deploy@22db8e0bdd18893f795672714ad9146a8a35e117
+      - uses: arikkfir/deploy@fefaf9f808d432a70cfd6705f62bc8dc5e8cb5e7
         timeout-minutes: 15
         with:
           repository: greenstar
