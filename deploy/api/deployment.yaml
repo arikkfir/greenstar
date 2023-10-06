@@ -29,6 +29,16 @@ spec:
             requests:
               cpu: 200m
               memory: 256Mi
+        - image: busybox:1.36.1-glibc
+          name: sleep
+          command: [ "sleep", "600" ]
+          resources:
+            limits:
+              cpu: 10m
+              memory: 8Mi
+            requests:
+              cpu: 10m
+              memory: 8Mi
       containers:
         - image: ghcr.io/arikkfir/greenstar/backend:${FLUX_ARTIFACT_SHA}
           args:
