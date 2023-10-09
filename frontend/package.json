@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@apollo/client": "^3.8.3",
+    "@apollo/client": "^3.8.5",
     "@descope/react-sdk": "^1.0.14",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
