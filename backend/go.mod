@@ -6,7 +6,7 @@ replace github.com/secureworks/errors => github.com/arikkfir/go-errors v0.0.9
 
 require (
 	cloud.google.com/go/pubsub v1.33.0
-	github.com/99designs/gqlgen v0.17.37
+	github.com/99designs/gqlgen v0.17.39
 	github.com/descope/go-sdk v1.5.5
 	github.com/google/uuid v1.3.1
 	github.com/jessevdk/go-flags v1.5.0
@@ -15,7 +15,7 @@ require (
 	github.com/rs/cors v1.10.0
 	github.com/rs/zerolog v1.30.0
 	github.com/secureworks/errors v0.1.2
-	github.com/vektah/gqlparser/v2 v2.5.9
+	github.com/vektah/gqlparser/v2 v2.5.10
 	golang.org/x/oauth2 v0.12.0
 )
 
@@ -55,6 +55,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/sosodev/duration v1.1.0 // indirect
 	github.com/urfave/cli/v2 v2.25.7 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect
