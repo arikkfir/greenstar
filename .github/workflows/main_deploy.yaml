@@ -13,7 +13,6 @@ jobs:
 
   deploy:
     name: Deploy
-    needs: env
     runs-on: ubuntu-22.04
     environment:
       name: main
