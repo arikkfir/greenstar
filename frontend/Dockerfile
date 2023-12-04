@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ### Build executable
-FROM node:20.5.1 as builder
+FROM node:21.3.0 as builder
 WORKDIR /workspace
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/workspace/.npm \
