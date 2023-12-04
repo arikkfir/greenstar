@@ -65,7 +65,7 @@ jobs:
         with:
           name: playwright-report
           path: report
-      - uses: google-github-actions/auth@v1
+      - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: projects/8909046976/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
           service_account: playwright-uploader@arikkfir.iam.gserviceaccount.com
