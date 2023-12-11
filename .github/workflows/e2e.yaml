@@ -69,7 +69,7 @@ jobs:
         with:
           workload_identity_provider: projects/8909046976/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
           service_account: playwright-uploader@arikkfir.iam.gserviceaccount.com
-      - uses: google-github-actions/setup-gcloud@v1
+      - uses: google-github-actions/setup-gcloud@v2
         with:
           skip_install: true
       - run: gcloud storage cp -r -P ./report/playwright-report/* "gs://${BUCKET_NAME}/${BUCKET_PATH}/"
