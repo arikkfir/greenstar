@@ -1,0 +1,43 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: jaeger-http
+spec:
+  parentRefs:
+    - name: local
+      namespace: ingress
+      sectionName: web
+      kind: Gateway
+  hostnames:
+    - jaeger.greenstar.local
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: jaeger-https
+spec:
+  parentRefs:
+    - name: local
+      namespace: ingress
+      sectionName: websecure
+      kind: Gateway
+  hostnames:
+    - jaeger.greenstar.local
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: jaeger-local-query
+          namespace: observability
+          port: 16686

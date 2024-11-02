@@ -26,6 +26,17 @@
         <method importPath="cloud.google.com/go/pubsub" receiver="*Client" name="Close" />
         <method importPath="github.com/neo4j/neo4j-go-driver/v5/neo4j" receiver="SessionWithContext" name="Close" />
         <method importPath="net/http" receiver="*Server" name="Shutdown" />
+        <method importPath="database/sql" receiver="*DB" name="Close" />
+        <method importPath="gopkg.in/yaml.v3" receiver="*Encoder" name="Close" />
+        <method importPath="encoding/xml" receiver="*Encoder" name="Close" />
+        <method importPath="database/sql" receiver="*Rows" name="Close" />
+        <method importPath="github.com/jackc/pgx/v5" receiver="Tx" name="Rollback" />
+        <method importPath="github.com/golang-migrate/migrate/v4" receiver="*Migrate" name="Close" />
+        <method importPath="os" receiver="*File" name="Close" />
+        <method importPath="io" receiver="ReadCloser" name="Close" />
+        <method importPath="database/sql" receiver="*Tx" name="Rollback" />
+        <method importPath="cloud.google.com/go/storage" receiver="*Client" name="Close" />
+        <method importPath="cloud.google.com/go/storage" receiver="*Reader" name="Close" />
       </methods>
     </inspection_tool>
     <inspection_tool class="HttpUrlsUsage" enabled="true" level="WEAK WARNING" enabled_by_default="true">

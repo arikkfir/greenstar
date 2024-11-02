@@ -1,0 +1,472 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "commitSHA": {
+      "type": "string",
+      "minLength": 1
+    },
+    "descope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "managementKey",
+        "accessKey"
+      ],
+      "properties": {
+        "project": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          }
+        },
+        "managementKey": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "key"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "key": {
+              "type": "string"
+            }
+          }
+        },
+        "accessKey": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "key"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "key": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "currencyAPI": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key"
+      ],
+      "properties": {
+        "key": {
+          "type": "string"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domain"
+      ],
+      "properties": {
+        "domain": {
+          "type": "string"
+        }
+      }
+    },
+    "configMaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "component",
+          "data"
+        ],
+        "properties": {
+          "annotations": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "component": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "initJob": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "extraArgs": {
+          "$ref": "#/$defs/extraArgs"
+        },
+        "extraEnv": {
+          "$ref": "#/$defs/extraEnv"
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        },
+        "postgres": {
+          "$ref": "#/$defs/postgresConfiguration"
+        },
+        "rbac": {
+          "$ref": "#/$defs/rbacConfiguration"
+        },
+        "resources": {
+          "$ref": "#/$defs/podResourcesConfiguration"
+        },
+        "volumeMounts": {
+          "$ref": "#/$defs/volumeMountsConfiguration"
+        },
+        "volumes": {
+          "$ref": "#/$defs/volumesConfiguration"
+        }
+      }
+    },
+    "exchangeRatesCronJob": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "extraArgs": {
+          "$ref": "#/$defs/extraArgs"
+        },
+        "extraEnv": {
+          "$ref": "#/$defs/extraEnv"
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        },
+        "postgres": {
+          "$ref": "#/$defs/postgresConfiguration"
+        },
+        "rbac": {
+          "$ref": "#/$defs/rbacConfiguration"
+        },
+        "resources": {
+          "$ref": "#/$defs/podResourcesConfiguration"
+        },
+        "volumeMounts": {
+          "$ref": "#/$defs/volumeMountsConfiguration"
+        },
+        "volumes": {
+          "$ref": "#/$defs/volumesConfiguration"
+        }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "extraArgs": {
+          "$ref": "#/$defs/extraArgs"
+        },
+        "extraEnv": {
+          "$ref": "#/$defs/extraEnv"
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        },
+        "ingress": {
+          "$ref": "#/$defs/podIngressConfiguration"
+        },
+        "postgres": {
+          "$ref": "#/$defs/postgresConfiguration"
+        },
+        "rbac": {
+          "$ref": "#/$defs/rbacConfiguration"
+        },
+        "resources": {
+          "$ref": "#/$defs/podResourcesConfiguration"
+        },
+        "volumeMounts": {
+          "$ref": "#/$defs/volumeMountsConfiguration"
+        },
+        "volumes": {
+          "$ref": "#/$defs/volumesConfiguration"
+        }
+      }
+    },
+    "frontend": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "extraArgs": {
+          "$ref": "#/$defs/extraArgs"
+        },
+        "extraEnv": {
+          "$ref": "#/$defs/extraEnv"
+        },
+        "image": {
+          "$ref": "#/$defs/image"
+        },
+        "ingress": {
+          "$ref": "#/$defs/podIngressConfiguration"
+        },
+        "rbac": {
+          "$ref": "#/$defs/rbacConfiguration"
+        },
+        "resources": {
+          "$ref": "#/$defs/podResourcesConfiguration"
+        },
+        "volumeMounts": {
+          "$ref": "#/$defs/volumeMountsConfiguration"
+        },
+        "volumes": {
+          "$ref": "#/$defs/volumesConfiguration"
+        }
+      }
+    },
+    "postgres": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backendPassword": {
+          "type": "string"
+        },
+        "extraArgs": {
+          "$ref": "#/$defs/extraArgs"
+        },
+        "extraEnv": {
+          "$ref": "#/$defs/extraEnv"
+        },
+        "extraUsers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "ingress": {
+          "$ref": "#/$defs/podIngressConfiguration"
+        },
+        "initJobPassword": {
+          "type": "string"
+        },
+        "initPassword": {
+          "type": "string"
+        },
+        "rbac": {
+          "$ref": "#/$defs/rbacConfiguration"
+        },
+        "resources": {
+          "$ref": "#/$defs/podResourcesConfiguration"
+        }
+      }
+    }
+  },
+  "required": [],
+  "$defs": {
+    "extraArgs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "extraEnv": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pullPolicy": {
+          "type": "string",
+          "minLength": 1,
+          "enum": [
+            "IfNotPresent",
+            "Always",
+            "Never"
+          ]
+        }
+      }
+    },
+    "podIngressConfiguration": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "const": false
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "const": true
+            },
+            "parentRef": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "name",
+                "namespace",
+                "httpSectionName",
+                "httpsSectionName"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "namespace": {
+                  "type": "string"
+                },
+                "httpSectionName": {
+                  "type": "string"
+                },
+                "httpsSectionName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "const": true
+            },
+            "parentRef": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "name",
+                "namespace",
+                "tlsSectionName"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "namespace": {
+                  "type": "string"
+                },
+                "tlsSectionName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "postgresConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "connectTimeout": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "rbacConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "podResourcesConfiguration": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cpu": {
+              "type": "string"
+            },
+            "memory": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "volumeMountsConfiguration": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "volumesConfiguration": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

@@ -1,0 +1,75 @@
+experimental:
+  kubernetesGateway:
+    enabled: true
+gateway:
+  enabled: false # Disable default gateway (we'll create our own)
+providers:
+  kubernetesCRD:
+    enabled: false
+  kubernetesIngress:
+    enabled: false
+  kubernetesGateway:
+    enabled: true
+    experimentalChannel: true
+logs:
+  general:
+    format: common
+    level: INFO
+  access:
+    enabled: true
+    format: common
+    filters:
+      statuscodes: "400-999"
+      retryattempts: true
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addEntryPointsLabels: true
+    addRoutersLabels: true
+    addServicesLabels: true
+    serviceMonitor:
+      enabled: false
+  otlp:
+    enabled: false
+tracing:
+  otlp:
+    enabled: false # TODO: enable tracing to OTLP
+ports:
+  traefik:
+    port: 9000
+    exposedPort: 9000
+    protocol: TCP
+  web:
+    port: 8080
+    containerPort: 8080
+    expose:
+      default: true
+    exposedPort: 80
+    protocol: TCP
+    nodePort: 30080
+  websecure:
+    port: 8443
+    containerPort: 8443
+    expose:
+      default: true
+    exposedPort: 443
+    protocol: TCP
+    nodePort: 30443
+  postgres:
+    port: 5432
+    containerPort: 5432
+    expose:
+      default: true
+    exposedPort: 5432
+    protocol: TCP
+    nodePort: 30432
+service:
+  enabled: true
+  type: NodePort
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 300m
+    memory: 128Mi

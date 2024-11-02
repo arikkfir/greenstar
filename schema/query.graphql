@@ -1,5 +1,0 @@
-type Query {
-    tenants: [Tenant!]!
-    tenant(id: ID!): Tenant
-    operation(id: ID!): Operation
-}

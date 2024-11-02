@@ -1,0 +1,176 @@
+{{- $prefix := include "greenstar.prefix" . -}}
+{{- $componentName := "frontend" -}}
+{{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
+{{- $serviceName := printf "%s-%s" $prefix $componentName -}}
+{{- /*------------------------------------------------------------------------------------------------------------*/ -}}
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  {{- if not (empty .Values.frontend.rbac.annotations) }}
+  annotations:
+    {{ range $name, $value := .Values.frontend.rbac.annotations -}}
+    {{ $name }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceName | quote }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    {{- include "greenstar.versionAgnosticLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix $componentName | quote }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "greenstar.versionAgnosticLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $componentName | quote }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        {{- include "greenstar.commonLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $componentName | quote }}
+    spec:
+      containers:
+        - image: {{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          {{- if not (empty .Values.frontend.extraArgs) }}
+          args:
+            {{- toYaml .Values.frontend.extraArgs | nindent 12 }}
+          {{- end }}
+          env:
+            - name: VITE_DESCOPE_PROJECT_ID
+              value: {{ .Values.descope.project.id | quote }}
+          {{- if not (empty .Values.frontend.extraEnv) }}
+            {{- toYaml .Values.frontend.extraEnv | nindent 12 }}
+          {{- end }}
+          name: {{ $componentName | quote }}
+          ports:
+            - containerPort: 3000
+              name: http
+          resources:
+            limits:
+              cpu: {{ .Values.frontend.resources.limits.cpu | default "50m" | quote }}
+              memory: {{ .Values.frontend.resources.limits.memory | default "32Mi" | quote }}
+            requests:
+              cpu: {{ .Values.frontend.resources.requests.cpu | default "50m" | quote }}
+              memory: {{ .Values.frontend.resources.requests.memory | default "32Mi" | quote }}
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /healthz
+            failureThreshold: 3
+            periodSeconds: 5
+            terminationGracePeriodSeconds: 30
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /healthz
+            failureThreshold: 3
+            periodSeconds: 1
+            timeoutSeconds: 1
+          startupProbe:
+            httpGet:
+              port: http
+              path: /healthz
+            initialDelaySeconds: 1
+            periodSeconds: 1
+            successThreshold: 1
+            failureThreshold: 10
+            timeoutSeconds: 1
+            terminationGracePeriodSeconds: 60
+          {{- if not (empty .Values.frontend.volumeMounts) }}
+          volumeMounts:
+            {{- toYaml .Values.frontend.volumeMounts | nindent 12 }}
+          {{- end }}
+      enableServiceLinks: false
+      serviceAccountName: {{ $serviceAccountName | quote }}
+      {{- if not (empty .Values.frontend.volumes) }}
+      volumes:
+        {{- toYaml .Values.frontend.volumes | nindent 8 }}
+      {{- end }}
+{{- if .Values.frontend.ingress.enabled }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix "frontend-http" | quote }}
+spec:
+  parentRefs:
+    - name: {{ .Values.frontend.ingress.parentRef.name }}
+      namespace: {{ .Values.frontend.ingress.parentRef.namespace }}
+      sectionName: {{ .Values.frontend.ingress.parentRef.httpSectionName }}
+      kind: {{ .Values.frontend.ingress.parentRef.kind }}
+  hostnames:
+    - {{ printf "app.%s" .Values.ingress.domain | quote }}
+    - {{ printf "*.app.%s" .Values.ingress.domain | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix "frontend-https" | quote }}
+spec:
+  parentRefs:
+    - name: {{ .Values.frontend.ingress.parentRef.name }}
+      namespace: {{ .Values.frontend.ingress.parentRef.namespace }}
+      sectionName: {{ .Values.frontend.ingress.parentRef.httpsSectionName }}
+      kind: {{ .Values.frontend.ingress.parentRef.kind }}
+  hostnames:
+    - {{ printf "app.%s" .Values.ingress.domain | quote }}
+    - {{ printf "*.app.%s" .Values.ingress.domain | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ $serviceName | quote }}
+          namespace: {{ .Release.Namespace | quote }}
+          port: 80
+          kind: Service
+{{- end }}

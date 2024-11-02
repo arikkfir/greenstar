@@ -1,0 +1,53 @@
+configmapReload:
+  prometheus:
+    enabled: false
+server:
+  name: server
+  extraFlags:
+    - web.enable-lifecycle
+    - web.enable-admin-api
+  global:
+  persistentVolume:
+    enabled: true
+    size: 8Gi
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  service:
+    enabled: true
+  retention: "2d"
+serverFiles:
+  prometheus.yml:
+    rule_files:
+      - /etc/config/recording_rules.yml
+      - /etc/config/alerting_rules.yml
+    scrape_configs:
+      - job_name: 'otel-agent'
+        honor_labels: true
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            action: keep
+            regex: opentelemetry-collector
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+            action: keep
+            regex: otel-agent
+          - source_labels: [__meta_kubernetes_pod_label_component]
+            action: keep
+            regex: agent-collector
+          - source_labels: [__meta_kubernetes_pod_phase]
+            regex: Pending|Succeeded|Failed|Completed
+            action: drop
+alertmanager:
+  enabled: false
+kube-state-metrics:
+  enabled: false
+prometheus-node-exporter:
+  enabled: false
+prometheus-pushgateway:
+  enabled: false

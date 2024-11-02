@@ -5,7 +5,6 @@
     <scripts>
       <script value="dev" />
     </scripts>
-    <arguments value="--config=vite.telepresence.config.ts" />
     <node-interpreter value="project" />
     <envs />
     <method v="2" />

@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/backend.iml" filepath="$PROJECT_DIR$/backend.iml" />
-      <module fileurl="file://$PROJECT_DIR$/e2e.iml" filepath="$PROJECT_DIR$/e2e.iml" />
-      <module fileurl="file://$PROJECT_DIR$/frontend.iml" filepath="$PROJECT_DIR$/frontend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fetch-exchange-rates.iml" filepath="$PROJECT_DIR$/fetch-exchange-rates.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/greenstar.iml" filepath="$PROJECT_DIR$/.idea/greenstar.iml" />
     </modules>
   </component>

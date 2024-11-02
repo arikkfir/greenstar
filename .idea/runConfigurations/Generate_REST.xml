@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Generate REST" type="CompoundRunConfigurationType">
+    <toRun name="generate rest client" type="GoApplicationRunConfiguration" />
+    <toRun name="generate rest server" type="GoApplicationRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>

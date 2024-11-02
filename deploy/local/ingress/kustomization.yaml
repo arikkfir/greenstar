@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: ingress
+secretGenerator:
+  - namespace: ingress
+    name: wildcard-tls
+    type: kubernetes.io/tls
+    options:
+      disableNameSuffixHash: true
+      immutable: false
+    files:
+      - tls.crt=wildcard-tls.crt
+      - tls.key=wildcard-tls.key
+resources:
+  - gateway.yaml

@@ -1,0 +1,154 @@
+{{- $prefix := include "greenstar.prefix" . -}}
+{{- $componentName := "init-job" -}}
+{{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
+{{- $serviceName := printf "%s-%s" $prefix $componentName -}}
+{{- /*------------------------------------------------------------------------------------------------------------*/ -}}
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  {{- if not (empty .Values.initJob.rbac.annotations) }}
+  annotations:
+    {{ range $name, $value := .Values.initJob.rbac.annotations -}}
+    {{ $name }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  {{- if not (empty .Values.initJob.rbac.annotations) }}
+  annotations:
+    {{ range $name, $value := .Values.initJob.rbac.annotations -}}
+    {{ $name }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+rules:
+  - verbs: [ get, update ]
+    apiGroups:
+      - batch
+    resources:
+      - cronjobs
+    resourceNames:
+      - {{ printf "%s-%s" $prefix "exchange-rates-cronjob" | quote }}
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  {{- if not (empty .Values.initJob.rbac.annotations) }}
+  annotations:
+    {{ range $name, $value := .Values.initJob.rbac.annotations -}}
+    {{ $name }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $serviceAccountName | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix $componentName | quote }}
+spec:
+  parallelism: 1
+  completions: 1
+  backoffLimit: 30
+  activeDeadlineSeconds: 1200
+  template:
+    metadata:
+      labels:
+        {{- include "greenstar.commonLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $componentName | quote }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - image: {{ .Values.initJob.image.repository }}:{{ .Values.initJob.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.initJob.image.pullPolicy }}
+          {{- if not (empty .Values.initJob.extraArgs) }}
+          args:
+            {{- toYaml .Values.initJob.extraArgs | nindent 12 }}
+          {{- end }}
+          env:
+            - name: CURRENCY_API_KEY
+              value: {{ .Values.currencyAPI.key | quote }}
+            - name: DESCOPE_PROJECT_ID
+              value: {{ .Values.descope.project.id | quote }}
+            - name: DESCOPE_MANAGEMENT_KEY_TOKEN
+              value: {{ .Values.descope.managementKey.key | quote }}
+            - name: DESCOPE_BACKEND_ACCESS_KEY_TOKEN
+              value: {{ .Values.descope.accessKey.key | quote }}
+            - name: EXCHANGE_RATES_CRONJOB_NAME
+              value: {{ printf "%s-%s" $prefix "exchange-rates-cronjob" | quote }}
+            - name: PGHOST
+              value: {{ printf "%s-%s" $prefix "postgres" | quote }}
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: "greenstar"
+            - name: PGUSER
+              value: "greenstar_init_job"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-%s" $prefix "postgres" | quote }}
+                  key: init-job-pwd
+                  optional: false
+            - name: PGAPPNAME
+              value: {{ printf "%s-%s" $prefix $componentName | quote }}
+            - name: PGCONNECT_TIMEOUT
+              value: {{ .Values.initJob.postgres.connectTimeout | quote }}
+            - name: PGSSLMODE
+              value: "disable"
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          {{- if not (empty .Values.initJob.extraEnv) }}
+            {{- toYaml .Values.initJob.extraEnv | nindent 12 }}
+          {{- end }}
+          name: {{ $componentName | quote }}
+          resources:
+            limits:
+              cpu: {{ .Values.initJob.resources.limits.cpu | default "500m" | quote }}
+              memory: {{ .Values.initJob.resources.limits.memory | default "512Mi" | quote }}
+            requests:
+              cpu: {{ .Values.initJob.resources.requests.cpu | default "100m" | quote }}
+              memory: {{ .Values.initJob.resources.requests.memory | default "128Mi" | quote }}
+          {{- if not (empty .Values.initJob.volumeMounts) }}
+          volumeMounts:
+            {{- toYaml .Values.initJob.volumeMounts | nindent 12 }}
+          {{- end }}
+      enableServiceLinks: false
+      serviceAccountName: {{ $serviceAccountName | quote }}
+      {{- if not (empty .Values.initJob.volumes) }}
+      volumes:
+        {{- toYaml .Values.initJob.volumes | nindent 8 }}
+      {{- end }}

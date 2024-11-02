@@ -1,67 +1,108 @@
-import {useEffect} from 'react'
-import {GrowthBook, GrowthBookProvider} from "@growthbook/growthbook-react";
-import {useTheme} from "./hooks/theme.tsx";
+import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import {createTheme, CssBaseline, ThemeProvider, useColorScheme} from "@mui/material";
+import {useMemo} from "react";
+import {useTenantID} from "./client/common.ts";
+import {Layout} from "./Layout.tsx";
+import {DashboardPage} from "./pages/DashboardPage.tsx";
+import {TransactionsPage} from "./pages/TransactionsPage.tsx";
+import {APIPlayground} from "./pages/APIPlayground.tsx";
+import {LocaleProvider} from "./providers/LocaleProvider.tsx";
+import {UserProfilePage} from "./pages/UserProfilePage.tsx";
 import {Descope, useSession, useUser} from "@descope/react-sdk";
-import {PageLoader} from "./PageLoader.tsx";
-import {ThemeProvider} from "@mui/system";
-import {CssBaseline} from "@mui/material";
-import {SnackbarProvider} from "notistack";
-import {ApolloWrapper} from "./ApolloWrapper.tsx";
-import {AppLayout} from "./AppLayout.tsx";
-import {AppRoutes} from "./AppRoutes.tsx";
+import {SpinnerBlock} from "./components/SpinnerBlock.tsx";
+import {ThemeOptions} from "@descope/web-component";
 
-interface AppProps {
-    tenant: string
-    growthBook: GrowthBook
-}
-
-function App({tenant, growthBook}: AppProps) {
-    const theme = useTheme()
-
-    const {isAuthenticated, isSessionLoading} = useSession();
-    const {user, isUserLoading} = useUser()
-
-    useEffect(() => {
-        growthBook.loadFeatures().catch(e => {
-            console.error("Failed to load features", e);
-        });
-    }, [growthBook]);
-
-    useEffect(() => {
-        if (user && isAuthenticated) {
-            growthBook.setAttributes({
-                id: user.userId,
-                tenant: tenant,
-            });
+function WithTheme({children}: any) {
+    const theme = useMemo(() => createTheme({
+        colorSchemes: {dark: true, light: true},
+        cssVariables: {
+            colorSchemeSelector: 'class'
         }
-    }, [user, isAuthenticated, growthBook, tenant])
-
-    if (isSessionLoading || isUserLoading) {
-        return (
-            <PageLoader/>
-        )
-    }
-
-    if (!isAuthenticated) {
-        return (
-            <Descope flowId="authenticate" tenant={tenant} theme={theme.palette.mode}/>
-        )
-    }
+        // components: {
+        //     MuiDataGrid: {
+        //         styleOverrides: {
+        //             root: {
+        //                 backgroundColor: 'red',
+        //             },
+        //         },
+        //     },
+        // }
+    }), []);
 
     return (
-        <GrowthBookProvider growthbook={growthBook}>
-            <ThemeProvider theme={theme}>
-                <CssBaseline/>
-                <SnackbarProvider>
-                    <ApolloWrapper>
-                        <AppLayout tenant={tenant}>
-                            <AppRoutes tenant={tenant}/>
-                        </AppLayout>
-                    </ApolloWrapper>
-                </SnackbarProvider>
-            </ThemeProvider>
-        </GrowthBookProvider>
+        <ThemeProvider theme={theme}>
+            {children}
+        </ThemeProvider>
     )
 }
 
-export default App
+export function App() {
+    const {isAuthenticated, isSessionLoading} = useSession();
+    const {isUserLoading} = useUser();
+    const tenantID = useTenantID();
+    const {mode} = useColorScheme()
+
+    const router = useMemo(() => createBrowserRouter([
+        {
+            id: "root",
+            path: "/",
+            element: <Layout/>,
+            children: [
+                {
+                    index: true,
+                    element: <DashboardPage/>,
+                },
+                {
+                    id: "transactions",
+                    path: "/transactions",
+                    element: <TransactionsPage/>,
+                },
+                {
+                    id: "userProfile",
+                    path: "/user/profile",
+                    element: <UserProfilePage/>,
+                },
+                {
+                    id: "settings",
+                    path: "/settings",
+                    element: <h1>Settings</h1>,
+                },
+                {
+                    id: "api",
+                    path: "/api",
+                    element: <APIPlayground/>,
+                },
+            ],
+        },
+    ]), [tenantID])
+
+
+    if (isSessionLoading || isUserLoading) {
+        return (
+            <SpinnerBlock open={true}/>
+        );
+    }
+
+    if (!isAuthenticated) {
+        let descopeTheme: ThemeOptions = "os"
+        if (mode === "dark") {
+            descopeTheme = mode
+        } else if (mode === "light") {
+            descopeTheme = mode
+        }
+        return (
+            <Descope flowId="custom-sign-in" tenant={tenantID} theme={descopeTheme}/>
+        );
+    }
+
+    return (
+        <WithTheme>
+            <CssBaseline/>
+            <LocaleProvider>
+                <LocaleProvider>
+                    <RouterProvider router={router}/>
+                </LocaleProvider>
+            </LocaleProvider>
+        </WithTheme>
+    )
+}

@@ -1,6 +1,5 @@
+# Local or secret files
+/hack
+
+# Misc OS files
 .DS_Store
-*.env*
-*.crt
-*.key
-*.pem
-/tmp

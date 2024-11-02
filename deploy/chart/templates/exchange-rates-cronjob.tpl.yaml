@@ -1,0 +1,101 @@
+{{- $prefix := include "greenstar.prefix" . -}}
+{{- $componentName := "exchange-rates-cronjob" -}}
+{{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
+{{- $serviceName := printf "%s-%s" $prefix $componentName -}}
+{{- /*------------------------------------------------------------------------------------------------------------*/ -}}
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  {{- if not (empty .Values.exchangeRatesCronJob.rbac.annotations) }}
+  annotations:
+    {{ range $name, $value := .Values.exchangeRatesCronJob.rbac.annotations -}}
+    {{ $name }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix $componentName | quote }}
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  schedule: "0 * * * *"
+  startingDeadlineSeconds: 30
+  successfulJobsHistoryLimit: 3
+  suspend: true
+  jobTemplate:
+    spec:
+      parallelism: 1
+      completions: 1
+      backoffLimit: 3
+      activeDeadlineSeconds: 600
+      template:
+        metadata:
+          labels:
+            {{- include "greenstar.commonLabels" . | nindent 12 }}
+            app.kubernetes.io/component: {{ $componentName | quote }}
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - image: {{ .Values.exchangeRatesCronJob.image.repository }}:{{ .Values.exchangeRatesCronJob.image.tag | default .Chart.AppVersion }}
+              imagePullPolicy: {{ .Values.exchangeRatesCronJob.image.pullPolicy }}
+              {{- if not (empty .Values.exchangeRatesCronJob.extraArgs) }}
+              args:
+                {{- toYaml .Values.exchangeRatesCronJob.extraArgs | nindent 16 }}
+              {{- end }}
+              env:
+                - name: PGHOST
+                  value: {{ printf "%s-%s" $prefix "postgres" | quote }}
+                - name: PGPORT
+                  value: "5432"
+                - name: PGDATABASE
+                  value: "greenstar"
+                - name: PGUSER
+                  value: "greenstar_init_job"
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ printf "%s-%s" $prefix "postgres" | quote }}
+                      key: init-job-pwd
+                      optional: false
+                - name: PGAPPNAME
+                  value: {{ printf "%s-%s" $prefix $componentName | quote }}
+                - name: PGCONNECT_TIMEOUT
+                  value: {{ .Values.exchangeRatesCronJob.postgres.connectTimeout | quote }}
+                - name: PGSSLMODE
+                  value: "disable"
+                - name: CURRENCY_API_KEY
+                  value: {{ .Values.currencyAPI.key | quote }}
+              {{- if not (empty .Values.exchangeRatesCronJob.extraEnv) }}
+                {{- toYaml .Values.exchangeRatesCronJob.extraEnv | nindent 16 }}
+              {{- end }}
+              name: {{ $componentName | quote }}
+              resources:
+                limits:
+                  cpu: {{ .Values.exchangeRatesCronJob.resources.limits.cpu | default "100m" | quote }}
+                  memory: {{ .Values.exchangeRatesCronJob.resources.limits.memory | default "64Mi" | quote }}
+                requests:
+                  cpu: {{ .Values.exchangeRatesCronJob.resources.requests.cpu | default "100m" | quote }}
+                  memory: {{ .Values.exchangeRatesCronJob.resources.requests.memory | default "64Mi" | quote }}
+              {{- if not (empty .Values.exchangeRatesCronJob.volumeMounts) }}
+              volumeMounts:
+                {{- toYaml .Values.exchangeRatesCronJob.volumeMounts | nindent 16 }}
+              {{- end }}
+          enableServiceLinks: false
+          serviceAccountName: {{ $serviceAccountName | quote }}
+          {{- if not (empty .Values.exchangeRatesCronJob.volumes) }}
+          volumes:
+            {{- toYaml .Values.exchangeRatesCronJob.volumes | nindent 12 }}
+          {{- end }}
