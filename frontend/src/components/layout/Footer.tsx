@@ -1,8 +1,8 @@
 import {Link} from "react-router-dom";
 import {Box} from "@mui/material";
+import pkg from "../../../package.json";
 
 export function Footer() {
-    const version = import.meta.env.VITE_VERSION;
     return (
         <Box sx={{
             display: "flex",
@@ -12,7 +12,7 @@ export function Footer() {
         }}>
             Copyright © 2017 - {new Date().getFullYear()}&nbsp;&nbsp;
             <Link to="https://github.com/arikkfir">Arik Kfir</Link>&nbsp;&nbsp;
-            All Rights Reserved ({version})
+            All Rights Reserved ({pkg.version})
         </Box>
     )
 }
