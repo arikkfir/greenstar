@@ -29,7 +29,7 @@ build:
     - image: ghcr.io/arikkfir/greenstar/frontend
       context: frontend
       docker:
-        dockerfile: frontend/Dockerfile
+        dockerfile: frontend/Dockerfile.frontend
         buildArgs:
           VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
         target: development

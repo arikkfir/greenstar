@@ -44,13 +44,17 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        image: [ backend, frontend, init-job, exchange-rates-job ]
+        images:
+          - { dir: backend, suffix: backend }
+          - { dir: backend, suffix: exchangeRatesJob }
+          - { dir: backend, suffix: initJob }
+          - { dir: frontend, suffix: frontend }
       fail-fast: false
     permissions:
       packages: write
     steps:
       - uses: actions/checkout@v4
-      - if: matrix.image == 'frontend'
+      - if: matrix.images.suffix == 'frontend'
         run: |-
           cat > frontend/apply-patches.sh <<PATCHES_EOF
           ${{ secrets.FRONTEND_PATCHES }}
@@ -66,9 +70,9 @@ jobs:
       - uses: docker/build-push-action@v4
         with:
           builder: ${{ steps.buildx.outputs.name }}
-          cache-from: type=gha,scope=${{ github.ref_name }}-${{ matrix.image }}
-          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.image }}
-          context: ${{ matrix.image }}
-          file: Dockerfile.${{ matrix.image }}
+          cache-from: type=gha,scope=${{ github.ref_name }}-${{ matrix.images.suffix }}
+          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.images.suffix }}
+          context: ${{ matrix.images.dir }}
+          file: ${{ matrix.images.dir }}/Dockerfile.${{ matrix.images.suffix }}
           push: true
-          tags: ghcr.io/${{ github.repository }}/${{ matrix.image }}:${{ github.sha }}
+          tags: ghcr.io/${{ github.repository }}/${{ matrix.images.suffix }}:${{ github.sha }}
