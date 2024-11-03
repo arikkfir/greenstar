@@ -8,7 +8,7 @@ flowchart TB
         gateway["Gateway Controller"]
     %% Frontend
         gateway --> frontendHTTPRoute
-        frontendHTTPRoute["Frontend HTTP Route"]
+        frontendHTTPRoute["Frontend HTTPS Route"]
         frontendService["Frontend Service"]
         frontendHTTPRoute --> frontendService
         frontendService --> frontendPod1
@@ -19,7 +19,7 @@ flowchart TB
         end
     %% Backend
         gateway --> backendHTTPRoute
-        backendHTTPRoute["Backend HTTP Route"]
+        backendHTTPRoute["Backend HTTPS Route"]
         backendService["Backend Service"]
         backendHTTPRoute --> backendService
         backendService --> backendPod1
@@ -29,12 +29,9 @@ flowchart TB
             backendPod2["Backend Pod"]
         end
     %% Database
-        neo4j[(Neo4j)]
-        backendPod1 --> neo4j
-        backendPod2 --> neo4j
-        redis[(Redis)]
-        backendPod1 --> redis
-        backendPod2 --> redis
+        postgres[(PostgreSQL)]
+        backendPod1 --> postgres
+        backendPod2 --> postgres
     end
 ```
 
