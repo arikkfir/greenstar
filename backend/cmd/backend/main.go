@@ -143,13 +143,15 @@ func (e *Action) newServer(logSuccessfulRequests bool, descopeClient *client.Des
 	// Define global mux
 	mux := http.NewServeMux()
 	mux.Handle("/",
-		middleware.PreventCachingMiddleware(
-			middleware.RequestIDMiddleware(
-				middleware.AccessLogMiddleware(logSuccessfulRequests, e.Server.HTTPAccessLogExcludeRemoteAddr, e.Server.HTTPAccessLogExcludedHeaders,
-					middleware.CORSMiddleware(e.Server.HTTPAllowedOrigins, e.Server.HTTPAllowMethods, e.Server.HTTPAllowHeaders, e.Server.HTTPDisableCredentials, e.Server.HTTPExposeHeaders, e.Server.HTTPMaxAge,
-						auth.WithSDKMiddleware(descopeClient,
-							auth.AuthenticationMiddleware(
-								routes,
+		middleware.CommonHeadersMiddleware(
+			middleware.PreventCachingMiddleware(
+				middleware.RequestIDMiddleware(
+					middleware.AccessLogMiddleware(logSuccessfulRequests, e.Server.HTTPAccessLogExcludeRemoteAddr, e.Server.HTTPAccessLogExcludedHeaders,
+						middleware.CORSMiddleware(e.Server.HTTPAllowedOrigins, e.Server.HTTPAllowMethods, e.Server.HTTPAllowHeaders, e.Server.HTTPDisableCredentials, e.Server.HTTPExposeHeaders, e.Server.HTTPMaxAge,
+							auth.WithSDKMiddleware(descopeClient,
+								auth.AuthenticationMiddleware(
+									routes,
+								),
 							),
 						),
 					),
