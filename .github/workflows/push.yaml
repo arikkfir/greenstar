@@ -39,7 +39,7 @@ jobs:
         working-directory: backend
 
   docker:
-    name: Build ${{ matrix.image }} image
+    name: Build ${{ matrix.images.suffix }} image
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     strategy:
