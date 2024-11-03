@@ -48,7 +48,7 @@ jobs:
           - { dir: backend, file: backend/Dockerfile.backend, name: backend, imageName: backend }
           - { dir: backend, file: backend/Dockerfile.exchangeRatesJob, name: exchangeRatesJob, imageName: exchangeratesbob }
           - { dir: backend, file: backend/Dockerfile.initJob, name: initJob, imageName: initjob }
-          - { dir: frontend, file: backend/Dockerfile.frontend, name: frontend, imageName: frontend }
+          - { dir: frontend, file: frontend/Dockerfile.frontend, name: frontend, imageName: frontend }
       fail-fast: false
     permissions:
       packages: write
