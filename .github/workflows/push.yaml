@@ -45,10 +45,10 @@ jobs:
     strategy:
       matrix:
         images:
-          - { dir: backend, file: backend/Dockerfile.backend, name: backend, imageName: backend }
-          - { dir: backend, file: backend/Dockerfile.exchangeRatesJob, name: exchangeRatesJob, imageName: exchangeratesbob }
-          - { dir: backend, file: backend/Dockerfile.initJob, name: initJob, imageName: initjob }
-          - { dir: frontend, file: frontend/Dockerfile.frontend, name: frontend, imageName: frontend }
+          - { dir: backend, file: backend/Dockerfile.backend, name: backend, imageName: backend, target: production }
+          - { dir: backend, file: backend/Dockerfile.exchangeRatesJob, name: exchangeRatesJob, imageName: exchangeratesbob, target: production }
+          - { dir: backend, file: backend/Dockerfile.initJob, name: initJob, imageName: initjob, target: production }
+          - { dir: frontend, file: frontend/Dockerfile.frontend, name: frontend, imageName: frontend, target: production }
       fail-fast: false
     permissions:
       packages: write
@@ -74,5 +74,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.images.name }}
           context: ${{ matrix.images.dir }}
           file: ${{ matrix.images.file }}
+          build-args: |
+            VERSION=v0.0.0+${{ github.sha }}
+          target: production
           push: true
           tags: ghcr.io/${{ github.repository }}/${{ matrix.images.imageName }}:${{ github.sha }}

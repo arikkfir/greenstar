@@ -10,7 +10,7 @@ COPY go.sum go.sum
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod go mod download
 COPY cmd/backend/main.go cmd/backend/
 COPY internal/ internal/
-ARG VERSION
+ARG VERSION=v0.0.0-notset
 RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod \
     GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build \
