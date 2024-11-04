@@ -35,8 +35,6 @@ build:
         target: development
       sync:
         manual:
-          - src: public/**
-            dest: /app/
           - src: src/**
             dest: /app/
   local:
@@ -44,10 +42,14 @@ build:
     useBuildkit: true
     concurrency: 1
 deploy:
-  kubeContext: kind-greenstar
   helm:
+    hooks:
+      before:
+        - host:
+            command:
+              - yq -e '[.frontend.extraEnv[] | select(.name == "VITE_DESCOPE_PROJECT_ID")] | length == 1' ./hack/greenstar-values.yaml || yq -i ".frontend.extraEnv += [{\"name\":\"VITE_DESCOPE_PROJECT_ID\",\"value\":\"${DESCOPE_PROJECT_ID}\"}]" ./hack/greenstar-values.yaml
     releases:
-      - name: local-greenstar
+      - name: '{{default (list "greenstar" (cmd "whoami") | join "-") .HELM_RELEASE_NAME}}'
         chartPath: ./deploy/chart
         packaged:
           appVersion: 0.0.0-{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
@@ -56,7 +58,8 @@ deploy:
         wait: true
         upgradeOnChange: true
         valuesFiles:
-          - ./hack/chart-hack-values.yaml
+          - deploy/local/chart-local-values.yaml
+          - hack/greenstar-values.yaml
         setValueTemplates:
           backend:
             image:

@@ -1,0 +1,344 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+defaults:
+  run:
+    shell: bash -exuo pipefail {0}
+
+jobs:
+
+  backend-unit-tests:
+    name: Backend Unit Tests
+    runs-on: ubuntu-22.04
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - run: go test ./...
+        working-directory: backend
+
+  verify-format-and-code-generation:
+    name: Backend Code Format
+    runs-on: ubuntu-22.04
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Generate
+        run: task generate-rest-clients generate-rest-server
+
+      - run: go fmt ./...
+        working-directory: backend
+
+      - run: git status --porcelain
+
+  docker:
+    name: Build ${{ matrix.images.name }} image
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        images:
+          - { dir: backend, file: backend/Dockerfile.backend, name: backend, imageName: backend, target: production }
+          - { dir: backend, file: backend/Dockerfile.exchangeRatesJob, name: exchangeRatesJob, imageName: exchange-rates-job, target: production }
+          - { dir: backend, file: backend/Dockerfile.initJob, name: initJob, imageName: init-job, target: production }
+          - { dir: frontend, file: frontend/Dockerfile.frontend, name: frontend, imageName: frontend, target: production }
+      fail-fast: false
+    permissions:
+      packages: write
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch secrets
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          APPLY_PATCHES_SH: op://Development/GreenSTAR/frontend/apply-patches.sh
+          DESCOPE_PROJECT_ID: op://Development/GreenSTAR/descope/project_id
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - if: matrix.images.name == 'frontend'
+        name: Apply patches
+        run: |-
+          cat > frontend/apply-patches.sh <<PATCHES_EOF
+          ${APPLY_PATCHES_SH}
+          PATCHES_EOF
+
+      - uses: docker/setup-buildx-action@v2
+        name: Setup Docker Builder
+        with:
+          install: true
+
+      - uses: docker/login-action@v3
+        name: Login to GitHub Container Registry
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v4
+        name: Build image
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=gha,scope=${{ github.ref_name }}-${{ matrix.images.name }}
+          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.images.name }}
+          context: ${{ matrix.images.dir }}
+          file: ${{ matrix.images.file }}
+          build-args: |
+            VITE_DESCOPE_PROJECT_ID=${{ env.DESCOPE_PROJECT_ID }}
+            VITE_SLOW_REQUESTS=F
+            VERSION=v0.0.0+${{ github.sha }}
+          target: production
+          push: true
+          tags: ghcr.io/${{ github.repository }}/${{ matrix.images.imageName }}:${{ github.sha }}
+
+  build-helm-package:
+    name: Build Helm chart
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.package.outputs.version }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Authenticate to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package
+        id: package
+        env:
+          IMAGES_TAG: ${{ github.sha }}
+          VERSION: "0.0.0+${{ github.sha }}"
+        run: |
+          task -v package-helm-chart
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Push
+        run: |
+          helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+
+  run-e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-22.04
+    needs: [ build-helm-package ]
+    permissions:
+      contents: write
+      id-token: write
+      packages: read
+      pull-requests: write
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: projects/${{ secrets.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch secrets
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          CURRENCYAPI_KEY: op://Development/GreenSTAR/currencyapi/api key
+          DESCOPE_PROJECT_ID: op://Development/GreenSTAR/descope/project_id
+          DESCOPE_MANAGEMENT_KEY_ID: op://Development/GreenSTAR/descope/management key id
+          DESCOPE_MANAGEMENT_KEY_TOKEN: op://Development/GreenSTAR/descope/management key token
+          DESCOPE_BACKEND_ACCESS_KEY_ID: op://Development/GreenSTAR/descope/backend access key id
+          DESCOPE_BACKEND_ACCESS_KEY_TOKEN: op://Development/GreenSTAR/descope/backend access key token
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Setup Environment
+        env:
+          CLUSTER_NAME: greenstar-ci-${{ github.run_id }}-${{ github.run_attempt }}
+          HELM_RELEASE_NAME: greenstar-ci-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          task -t Taskfile-env.yaml
+          while read LINE; do echo "${LINE}" >> $GITHUB_ENV; done < .env
+
+      - name: Setup DNS
+        run: task -v setup-domain-dns
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.x
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Setup dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps
+        working-directory: e2e
+
+      - name: Setup Cluster
+        id: setup-cluster
+        run: task -v setup-cluster
+
+      - name: Generate Helm values file
+        run: |
+          task -v generate-helm-values
+          yq -i ".frontend.extraEnv += [{\"name\": \"OTEL_SDK_DISABLED\",\"value\": \"true\"}]" ./hack/greenstar-values.yaml
+
+      - name: Authenticate to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install application
+        env:
+          HELM_PACKAGE_VERSION: ${{ needs.build-helm-package.outputs.version }}
+        run: |
+          helm install "${HELM_RELEASE_NAME}" \
+            oci://ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/${{ github.event.repository.name }} \
+            --version "${HELM_PACKAGE_VERSION}" \
+            --create-namespace --namespace="greenstar" \
+            --values deploy/local/chart-ci-values.yaml \
+            --values hack/greenstar-values.yaml
+
+      - name: Sanity
+        run: curl -i https://acme.app.greenstar.test/
+
+      - name: Find PR Comment
+        if: github.event_name == 'pull_request' && (success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure')
+        uses: peter-evans/find-comment@v3
+        id: pr_comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ github.token }}
+          body-includes: '[End-to-end tests report]'
+
+      - name: Create/update PR comment to In Progress
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ github.token }}
+          comment-id: ${{ steps.pr_comment.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            ${{ ':hourglass_flowing_sand:' }} [End-to-end tests report][1]
+            
+            [1]: https://static.kfirs.com/github/${{ github.repository }}/${{ github.event_name == 'push' && 'commit' || 'pr' }}/${{ github.event_name == 'push' && github.sha || github.ref_name }}/e2e/monocart-report/
+
+      - name: Run tests
+        id: test
+        run: npx playwright test
+        working-directory: e2e
+
+      - name: Export cluster
+        id: cluster-info
+        if: success() || steps.setup-cluster.outcome == 'failure' || steps.setup-cluster.outcome == 'success'
+        run: |
+          gcloud storage rm -r gs://arikkfir-static-website/github/${{ github.repository }}/${{ github.event_name == 'push' && 'commit' || 'pr' }}/${{ github.event_name == 'push' && github.sha || github.ref_name }}/debug || true
+          kubectl cluster-info dump --namespaces=ingress,observability,greenstar --output-directory=./debug
+
+      - name: Upload cluster dump
+        uses: google-github-actions/upload-cloud-storage@v2
+        if: success() || steps.cluster-info.outcome == 'success'
+        with:
+          process_gcloudignore: 'false'
+          path: ./debug
+          destination: arikkfir-static-website/github/${{ github.repository }}/${{ github.event_name == 'push' && 'commit' || 'pr' }}/${{ github.event_name == 'push' && github.sha || github.ref_name }}/
+
+      - name: Teardown
+        run: task teardown
+        if: success() || steps.setup-cluster.outcome == 'success' || steps.setup-cluster.outcome == 'failure'
+
+      - name: Upload commit test results
+        uses: google-github-actions/upload-cloud-storage@v2
+        if: success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure'
+        with:
+          process_gcloudignore: 'false'
+          path: ./e2e/monocart-report/
+          destination: arikkfir-static-website/github/${{ github.repository }}/${{ github.event_name == 'push' && 'commit' || 'pr' }}/${{ github.event_name == 'push' && github.sha || github.ref_name }}/e2e/
+
+      - name: Create commit comment
+        if: github.event_name == 'push' && (success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure')
+        uses: peter-evans/commit-comment@v3
+        with:
+          token: ${{ github.token }}
+          body: |
+            ${{ steps.test.outcome == 'success' && ':white_check_mark:' || ':x:' }} [End-to-end tests report][1]
+            
+            [1]: https://static.kfirs.com/github/${{ github.repository }}/${{ github.event_name == 'push' && 'commit' || 'pr' }}/${{ github.event_name == 'push' && github.sha || github.ref_name }}/e2e/monocart-report/
+
+      - name: Create/update PR comment with result
+        if: github.event_name == 'pull_request' && (success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure')
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ github.token }}
+          comment-id: ${{ steps.pr_comment.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            ${{ steps.test.outcome == 'success' && ':white_check_mark:' || ':x:' }} [End-to-end tests report][1]
+            
+            [1]: https://static.kfirs.com/github/${{ github.repository }}/${{ github.event_name == 'push' && 'commit' || 'pr' }}/${{ github.event_name == 'push' && github.sha || github.ref_name }}/e2e/monocart-report/

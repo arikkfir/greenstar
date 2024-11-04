@@ -5,7 +5,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/jackc/pgx/v5"
+	"go.opentelemetry.io/otel/trace"
 	"io"
 	"log/slog"
 	"net/http"
@@ -49,6 +51,9 @@ var (
 )
 
 func (m *exchangeRatesManagerImpl) PopulateCurrencies(ctx context.Context) error {
+	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
+	defer span.End()
+
 	slog.Default().InfoContext(ctx, "Updating system currencies")
 
 	staleCurrencies, err := m.fetchMissingOrStaleCurrencies(ctx)
@@ -127,6 +132,9 @@ func (m *exchangeRatesManagerImpl) PopulateCurrencies(ctx context.Context) error
 }
 
 func (m *exchangeRatesManagerImpl) fetchMissingOrStaleCurrencies(ctx context.Context) ([]string, error) {
+	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
+	defer span.End()
+
 	// Start with all supported currencies, assuming all are stale (to ensure we fetch missing ones...)
 	currencies := make(map[string]time.Time)
 	for _, supportedCurrency := range SupportedCurrencies {

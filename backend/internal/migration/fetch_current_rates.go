@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
+	"go.opentelemetry.io/otel/trace"
 	"io"
 	"log/slog"
 	"net/http"
@@ -22,6 +24,9 @@ var (
 )
 
 func (m *exchangeRatesManagerImpl) UpdateExchangeRatesForToday(ctx context.Context) error {
+	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
+	defer span.End()
+
 	slog.Default().DebugContext(ctx, "Updating today's exchange rates")
 
 	// Fetch currencies
@@ -51,6 +56,9 @@ func (m *exchangeRatesManagerImpl) UpdateExchangeRatesForToday(ctx context.Conte
 }
 
 func (m *exchangeRatesManagerImpl) fetchTodayExchangeRatesForCurrency(ctx context.Context, currencyCode string, currencies []string) error {
+	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
+	defer span.End()
+
 	tx, err := m.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("failed creating transaction: %w", err)

@@ -12,32 +12,48 @@
               <option name="patterns">
                 <list>
                   <Item>
-                    <option name="path" value=".github/workflows/on-branch-deletion.yml" />
-                  </Item>
-                  <Item>
-                    <option name="path" value=".github/workflows/on-push-to-branch.yml" />
-                  </Item>
-                  <Item>
-                    <option name="path" value=".github/workflows/on-release-tag.yml" />
-                  </Item>
-                  <Item>
-                    <option name="path" value=".github/workflows/verify.yml" />
+                    <option name="pattern" value="true" />
+                    <option name="path" value=".github/workflows/*.yaml" />
+                    <option name="mappingKind" value="Pattern" />
                   </Item>
                 </list>
               </option>
             </SchemaInfo>
           </value>
         </entry>
-        <entry key="skaffold.yaml">
+        <entry key="Skaffold">
           <value>
             <SchemaInfo>
-              <option name="name" value="skaffold.yaml" />
-              <option name="relativePathToSchema" value="https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v4beta5.json" />
-              <option name="applicationDefined" value="true" />
+              <option name="generatedName" value="New Schema" />
+              <option name="name" value="Skaffold" />
+              <option name="relativePathToSchema" value="https://raw.githubusercontent.com/GoogleContainerTools/skaffold/main/docs-v2/content/en/schemas/v3.json" />
               <option name="patterns">
                 <list>
                   <Item>
                     <option name="path" value="skaffold.yaml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+        <entry key="Taskfile config">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="Taskfile config" />
+              <option name="relativePathToSchema" value="https://taskfile.dev/schema.json" />
+              <option name="applicationDefined" value="true" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="pattern" value="true" />
+                    <option name="path" value="Taskfile-*.yaml" />
+                    <option name="mappingKind" value="Pattern" />
+                  </Item>
+                  <Item>
+                    <option name="pattern" value="true" />
+                    <option name="path" value="Taskfile.yaml" />
+                    <option name="mappingKind" value="Pattern" />
                   </Item>
                 </list>
               </option>

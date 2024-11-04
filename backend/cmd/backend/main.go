@@ -15,7 +15,6 @@ import (
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
 	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/descope/go-sdk/descope/client"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log/slog"
 	"net"
 	"net/http"
@@ -28,7 +27,8 @@ import (
 )
 
 type ServerConfig struct {
-	ServerPort                      int           `required:"true"`
+	ServerPort                      int           `flag:"true"`
+	HealthPort                      int           `flag:"true"`
 	HTTPAccessLogSuccessfulRequests bool          `flag:"true"`
 	HTTPAccessLogExcludedHeaders    []string      `flag:"true"`
 	HTTPAccessLogExcludeRemoteAddr  bool          `flag:"true"`
@@ -41,9 +41,8 @@ type ServerConfig struct {
 }
 
 type Action struct {
-	Descope       auth.DescopeConfig
-	Observability observability.Config
-	Server        ServerConfig
+	Descope auth.DescopeConfig
+	Server  ServerConfig
 }
 
 func (e *Action) Run(ctx context.Context) error {
@@ -77,13 +76,12 @@ func (e *Action) Run(ctx context.Context) error {
 	if err := appServer.Register(mux); err != nil {
 		return err
 	}
-	appHTTPServer := e.newServer(e.Server.HTTPAccessLogSuccessfulRequests, descopeClient, mux)
+	appHTTPServer := e.newServer(ctx, e.Server.HTTPAccessLogSuccessfulRequests, descopeClient, mux)
 
 	// All HTTP servers to start
 	servers := map[string]*http.Server{
-		"health":  e.newHealthCheckServer(),
-		"metrics": e.newMetricsHTTPServer(),
-		"api":     appHTTPServer,
+		"health": e.newHealthCheckServer(),
+		"api":    appHTTPServer,
 	}
 
 	// Start the servers
@@ -124,21 +122,14 @@ func (e *Action) startHTTPServer(ctx context.Context, stopChan chan string, errC
 
 func (e *Action) newHealthCheckServer() *http.Server {
 	return &http.Server{
-		Addr: ":" + strconv.Itoa(e.Observability.HealthPort),
+		Addr: ":" + strconv.Itoa(e.Server.HealthPort),
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNoContent)
 		}),
 	}
 }
 
-func (e *Action) newMetricsHTTPServer() *http.Server {
-	return &http.Server{
-		Addr:    ":" + strconv.Itoa(e.Observability.MetricsPort),
-		Handler: promhttp.Handler(),
-	}
-}
-
-func (e *Action) newServer(logSuccessfulRequests bool, descopeClient *client.DescopeClient, routes http.Handler) *http.Server {
+func (e *Action) newServer(ctx context.Context, logSuccessfulRequests bool, descopeClient *client.DescopeClient, routes http.Handler) *http.Server {
 
 	// Define global mux
 	mux := http.NewServeMux()
@@ -148,11 +139,11 @@ func (e *Action) newServer(logSuccessfulRequests bool, descopeClient *client.Des
 				middleware.RequestIDMiddleware(
 					middleware.AccessLogMiddleware(logSuccessfulRequests, e.Server.HTTPAccessLogExcludeRemoteAddr, e.Server.HTTPAccessLogExcludedHeaders,
 						middleware.CORSMiddleware(e.Server.HTTPAllowedOrigins, e.Server.HTTPAllowMethods, e.Server.HTTPAllowHeaders, e.Server.HTTPDisableCredentials, e.Server.HTTPExposeHeaders, e.Server.HTTPMaxAge,
-							auth.WithSDKMiddleware(descopeClient,
+							middleware.TraceMiddleware(auth.WithSDKMiddleware(descopeClient,
 								auth.AuthenticationMiddleware(
 									routes,
 								),
-							),
+							)),
 						),
 					),
 				),
@@ -163,7 +154,7 @@ func (e *Action) newServer(logSuccessfulRequests bool, descopeClient *client.Des
 	return &http.Server{
 		Addr: ":" + strconv.Itoa(e.Server.ServerPort),
 		BaseContext: func(listener net.Listener) context.Context {
-			return util.ContextWithLogger(context.Background(), slog.Default())
+			return util.ContextWithLogger(ctx, slog.Default())
 		},
 		Handler: mux,
 	}
@@ -188,12 +179,9 @@ This is the backend server for the GreenSTAR application.`,
 			Descope: auth.DescopeConfig{
 				DescopeLogLevel: "none",
 			},
-			Observability: observability.Config{
-				HealthPort:  9000,
-				MetricsPort: 8000,
-			},
 			Server: ServerConfig{
 				ServerPort:       8080,
+				HealthPort:       9000,
 				HTTPAllowHeaders: []string{"accept", "x-greenstar-tenant-id", "authorization", "content-type"},
 				HTTPMaxAge:       defaultMaxAge,
 			},

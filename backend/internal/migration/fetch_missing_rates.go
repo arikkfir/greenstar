@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/shopspring/decimal"
+	"go.opentelemetry.io/otel/trace"
 	"io"
 	"log/slog"
 	"net/http"
@@ -29,6 +31,9 @@ type missingRate struct {
 }
 
 func (m *exchangeRatesManagerImpl) PopulateMissingExchangeRates(ctx context.Context) error {
+	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
+	defer span.End()
+
 	slog.Default().InfoContext(ctx, "Searching for missing historical exchange rates based on existing transactions")
 
 	rows, err := m.pool.Query(ctx, fetchMissingRatesSQL)
@@ -60,6 +65,9 @@ func (m *exchangeRatesManagerImpl) PopulateMissingExchangeRates(ctx context.Cont
 }
 
 func (m *exchangeRatesManagerImpl) fetchExchangeRates(ctx context.Context, r missingRate) error {
+	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
+	defer span.End()
+
 	m.tokens.AcquireToken()
 
 	query := url.Values{}

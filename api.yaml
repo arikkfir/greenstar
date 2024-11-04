@@ -4,7 +4,7 @@ metadata:
   displayName: GreenSTAR public API
   description: |-
     Public APIs used in the GreenSTAR Personal Accountant applications.
-  server: https://api.greenstar.local
+  server: https://api.greenstar.test
   version: 0.0.0+local
 models:
   Tenant:

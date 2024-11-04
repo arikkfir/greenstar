@@ -84,6 +84,9 @@ spec:
   activeDeadlineSeconds: 1200
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
       labels:
         {{- include "greenstar.commonLabels" . | nindent 8 }}
         app.kubernetes.io/component: {{ $componentName | quote }}
@@ -97,6 +100,14 @@ spec:
             {{- toYaml .Values.initJob.extraArgs | nindent 12 }}
           {{- end }}
           env:
+            - name: LOG_LEVEL
+              value: {{ .Values.observability.logging.level | default "info" | quote }}
+            {{- if eq .Values.observability.logging.format "text" }}
+            - name: DISABLE_JSON_LOGGING
+              value: "T"
+            {{- end }}
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/etc/gcp-oidc/credential-configuration.json"
             - name: CURRENCY_API_KEY
               value: {{ .Values.currencyAPI.key | quote }}
             - name: DESCOPE_PROJECT_ID
@@ -131,10 +142,13 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-          {{- if not (empty .Values.initJob.extraEnv) }}
+            {{- if not (empty .Values.initJob.extraEnv) }}
             {{- toYaml .Values.initJob.extraEnv | nindent 12 }}
-          {{- end }}
+            {{- end }}
           name: {{ $componentName | quote }}
+          ports:
+            - containerPort: 8000
+              name: metrics
           resources:
             limits:
               cpu: {{ .Values.initJob.resources.limits.cpu | default "500m" | quote }}
@@ -142,13 +156,28 @@ spec:
             requests:
               cpu: {{ .Values.initJob.resources.requests.cpu | default "100m" | quote }}
               memory: {{ .Values.initJob.resources.requests.memory | default "128Mi" | quote }}
-          {{- if not (empty .Values.initJob.volumeMounts) }}
           volumeMounts:
+            {{- if not (empty .Values.initJob.volumeMounts) }}
             {{- toYaml .Values.initJob.volumeMounts | nindent 12 }}
-          {{- end }}
+            {{- end }}
+            - name: token
+              mountPath: "/var/run/service-account"
+              readOnly: true
+            - name: gcp-oidc
+              mountPath: "/etc/gcp-oidc"
+              readOnly: true
       enableServiceLinks: false
       serviceAccountName: {{ $serviceAccountName | quote }}
-      {{- if not (empty .Values.initJob.volumes) }}
       volumes:
+        {{- if not (empty .Values.initJob.volumes) }}
         {{- toYaml .Values.initJob.volumes | nindent 8 }}
-      {{- end }}
+        {{- end }}
+        - name: token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: {{ required "GCP OIDC audience is required" .Values.oidc.gcp.audience | quote }}
+                  path: token
+        - name: gcp-oidc
+          configMap:
+            name: gcp-oidc

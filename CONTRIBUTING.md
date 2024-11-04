@@ -5,64 +5,59 @@ Hi there! We're thrilled that you'd like to contribute to this project. Your hel
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in
 this project you agree to abide by its terms.
 
-## Setup
-
-### TL;DR:
-
-```shell
-$ make setup-local-dns
-$ make setup-local-cluster
-```
-
-Optional:
-
-```shell
-$ echo "export JAVA_TOOL_OPTIONS=\"-Djavax.net.ssl.trustStoreType=KeychainStore\"" > ~/.oh-my-zsh/custom/greenstar-openjdk.zsh
-$ brew tap raggi/ale && brew install openssl-osx-ca && brew services start openssl-osx-ca
-```
-
-To delete the cluster:
-
-```shell
-$ make teardown-local-cluster
-```
+## Setup your workstation
 
 > [!NOTE]
 > Currently, macOS is the only supported development platform. We expect Linux support to come soon.
 
+### TL;DR:
+
+```shell
+$ brew install go-task              # Ensure you have the "task" CLI
+$ task -t Taskfile-env.yaml         # Generate a ".env" file
+$ task setup-domain-dns             # Setup your local DNS to resolve *.greenstar.test to 127.0.0.1
+$ task setup-cluster                # Create a local `kind` cluster with HTTP server & observability
+$ task setup-observability          # Deploy observability tools such as Jaeger, Prometheus and Grafana
+```
+
 > [!IMPORTANT]
-> The `setup-local-dns` target invokes `sudo` to set up the local DNS resolving - therefore, you might get some password
-> prompts during invocation. The commands that use `sudo` can be found in the `Makefile` for review.
-> The reason for using `sudo` is that some DNS changes require elevated permissions, such as:
-> - `brew services restart dnsmasq` to restart `dnsmasq` after configuring it
-> - Placing a file in `/etc/resolver/greenstar.local` to direct macOS to use `dnsmasq` when resolving `greenstar.local`
+> The `setup-domain-dns` target invokes `sudo` to set up the local DNS resolving - therefore, you might get some
+> password prompts during invocation. The commands that use `sudo` can be found in the `Taskfile` for review.
 
-### What does `setup-local-dns` do?
+### Teardown
 
-The `setup-local-dns` will enable resolving the `*.greenstar.local` DNS entries in your workstation. You can think of it
+To delete your local `kind` cluster run the following:
+
+```shell
+$ task teardown
+```
+
+### What does `setup-domain-dns` do?
+
+The `setup-domain-dns` will enable resolving the `*.greenstar.test` DNS entries in your workstation. You can think of it
 as an alias to `localhost`, with the only difference that you can generate TLS certificates for it. In fact, the setup
-does exactly that as part of the `setup-local-cluster` and installs these certificates in the local cluster's Ingress
+does exactly that as part of the `setup-cluster` and installs these certificates in the local cluster's Ingress
 controller (Traefik).
 
-This way, you will be able to use https://acme.app.greenstar.local (note the use of `HTTPS` protocol!) without getting
+This way, you will be able to use https://acme.app.greenstar.test (note the use of `HTTPS` protocol!) without getting
 any prompts from the browser about bad or missing certificates. In other words, full TLS development right here in your
 workstation!
 
 #### Self-signed certificates & macOS
 
 Some tools do not use macOS's native key-chain of trusted certificates, and thus fail when trying to connect via TLS to
-the `greenstar.local` domain. This can usually be fixed for common platforms - here are a few:
+the `greenstar.test` domain. This can usually be fixed for common platforms - here are a few:
 
 ##### OpenJDK
 
 To make OpenJDK use the native macOS key-chain trust store:
 
 ```shell
-export JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStoreType=KeychainStore"
+$ export JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStoreType=KeychainStore"
 ```
 
 This, of course, will only apply to the shell session you run it in. You can add this to your `zsh` or `bash` startup
-scripts so it gets executed for every session.
+scripts (e.g. `.bashrc`, `.zshrc`, etc.) so it gets executed for every session.
 
 See details
 here: https://stackoverflow.com/questions/14280578/how-to-set-up-java-vm-to-use-the-root-certificates-truststore-handled-by-mac-o
@@ -72,7 +67,7 @@ here: https://stackoverflow.com/questions/14280578/how-to-set-up-java-vm-to-use-
 The Homebrew-installed version of OpenSSL **does not** use macOS's Keychain Certificates, which means that it will not
 consider the certificates returned as valid.
 
-To make it use the native macOS key-chain trust store:
+To make it use the native macOS keychain trust store:
 
 ```shell
 $ brew tap raggi/ale
@@ -82,32 +77,31 @@ $ brew services start openssl-osx-ca
 
 See details here: https://akrabat.com/syncing-macos-keychain-certificates-with-homebrews-openssl/
 
-### What does `setup-local-cluster` do?
+### What does `setup-cluster` do?
 
 This target sets up a local Kubernetes cluster using `kind`, and installs the following components in it:
 
 - Kubernetes Gateway API CRDs
 - Traefik Ingress Controller & Gateway API implementation
-- Metrics Server
-- Open Telemetry DaemonSet and Deployment
-- Prometheus server
-- Certificate Manager (`cert-manager`)
-- Jaeger server
-- Grafana
-
-Once this target finishes, you can use your familiar `kubectl` to interact with the cluster, as well as deploy the
-application into it (the Makefile has targets for that, see below).
+- Observability stack:
+    - Metrics Server
+    - Kube State Metrics
+    - Node Exporter
+    - Prometheus
+    - Alertmanager
+    - Jaeger Server
+    - Grafana
 
 ## Developing
 
-Once a local `kind` cluster has been created, the easiest way to get up & running is using Skaffold to (continuously)
+Once a local cluster has been created, the easiest way to get up & running is using Skaffold to (continuously)
 deploy the Helm chart into the cluster. Skaffold will keep the deployed chart updated with any code changes you make
 automatically, and can be run from the CLI, or from the VSCode/JetBrains IDEs (easier).
 
 To run it from the CLI, simply run:
 
 ```shell
-$ make dev
+$ task dev
 ```
 
 This will keep running in the shell foreground, and redeploy whenever you make changes to your source code. To stop,
@@ -116,13 +110,13 @@ just press CTRL+C and it will undeploy and stop.
 If, however, you prefer to perform a one-off deployment without the Skaffold development loop, use this instead:
 
 ```shell
-$ make deploy
+$ task deploy
 ```
 
 To remove it, use this:
 
 ```shell
-$ make undeploy
+$ task undeploy
 ```
 
 ## Issues and PRs

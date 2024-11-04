@@ -72,6 +72,16 @@ spec:
             {{- toYaml .Values.backend.extraArgs | nindent 12 }}
           {{- end }}
           env:
+            - name: LOG_LEVEL
+              value: {{ .Values.observability.logging.level | default "info" | quote }}
+            {{- if eq .Values.observability.logging.format "text" }}
+            - name: DISABLE_JSON_LOGGING
+              value: "T"
+            {{- end }}
+            - name: HEALTH_PORT
+              value: "9000"
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: "/etc/gcp-oidc/credential-configuration.json"
             - name: DESCOPE_PROJECT_ID
               value: {{ .Values.descope.project.id | quote }}
             - name: DESCOPE_MANAGEMENT_KEY_TOKEN
@@ -104,9 +114,9 @@ spec:
               value: "x-request-id,authorization"
             - name: HTTP_ALLOW_METHODS
               value: "POST,GET,PATCH,PUT,DELETE"
-          {{- if not (empty .Values.backend.extraEnv) }}
+            {{- if not (empty .Values.backend.extraEnv) }}
             {{- toYaml .Values.backend.extraEnv | nindent 12 }}
-          {{- end }}
+            {{- end }}
           name: {{ $componentName | quote }}
           ports:
             - containerPort: 8080
@@ -147,16 +157,31 @@ spec:
             failureThreshold: 3
             timeoutSeconds: 1
             terminationGracePeriodSeconds: 60
-          {{- if not (empty .Values.backend.volumeMounts) }}
           volumeMounts:
+            {{- if not (empty .Values.backend.volumeMounts) }}
             {{- toYaml .Values.backend.volumeMounts | nindent 12 }}
-          {{- end }}
+            {{- end }}
+            - name: token
+              mountPath: "/var/run/service-account"
+              readOnly: true
+            - name: gcp-oidc
+              mountPath: "/etc/gcp-oidc"
+              readOnly: true
       enableServiceLinks: false
       serviceAccountName: {{ $serviceAccountName | quote }}
-      {{- if not (empty .Values.backend.volumes) }}
       volumes:
+        {{- if not (empty .Values.backend.volumes) }}
         {{- toYaml .Values.backend.volumes | nindent 8 }}
-      {{- end }}
+        {{- end }}
+        - name: token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  audience: {{ required "GCP OIDC audience is required" .Values.oidc.gcp.audience | quote }}
+                  path: token
+        - name: gcp-oidc
+          configMap:
+            name: gcp-oidc
 {{- if .Values.backend.ingress.enabled }}
 ---
 apiVersion: gateway.networking.k8s.io/v1

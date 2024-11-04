@@ -11,11 +11,12 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
+	trace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"os"
-	"strconv"
+	ttt "go.opentelemetry.io/otel/trace"
 )
+
+var Tracer ttt.Tracer
 
 type OTelHook struct {
 	ServiceName string
@@ -23,14 +24,6 @@ type OTelHook struct {
 }
 
 func (h *OTelHook) PreRun(ctx context.Context) error {
-	if disableOtelSdkEnvValue, ok := os.LookupEnv("OTEL_SDK_DISABLED"); ok {
-		if disable, err := strconv.ParseBool(disableOtelSdkEnvValue); err != nil {
-			return errors.New(fmt.Sprintf("failed to parse OTEL_SDK_DISABLED value: %s", disableOtelSdkEnvValue))
-		} else if disable {
-			return nil
-		}
-	}
-
 	var cleanups []func(context.Context) error
 
 	// shutdown calls cleanup functions registered via cleanups.
@@ -59,6 +52,8 @@ func (h *OTelHook) PreRun(ctx context.Context) error {
 		return errors.Join(err, shutdown(ctx))
 	} else {
 		traceProvider := trace.NewTracerProvider(trace.WithResource(res), trace.WithBatcher(traceExporter, trace.WithBlocking()))
+		Tracer = traceProvider.Tracer("github.com/arikkfir/greenstar/backend")
+		cleanups = append(cleanups, func(_ context.Context) error { Tracer = nil; return nil })
 		cleanups = append(cleanups, traceProvider.Shutdown)
 		otel.SetTracerProvider(traceProvider)
 	}

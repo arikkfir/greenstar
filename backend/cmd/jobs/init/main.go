@@ -14,6 +14,7 @@ import (
 	"github.com/arikkfir/greenstar/backend/internal/util/db"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
 	"github.com/arikkfir/greenstar/backend/internal/util/observability"
+	"go.opentelemetry.io/otel/trace"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -35,6 +36,9 @@ type Action struct {
 }
 
 func (e *Action) Run(ctx context.Context) error {
+	ctx, span := observability.NamedTrace(ctx, "InitJob:Run", trace.SpanKindInternal)
+	defer span.End()
+
 	var err error
 
 	ctx = util.ContextWithLogger(ctx, slog.Default())

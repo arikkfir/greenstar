@@ -10,7 +10,6 @@ import {LocaleProvider} from "./providers/LocaleProvider.tsx";
 import {UserProfilePage} from "./pages/UserProfilePage.tsx";
 import {Descope, useSession, useUser} from "@descope/react-sdk";
 import {SpinnerBlock} from "./components/SpinnerBlock.tsx";
-import {ThemeOptions} from "@descope/web-component";
 
 function WithTheme({children}: any) {
     const theme = useMemo(() => createTheme({
@@ -84,14 +83,15 @@ export function App() {
     }
 
     if (!isAuthenticated) {
-        let descopeTheme: ThemeOptions = "os"
-        if (mode === "dark") {
-            descopeTheme = mode
-        } else if (mode === "light") {
-            descopeTheme = mode
+        let descopeOpts: any = {
+            flowId: "custom-sign-in",
+            tenant: tenantID,
+        }
+        if (mode === "dark" || mode === "light") {
+            descopeOpts.theme = mode
         }
         return (
-            <Descope flowId="custom-sign-in" tenant={tenantID} theme={descopeTheme}/>
+            <Descope {...descopeOpts}/>
         );
     }
 

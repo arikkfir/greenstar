@@ -1,0 +1,320 @@
+version: 3
+output: prefixed
+
+dotenv:
+  - .env
+
+run: once
+
+includes:
+  toolchain:
+    internal: true
+    optional: false
+    taskfile: build/Taskfile-toolchain.yaml
+
+set:
+  - x
+
+silent: true
+
+tasks:
+
+  setup-domain-dns: { deps: [ toolchain:setup-domain-dns ] }
+
+  generate-certificates:
+    deps: [ toolchain:mkcert ]
+    cmds:
+      - mkcert -cert-file deploy/local/wildcard-tls.crt -key-file deploy/local/wildcard-tls.key "${DOMAIN}" "*.app.${DOMAIN}" "*.${DOMAIN}" "localhost" "127.0.0.1" "::1"
+      - defer: rm -fv deploy/local/wildcard-tls.crt deploy/local/wildcard-tls.key
+      - kubectl create secret tls wildcard-tls --cert=deploy/local/wildcard-tls.crt --key=deploy/local/wildcard-tls.key --dry-run=client --output=yaml > deploy/local/wildcard-tls-secret.yaml
+    status:
+      - test -f deploy/local/wildcard-tls-secret.yaml
+
+  setup-gcp-workload-identity-pool:
+    deps: [ toolchain:gcloud ]
+    cmds:
+      - gcloud iam workload-identity-pools create greenstar --project="${GCP_PROJECT_ID}" --location=global --description=GreenSTAR --display-name=GreenSTAR
+    preconditions:
+      - test -n "${GCP_PROJECT_ID}"
+    status:
+      - gcloud iam workload-identity-pools describe greenstar --quiet --location=global
+
+  setup-gcp-static-bucket-cors:
+    deps: [ toolchain:gcloud ]
+    env:
+      CORS: "[{\"origin\": [\"*\"], \"method\": [\"GET\"], \"maxAgeSeconds\": 3600}]"
+    cmds:
+      - echo "${CORS}" > cors.json
+      - defer: rm -f cors.json
+      - gcloud storage buckets update gs://arikkfir-static-website --cors-file=cors.json
+    status:
+      - |
+        gcloud storage buckets describe gs://arikkfir-static-website --format=yaml | yq --exit-status '
+          .cors_config | select( 
+            length == 1 and 
+            .[0].maxAgeSeconds == "3600" and
+            (.[0].method | length) == 1 and .[0].method[0] == "GET" and
+            (.[0].origin | length) == 1 and .[0].origin[0] == "*"
+          )
+        '
+
+  setup-gcp-greenstar-bucket-iam:
+    deps: [ toolchain:gcloud ]
+    env:
+      ROLE: "roles/storage.objectViewer"
+    cmds:
+      - gcloud storage buckets add-iam-policy-binding "gs://arikkfir-greenstar" --role="${ROLE}" --member="${INITJOB_KSA_GCP_PRINCIPAL}"
+    status:
+      - gcloud storage buckets get-iam-policy "gs://arikkfir-greenstar" --format=yaml | yq --exit-status "[.bindings[] | select(.role == \"${ROLE}\" and (.members[] | select(. == \"${INITJOB_KSA_GCP_PRINCIPAL}\") | length) > 0)] | length > 0"
+
+  teardown-gcp-static-bucket-iam:
+    deps: [ toolchain:gcloud ]
+    env:
+      ROLE: "roles/storage.objectViewer"
+    cmds:
+      - gcloud storage buckets remove-iam-policy-binding "gs://arikkfir-greenstar" --role="${ROLE}" --member="${INITJOB_KSA_GCP_PRINCIPAL}" --all
+    status:
+      - gcloud storage buckets get-iam-policy "gs://arikkfir-greenstar" --format=yaml | yq --exit-status "[.bindings[] | select(.role == \"${ROLE}\" and (.members[] | select(. == \"${INITJOB_KSA_GCP_PRINCIPAL}\") | length) > 0)] | length == 0"
+
+  create-cluster:
+    deps: [ toolchain:kind, setup-gcp-static-bucket-cors, setup-gcp-greenstar-bucket-iam ]
+    cmds:
+      - kind create cluster --name "${CLUSTER_NAME}" --config=deploy/local/kind-cluster-config.yaml --wait "1m"
+    status:
+      - kind get clusters -q | grep -E "^${CLUSTER_NAME}\$"
+
+  teardown-cluster:
+    deps: [ toolchain:kind ]
+    cmds:
+      - kind delete cluster --name "${CLUSTER_NAME}"
+    status:
+      - test "$(kind get clusters --quiet 2>/dev/null | grep -E "^${CLUSTER_NAME}\$"| wc -l | sed 's/^[ \t]*//')" = "0"
+
+  setup-gcp-workload-identity-pool-provider:
+    deps: [ setup-gcp-workload-identity-pool, create-cluster ]
+    env:
+      GCP_OIDC_PROVIDER_CMD: "create-oidc"
+      JWKS_FILE:
+        sh: mktemp /tmp/cluster-jwks.XXX
+    cmds:
+      - kubectl get --raw /openid/v1/jwks > "${JWKS_FILE}"
+      - defer: rm -fv "${JWKS_FILE}"
+      - |
+        if gcloud iam workload-identity-pools providers describe "${CLUSTER_NAME}" --quiet --location=global --workload-identity-pool=greenstar; then
+          export GCP_OIDC_PROVIDER_CMD="update-oidc"
+        fi
+        gcloud iam workload-identity-pools providers "${GCP_OIDC_PROVIDER_CMD}" "${CLUSTER_NAME}" --quiet \
+          --location=global --workload-identity-pool=greenstar \
+          --issuer-uri="https://kubernetes.default.svc.cluster.local" \
+          --attribute-mapping="google.subject=assertion.sub,attribute.namespace=assertion['kubernetes.io']['namespace'],attribute.service_account_name=assertion['kubernetes.io']['serviceaccount']['name'],attribute.pod=assertion['kubernetes.io']['pod']['name']" \
+          --attribute-condition="assertion['kubernetes.io']['namespace'] in ['greenstar']" \
+          --jwk-json-path="${JWKS_FILE}"
+        gcloud iam workload-identity-pools create-cred-config "${GCP_OIDC_PROVIDER_NAME}" \
+          --credential-source-file=/var/run/service-account/token \
+          --credential-source-type=text \
+          --output-file=hack/gcp-credential-configuration.json
+    status:
+      - test "$(kubectl get --raw /openid/v1/jwks)" = "$(gcloud iam workload-identity-pools providers describe "${CLUSTER_NAME}" --format='value(oidc.jwksJson)' --quiet --location=global --workload-identity-pool=greenstar)"
+      - test -f hack/gcp-credential-configuration.json
+
+  teardown-gcp-workload-identity-pool-provider:
+    cmds:
+      - silent: true
+        cmd: |
+          gcloud iam workload-identity-pools providers delete "${CLUSTER_NAME}" --quiet --location=global --workload-identity-pool=greenstar
+    status:
+      # Only deleting provider in CI because it never reuses the same provider name
+      # DETAILS: Workload Identity Pools provider names are reserved even after deletion for 30 days; thus deleting
+      #          would prevent that name from being used for 30 days - not good for names that are meant for reuse such
+      #          as local developer workstation name.
+      - test -z "${CI}" || test -z $(gcloud iam workload-identity-pools providers describe ${CLUSTER_NAME} --quiet --location=global --workload-identity-pool=greenstar --format='value(name)')
+
+  install-gateway-api-crds:
+    deps: [ create-cluster ]
+    cmds:
+      - curl -sSL "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/experimental-install.yaml" | kubectl apply -f -
+    status:
+      - kubectl get crd | grep gateway.networking.k8s.io
+
+  install-traefik:
+    deps: [ install-gateway-api-crds ]
+    cmds:
+      - |
+        helm upgrade --install traefik traefik \
+          --repo "https://traefik.github.io/charts" --version="v${TRAEFIK_VERSION}" \
+          --create-namespace --namespace="ingress" \
+          -f deploy/local/traefik-values.yaml \
+          --wait
+    status:
+      - helm --namespace=ingress get metadata traefik
+
+  setup-gateway:
+    deps: [ install-traefik, generate-certificates ]
+    cmds:
+      - kubectl apply --namespace=ingress -f ./deploy/local/wildcard-tls-secret.yaml
+      - kubectl apply --namespace=ingress -f ./deploy/local/ingress-gateway.yaml
+    status:
+      - kubectl diff --namespace=ingress -f ./deploy/local/wildcard-tls-secret.yaml
+      - kubectl diff --namespace=ingress -f ./deploy/local/ingress-gateway.yaml
+
+  setup-observability:
+    deps: [ create-cluster ]
+    cmds:
+      - |
+        helm upgrade --install metrics-server metrics-server \
+          --repo https://kubernetes-sigs.github.io/metrics-server --version="v${METRICS_SERVER_VERSION}" \
+          --create-namespace --namespace=observability \
+          --set 'args={"--kubelet-insecure-tls"}' \
+          --wait
+        helm upgrade --install kube-prometheus-stack kube-prometheus-stack \
+          --repo=https://prometheus-community.github.io/helm-charts --version="v${KUBE_PROMETHEUS_STACK_VERSION}" \
+          --create-namespace --namespace=observability \
+          --set cleanPrometheusOperatorObjectNames=true \
+          -f deploy/local/kube-prometheus-stack-values.yaml \
+         --wait
+        kubectl apply --namespace=observability -f deploy/local/kube-prometheus-stack-routes.yaml
+        kubectl apply --namespace=observability -f deploy/local/jaeger-all-in-one.yaml
+    status:
+      - helm --namespace=observability get metadata metrics-server
+      - helm --namespace=observability get metadata kube-prometheus-stack
+      - kubectl diff --namespace=observability -f deploy/local/kube-prometheus-stack-routes.yaml
+      - kubectl diff --namespace=observability -f deploy/local/jaeger-all-in-one.yaml
+
+  setup-telepresence:
+    deps: [ create-cluster ]
+    cmds:
+      - |
+        telepresence helm install
+        telepresence uninstall --all-agents || true
+        telepresence quit --stop-daemons || true
+        telepresence connect --namespace=greenstar
+        # TODO: re-enable mounting once sshfs is set up
+        #telepresence intercept local-greenstar-backend --env-file backend/telepresence.env --mount false --port 8080:80 --workload local-greenstar-backend
+        #telepresence intercept local-greenstar-frontend --env-file frontend/telepresence.env --mount false --port 3000:80 --workload local-greenstar-frontend
+        #telepresence leave local-greenstar-backend || true
+        #telepresence leave local-greenstar-frontend || true
+    status:
+      - helm --namespace=ambassador get metadata traffic-manager
+      - test "$(telepresence status --output yaml|yq '.root_daemon.running')" = "true"
+      - test "$(telepresence status --output yaml|yq '.traffic_manager.traffic_agent != null')" = "true"
+      - test "$(telepresence status --output yaml|yq '.user_daemon.namespace')" = "greenstar"
+      - test "$(telepresence status --output yaml|yq '.user_daemon.running')" = "true"
+      - test "$(telepresence status --output yaml|yq '.user_daemon.status')" = "Connected"
+
+  setup-cluster:
+    cmds:
+      - task: setup-gcp-workload-identity-pool-provider
+      - task: setup-gateway
+
+  build-rest-client-generator:
+    cmds:
+      - go build -o bin/generate-rest-client ./scripts/generate-rest/cmd/client/main.go
+    sources:
+      - scripts/generate-rest/cmd/client/main.go
+      - scripts/generate-rest/internal/*.go
+      - exclude: scripts/generate-rest/internal/generate_server.go
+      - scripts/generate-rest/internal/templates/*.client.*
+    generates:
+      - bin/generate-rest-client
+
+  build-rest-server-generator:
+    cmds:
+      - go build -o bin/generate-rest-server ./scripts/generate-rest/cmd/server/main.go
+    sources:
+      - scripts/generate-rest/cmd/server/main.go
+      - scripts/generate-rest/internal/*.go
+      - exclude: scripts/generate-rest/internal/generate_client.go
+      - scripts/generate-rest/internal/templates/**
+      - exclude: scripts/generate-rest/internal/templates/*.client.*
+    generates:
+      - bin/generate-rest-server
+
+  generate-rest-clients:
+    deps: [ build-rest-client-generator ]
+    cmds:
+      - ./bin/generate-rest-client --api-file=api.yaml
+    sources:
+      - ./bin/generate-rest-client
+    generates:
+      - frontend/src/client/*.ts
+      - exclude: frontend/src/client/common.ts
+      - exclude: frontend/src/client/errors.ts
+
+  generate-rest-server:
+    deps: [ build-rest-server-generator ]
+    cmds:
+      - ./bin/generate-rest-server --api-file=api.yaml
+    sources:
+      - ./bin/generate-rest-server
+    generates:
+      - backend/internal/server/resources/*/*.go
+      - backend/internal/server/resources/openapi/openapi.yaml
+
+  generate-helm-values:
+    deps: [ setup-gcp-workload-identity-pool-provider ]
+    cmds:
+      - rm -f ./hack/greenstar-values.yaml
+      - touch ./hack/greenstar-values.yaml
+      - yq -i ".currencyAPI.key = \"${CURRENCYAPI_KEY}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.project.id = \"${DESCOPE_PROJECT_ID}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.managementKey.id = \"${DESCOPE_MANAGEMENT_KEY_ID}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.managementKey.key = \"${DESCOPE_MANAGEMENT_KEY_TOKEN}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.accessKey.id = \"${DESCOPE_BACKEND_ACCESS_KEY_ID}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.accessKey.key = \"${DESCOPE_BACKEND_ACCESS_KEY_TOKEN}\"" ./hack/greenstar-values.yaml
+      - yq -i ".oidc.gcp.audience = \"${GCP_OIDC_AUDIENCE}\"" ./hack/greenstar-values.yaml
+      - yq -i '.oidc.gcp.config = load_str("./hack/gcp-credential-configuration.json")' ./hack/greenstar-values.yaml
+    status:
+      - test -f "./hack/gcp-credential-configuration.json"
+      - test "$(yq ".currencyAPI.key" < ./hack/greenstar-values.yaml)" = "${CURRENCYAPI_KEY}"
+      - test "$(yq ".descope.project.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_PROJECT_ID}"
+      - test "$(yq ".descope.managementKey.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_MANAGEMENT_KEY_ID}"
+      - test "$(yq ".descope.managementKey.key" < ./hack/greenstar-values.yaml)" = "${DESCOPE_MANAGEMENT_KEY_TOKEN}"
+      - test "$(yq ".descope.accessKey.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_BACKEND_ACCESS_KEY_ID}"
+      - test "$(yq ".descope.accessKey.key" < ./hack/greenstar-values.yaml)" = "${DESCOPE_BACKEND_ACCESS_KEY_TOKEN}"
+      - test "$(yq ".oidc.gcp.audience" < ./hack/greenstar-values.yaml)" = "${GCP_OIDC_AUDIENCE}"
+      - test "$(yq ".oidc.gcp.config" < ./hack/greenstar-values.yaml)" = "$(cat "./hack/gcp-credential-configuration.json")"
+
+  deploy:
+    deps: [ generate-rest-server, setup-cluster ]
+    cmds:
+      - task: setup-observability
+      - task: generate-helm-values
+      - skaffold build -q > hack/skaffold-build.json
+      - skaffold deploy --load-images --build-artifacts hack/skaffold-build.json
+
+  undeploy:
+    cmds:
+      - skaffold delete
+
+  dev:
+    deps: [ generate-rest-server, setup-cluster ]
+    cmds:
+      - task: generate-helm-values
+      - skaffold dev --tail=false --toot=true
+
+  teardown:
+    deps: [ teardown-cluster, teardown-gcp-workload-identity-pool-provider, teardown-gcp-static-bucket-iam ]
+
+  package-helm-chart:
+    deps: [ toolchain:helm ]
+    cmds:
+      - yq -i ".initJob.image.tag = \"${IMAGES_TAG}\"" deploy/chart/values.yaml
+      - yq -i ".exchangeRatesCronJob.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
+      - yq -i ".backend.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
+      - yq -i ".frontend.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
+      - helm package ./deploy/chart --app-version "${VERSION}" --version "${VERSION}"
+    preconditions:
+      - test -n "${IMAGES_TAG}"
+      - test -n "${VERSION}"
+
+  test:
+    deps: [ toolchain:node ]
+    dir: e2e
+    cmds:
+      - npx playwright test --headed
+
+  test-report:
+    deps: [ toolchain:node ]
+    dir: e2e
+    cmds:
+      - npx playwright show-report
