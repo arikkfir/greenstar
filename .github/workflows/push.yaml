@@ -46,7 +46,7 @@ jobs:
       matrix:
         images:
           - { dir: backend, file: backend/Dockerfile.backend, name: backend, imageName: backend, target: production }
-          - { dir: backend, file: backend/Dockerfile.exchangeRatesJob, name: exchangeRatesJob, imageName: exchangeratesbob, target: production }
+          - { dir: backend, file: backend/Dockerfile.exchangeRatesJob, name: exchangeRatesJob, imageName: exchangeratesjob, target: production }
           - { dir: backend, file: backend/Dockerfile.initJob, name: initJob, imageName: initjob, target: production }
           - { dir: frontend, file: frontend/Dockerfile.frontend, name: frontend, imageName: frontend, target: production }
       fail-fast: false

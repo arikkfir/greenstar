@@ -1,0 +1,154 @@
+name: End-to-end Testing
+
+on:
+  push:
+    branches:
+      - '*'
+
+defaults:
+  run:
+    shell: bash -exuo pipefail {0}
+
+jobs:
+
+  test:
+    name: End-to-End Tests
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: static-website
+      cancel-in-progress: false
+    environment:
+      name: static-website
+      url: https://static.kfirs.com/github/${{ github.repository }}/${{ github.ref_name }}
+    env:
+      DOMAIN: greenstar.local
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup workspace
+        run: |
+          mkdir -p ./hack # TODO: do we still need this?
+          
+          # Prerequisite tools
+          sudo apt-get update && sudo apt-get install -y dnsmasq libnss3-tools
+          sudo curl -sSLo /usr/local/bin/mkcert https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-amd64 && sudo chmod +x /usr/local/bin/mkcert
+          sudo curl -sSLo /usr/local/bin/kind https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64 && sudo chmod +x /usr/local/bin/kind
+          
+          # Install and setup dnsmasq
+          printf "address=/.${DOMAIN}/127.0.0.1" | sudo tee "/etc/dnsmasq.d/${DOMAIN}.conf"
+          echo 'conf-dir=/etc/dnsmasq.d/,*.conf' | sudo tee -a '/etc/dnsmasq.conf'
+          echo "port=5353" | sudo tee -a /etc/dnsmasq.conf
+          sudo systemctl restart dnsmasq
+          dig @127.0.0.1 -p 5353 "test.app.${DOMAIN}"
+          
+          # Configure systemd-resolved to use dnsmasq
+          echo "DNS=127.0.0.1:5353 8.8.8.8#dns.google 8.8.4.4#dns.google 2001:4860:4860::8888#dns.google 2001:4860:4860::8844#dns.google" | sudo tee -a /etc/systemd/resolved.conf
+          sudo systemctl daemon-reload
+          sudo systemctl restart systemd-networkd
+          sudo systemctl restart systemd-resolved
+          
+          # Test
+          dig "test.app.${DOMAIN}"
+          dig "api.${DOMAIN}"
+          
+          # Setup local CA
+          mkcert -install
+          cat "$(mkcert -CAROOT)/rootCA.pem" | sudo tee -a /etc/ssl/certs/ca-certificates.crt
+
+      - name: Fetch secrets
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          CURRENCYAPI_KEY: op://Development/GreenSTAR/currencyapi/api key
+          DESCOPE_PROJECT_ID: op://Development/GreenSTAR/descope/project_id
+          DESCOPE_MANAGEMENT_KEY_ID: op://Development/GreenSTAR/descope/management key id
+          DESCOPE_MANAGEMENT_KEY_TOKEN: op://Development/GreenSTAR/descope/management key token
+          DESCOPE_BACKEND_ACCESS_KEY_ID: op://Development/GreenSTAR/descope/backend access key id
+          DESCOPE_BACKEND_ACCESS_KEY_TOKEN: op://Development/GreenSTAR/descope/backend access key token
+          GCP_PROJECT_ID: op://Development/svqt5cqgeu77j4f72bxdwelw4m/actions/gcp-project-id
+          GCP_PROJECT_NUMBER: op://Development/svqt5cqgeu77j4f72bxdwelw4m/actions/gcp-project-number
+          NEWRELIC_LICENSE_KEY: op://Development/Newrelic/license keys/key1
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.x
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Setup E2E dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps
+        working-directory: e2e
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Setup cluster
+        id: setup-local-cluster
+        run: |
+          make setup-local-cluster
+          helm install newrelic-bundle nri-bundle \
+            --repo "https://helm-charts.newrelic.com" \
+            --create-namespace \
+            --namespace=newrelic \
+            --set global.licenseKey=${NEWRELIC_LICENSE_KEY} \
+            --set global.cluster=greenstar-${{ github.run_number }}-${{ github.run_attempt }} \
+            --set newrelic-infrastructure.privileged=true \
+            --set global.lowDataMode=true \
+            --set kube-state-metrics.image.tag=v2.10.0 \
+            --set kube-state-metrics.enabled=true \
+            --set kubeEvents.enabled=true \
+            --set newrelic-prometheus-agent.enabled=true \
+            --set newrelic-prometheus-agent.lowDataMode=true \
+            --set newrelic-prometheus-agent.config.kubernetes.integrations_filter.enabled=false \
+            --set logging.enabled=true \
+            --set newrelic-logging.lowDataMode=true
+
+      - name: Package & Deploy
+        run: |
+          VERSION="0.0.0-$(git rev-parse HEAD | cut -c 1-7)"
+          helm package ./deploy/chart --app-version "${VERSION}" --version "${VERSION}"
+          helm install local-greenstar "greenstar-${VERSION}.tgz" \
+            --create-namespace \
+            --namespace greenstar \
+            --values ./hack/chart-hack-values.yaml \
+            --set-string "backend.image.repository=ghcr.io/${{ github.repository }}/backend" \
+            --set-string "backend.image.tag=${{ github.sha }}" \
+            --set-string "exchangeRatesCronJob.image.repository=ghcr.io/${{ github.repository }}/exchangeratesjob" \
+            --set-string "exchangeRatesCronJob.image.tag=${{ github.sha }}" \
+            --set-string "initJob.image.repository=ghcr.io/${{ github.repository }}/initjob" \
+            --set-string "initJob.image.tag=${{ github.sha }}" \
+            --set-string "frontend.image.repository=ghcr.io/${{ github.repository }}/frontend" \
+            --set-string "frontend.image.tag=${{ github.sha }}" \
+            --timeout=15m0s --wait --wait-for-jobs
+          sleep 600
+          curl -i "https://api.${DOMAIN}"
+
+      # Run tests
+      - id: test
+        run: npx playwright test
+        working-directory: e2e
+      - uses: google-github-actions/upload-cloud-storage@v2
+        if: success() || steps.test.outcome == 'failure'
+        with:
+          process_gcloudignore: 'false'
+          path: ./e2e/playwright-report
+          destination: arikkfir-static-website/github/${{ github.repository }}/${{ github.ref_name }}
+      - run: make teardown-local-cluster
+        if: success() || steps.setup-local-cluster.outcome != 'skipped'
