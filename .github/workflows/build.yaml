@@ -267,13 +267,13 @@ jobs:
         run: curl -i https://acme.app.greenstar.test/
 
       - name: Find PR Comment
-        if: github.event_name == 'pull_request' && (success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure')
+        if: github.event_name == 'pull_request'
         uses: peter-evans/find-comment@v3
         id: pr_comment
         with:
           issue-number: ${{ github.event.pull_request.number }}
           token: ${{ github.token }}
-          body-includes: '[End-to-end tests report]'
+          body-includes: 'End-to-end tests report'
 
       - name: Create/update PR comment to In Progress
         if: github.event_name == 'pull_request'
@@ -329,6 +329,15 @@ jobs:
             ${{ steps.test.outcome == 'success' && ':white_check_mark:' || ':x:' }} [End-to-end tests report][1]
             
             [1]: https://static.kfirs.com/github/${{ github.repository }}/${{ github.event_name == 'push' && 'commit' || 'pr' }}/${{ github.event_name == 'push' && github.sha || github.ref_name }}/e2e/monocart-report/
+
+      - name: Find PR Comment
+        if: github.event_name == 'pull_request' && (success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure')
+        uses: peter-evans/find-comment@v3
+        id: pr_comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ github.token }}
+          body-includes: 'End-to-end tests report'
 
       - name: Create/update PR comment with result
         if: github.event_name == 'pull_request' && (success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure')
