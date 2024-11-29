@@ -16,7 +16,7 @@ require (
 	github.com/lmittmann/tint v1.0.5
 	github.com/lucasepe/codename v0.2.0
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
-	github.com/rs/cors v1.11.0
+	github.com/rs/cors v1.11.1
 	github.com/shopspring/decimal v1.4.0
 	go.opentelemetry.io/contrib/exporters/autoexport v0.53.0
 	go.opentelemetry.io/contrib/propagators/autoprop v0.53.0
