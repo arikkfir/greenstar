@@ -269,11 +269,11 @@ jobs:
       - name: Find PR Comment
         if: github.event_name == 'pull_request'
         uses: peter-evans/find-comment@v3
-        id: pr_comment
+        id: pr_comment_1
         with:
           issue-number: ${{ github.event.pull_request.number }}
           token: ${{ github.token }}
-          body-includes: 'End-to-end tests report'
+          body-includes: '[End-to-end tests report]'
 
       - name: Create/update PR comment to In Progress
         if: github.event_name == 'pull_request'
@@ -281,7 +281,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           token: ${{ github.token }}
-          comment-id: ${{ steps.pr_comment.outputs.comment-id }}
+          comment-id: ${{ steps.pr_comment_1.outputs.comment-id }}
           edit-mode: replace
           body: |
             ${{ ':hourglass_flowing_sand:' }} [End-to-end tests report][1]
@@ -333,11 +333,11 @@ jobs:
       - name: Find PR Comment
         if: github.event_name == 'pull_request' && (success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure')
         uses: peter-evans/find-comment@v3
-        id: pr_comment
+        id: pr_comment_2
         with:
           issue-number: ${{ github.event.pull_request.number }}
           token: ${{ github.token }}
-          body-includes: 'End-to-end tests report'
+          body-includes: '[End-to-end tests report]'
 
       - name: Create/update PR comment with result
         if: github.event_name == 'pull_request' && (success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure')
@@ -345,7 +345,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           token: ${{ github.token }}
-          comment-id: ${{ steps.pr_comment.outputs.comment-id }}
+          comment-id: ${{ steps.pr_comment_2.outputs.comment-id }}
           edit-mode: replace
           body: |
             ${{ steps.test.outcome == 'success' && ':white_check_mark:' || ':x:' }} [End-to-end tests report][1]
