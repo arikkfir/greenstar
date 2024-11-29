@@ -67,10 +67,8 @@ spec:
           args:
             {{- toYaml .Values.frontend.extraArgs | nindent 12 }}
           {{- end }}
-          env:
-            - name: VITE_DESCOPE_PROJECT_ID
-              value: {{ .Values.descope.project.id | quote }}
           {{- if not (empty .Values.frontend.extraEnv) }}
+          env:
             {{- toYaml .Values.frontend.extraEnv | nindent 12 }}
           {{- end }}
           name: {{ $componentName | quote }}

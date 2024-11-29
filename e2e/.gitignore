@@ -1,0 +1,8 @@
+/.auth
+/monocart-report/
+/node_modules/
+/playwright/.cache/
+/playwright-report/
+/test-results/
+/results.xml
+/test-results.json

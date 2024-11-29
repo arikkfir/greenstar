@@ -33,7 +33,10 @@ metrics:
     enabled: false
 tracing:
   otlp:
-    enabled: false # TODO: enable tracing to OTLP
+    enabled: true
+    http:
+      enabled: true
+      endpoint: http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces
 ports:
   traefik:
     port: 9000

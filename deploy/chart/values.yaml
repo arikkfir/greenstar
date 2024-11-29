@@ -1,5 +1,8 @@
 commitSHA: "unknown"
 
+currencyAPI:
+  key: ""
+
 descope:
   project:
     id: ""
@@ -10,20 +13,25 @@ descope:
     id: ""
     key: ""
 
-currencyAPI:
-  key: ""
-
 ingress:
   domain: ""
 
-configMaps: [ ]
+oidc:
+  gcp:
+    audience: ""
+    config: ""
+
+observability:
+  logging:
+    level: info
+    format: json
 
 backend:
   extraArgs: [ ]
   extraEnv: [ ]
   image:
     repository: ghcr.io/arikkfir/greenstar/backend
-    tag: local
+    tag: ""
     pullPolicy: IfNotPresent
   ingress:
     enabled: false
@@ -46,7 +54,7 @@ frontend:
   extraEnv: [ ]
   image:
     repository: ghcr.io/arikkfir/greenstar/frontend
-    tag: local
+    tag: ""
     pullPolicy: IfNotPresent
   ingress:
     enabled: false
@@ -67,7 +75,7 @@ initJob:
   extraEnv: [ ]
   image:
     repository: ghcr.io/arikkfir/greenstar/init-job
-    tag: local
+    tag: ""
     pullPolicy: IfNotPresent
   postgres:
     connectTimeout: 1
@@ -88,7 +96,7 @@ exchangeRatesCronJob:
   extraEnv: [ ]
   image:
     repository: ghcr.io/arikkfir/greenstar/exchange-rates-job
-    tag: local
+    tag: ""
     pullPolicy: IfNotPresent
   postgres:
     connectTimeout: 1

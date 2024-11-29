@@ -7,7 +7,7 @@ info:
     email: "arik@kfirs.com"
   version: "0.0.0+local"
 servers:
-  - url: "https://api.greenstar.local"
+  - url: "https://api.greenstar.test"
 tags:
   - name: "Account"
   - name: "Tenant"

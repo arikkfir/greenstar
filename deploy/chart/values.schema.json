@@ -86,39 +86,62 @@
         }
       }
     },
-    "configMaps": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "name",
-          "component",
-          "data"
-        ],
-        "properties": {
-          "annotations": {
-            "type": "object",
-            "additionalProperties": {
+    "oidc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gcp"
+      ],
+      "properties": {
+        "gcp": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "audience",
+            "config"
+          ],
+          "properties": {
+            "audience": {
+              "type": "string"
+            },
+            "config": {
               "type": "string"
             }
-          },
-          "labels": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
-          },
-          "name": {
-            "type": "string"
-          },
-          "component": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
+          }
+        }
+      }
+    },
+    "observability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "logging"
+      ],
+      "properties": {
+        "logging": {
+          "type": "object",
+          "additionalItems": false,
+          "required": [
+            "level",
+            "format"
+          ],
+          "properties": {
+            "level": {
+              "type": "string",
+              "enum": [
+                "trace",
+                "debug",
+                "info",
+                "warn",
+                "error"
+              ]
+            },
+            "format": {
+              "type": "string",
+              "enum": [
+                "json",
+                "text"
+              ]
             }
           }
         }

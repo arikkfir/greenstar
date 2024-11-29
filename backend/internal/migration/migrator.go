@@ -5,12 +5,14 @@ import (
 	"embed"
 	"fmt"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/lib/pq"
+	"go.opentelemetry.io/otel/trace"
 	"log/slog"
 )
 
@@ -20,6 +22,9 @@ var (
 )
 
 func Migrate(ctx context.Context, pool *pgxpool.Pool) (result error) {
+	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
+	defer span.End()
+
 	slog.Default().InfoContext(ctx, "Verifying and potentially upgrading database schema")
 
 	sourceDriver, err := iofs.New(fs, "schema")

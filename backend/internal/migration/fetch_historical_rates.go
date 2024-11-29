@@ -7,8 +7,10 @@ import (
 	"context"
 	"encoding/csv"
 	"fmt"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
+	"go.opentelemetry.io/otel/trace"
 	"io"
 	"log/slog"
 	"time"
@@ -44,6 +46,9 @@ func newRateRecord(lineNumber int, rec []string) (r rateRecord, err error) {
 
 // PopulateHistoricalRates downloads, extracts, and populates historical exchange rates from the provided storage bucket
 func (m *exchangeRatesManagerImpl) PopulateHistoricalRates(ctx context.Context, period HistoricalExchangeRatesPeriod) error {
+	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
+	defer span.End()
+
 	slog.Default().InfoContext(ctx, "Populating historical exchange rates", "period", string(period))
 
 	client, err := storage.NewClient(ctx)

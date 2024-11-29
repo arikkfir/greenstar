@@ -1,0 +1,10 @@
+## Using default values from https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
+grafana:
+  enabled: true
+  defaultDashboardsTimezone: browser
+  defaultDashboardsEditable: true
+  adminPassword: admin
+
+prometheus:
+  prometheusSpec:
+    enableAdminAPI: true

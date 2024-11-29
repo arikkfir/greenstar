@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/backend/internal/migration/insert_exchange_rate.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/backend/internal/server/resources/account/sql/get.sql" dialect="PostgreSQL" />
-    <file url="file://$PROJECT_DIR$/backend/internal/server/resources/account/sql/list.sql" dialect="PostgreSQL" />
     <file url="PROJECT" dialect="PostgreSQL" />
   </component>
 </project>

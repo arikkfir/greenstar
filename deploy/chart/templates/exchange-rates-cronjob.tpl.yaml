@@ -43,6 +43,9 @@ spec:
       activeDeadlineSeconds: 600
       template:
         metadata:
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "8000"
           labels:
             {{- include "greenstar.commonLabels" . | nindent 12 }}
             app.kubernetes.io/component: {{ $componentName | quote }}
@@ -56,6 +59,14 @@ spec:
                 {{- toYaml .Values.exchangeRatesCronJob.extraArgs | nindent 16 }}
               {{- end }}
               env:
+                - name: LOG_LEVEL
+                  value: {{ .Values.observability.logging.level | default "info" | quote }}
+                {{- if eq .Values.observability.logging.format "text" }}
+                - name: DISABLE_JSON_LOGGING
+                  value: "T"
+                {{- end }}
+                - name: GOOGLE_APPLICATION_CREDENTIALS
+                  value: "/etc/gcp-oidc/credential-configuration.json"
                 - name: PGHOST
                   value: {{ printf "%s-%s" $prefix "postgres" | quote }}
                 - name: PGPORT
@@ -82,6 +93,9 @@ spec:
                 {{- toYaml .Values.exchangeRatesCronJob.extraEnv | nindent 16 }}
               {{- end }}
               name: {{ $componentName | quote }}
+              ports:
+                - containerPort: 8000
+                  name: metrics
               resources:
                 limits:
                   cpu: {{ .Values.exchangeRatesCronJob.resources.limits.cpu | default "100m" | quote }}
@@ -89,13 +103,28 @@ spec:
                 requests:
                   cpu: {{ .Values.exchangeRatesCronJob.resources.requests.cpu | default "100m" | quote }}
                   memory: {{ .Values.exchangeRatesCronJob.resources.requests.memory | default "64Mi" | quote }}
-              {{- if not (empty .Values.exchangeRatesCronJob.volumeMounts) }}
               volumeMounts:
+                {{- if not (empty .Values.exchangeRatesCronJob.volumeMounts) }}
                 {{- toYaml .Values.exchangeRatesCronJob.volumeMounts | nindent 16 }}
-              {{- end }}
+                {{- end }}
+                - name: token
+                  mountPath: "/var/run/service-account"
+                  readOnly: true
+                - name: gcp-oidc
+                  mountPath: "/etc/gcp-oidc"
+                  readOnly: true
           enableServiceLinks: false
           serviceAccountName: {{ $serviceAccountName | quote }}
-          {{- if not (empty .Values.exchangeRatesCronJob.volumes) }}
           volumes:
+            {{- if not (empty .Values.exchangeRatesCronJob.volumes) }}
             {{- toYaml .Values.exchangeRatesCronJob.volumes | nindent 12 }}
-          {{- end }}
+            {{- end }}
+            - name: token
+              projected:
+                sources:
+                  - serviceAccountToken:
+                      audience: {{ required "GCP OIDC audience is required" .Values.oidc.gcp.audience | quote }}
+                      path: token
+            - name: gcp-oidc
+              configMap:
+                name: gcp-oidc
