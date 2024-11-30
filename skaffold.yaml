@@ -47,7 +47,9 @@ deploy:
       before:
         - host:
             command:
-              - yq -e '[.frontend.extraEnv[] | select(.name == "VITE_DESCOPE_PROJECT_ID")] | length == 1' ./hack/greenstar-values.yaml || yq -i ".frontend.extraEnv += [{\"name\":\"VITE_DESCOPE_PROJECT_ID\",\"value\":\"${DESCOPE_PROJECT_ID}\"}]" ./hack/greenstar-values.yaml
+              - bash
+              - -c
+              - yq -e '[.frontend.extraEnv[] | select(.name == "VITE_DESCOPE_PROJECT_ID")] | length == 1' ./hack/greenstar-values.yaml || yq -i ".frontend.extraEnv += [{name:\"VITE_DESCOPE_PROJECT_ID\",value:\"${DESCOPE_PROJECT_ID}\"}]" ./hack/greenstar-values.yaml
     releases:
       - name: '{{default (list "greenstar" (cmd "whoami") | join "-") .HELM_RELEASE_NAME}}'
         chartPath: ./deploy/chart
