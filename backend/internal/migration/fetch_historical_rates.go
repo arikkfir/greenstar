@@ -44,7 +44,13 @@ func newRateRecord(lineNumber int, rec []string) (r rateRecord, err error) {
 	return
 }
 
-// PopulateHistoricalRates downloads, extracts, and populates historical exchange rates from the provided storage bucket
+// PopulateHistoricalRates retrieves and populates historical exchange rates into the database for a given period.
+// It extracts rates data from a compressed file stored in Google Cloud Storage and updates the database records.
+// Parameters:
+//   - ctx: the context to control cancellation and other context-specific options.
+//   - period: the specific period for which historical rates are to be populated.
+//
+// Returns an error if there is an issue with retrieving or populating the rates.
 func (m *exchangeRatesManagerImpl) PopulateHistoricalRates(ctx context.Context, period HistoricalExchangeRatesPeriod) error {
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()

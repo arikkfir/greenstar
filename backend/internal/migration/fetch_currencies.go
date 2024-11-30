@@ -50,6 +50,9 @@ var (
 	insertCurrencySQL string
 )
 
+// PopulateCurrencies fetches and updates the system with the latest currency information
+// for currencies that are missing or stale. It connects to an external currency API,
+// retrieves data, and updates the local database with this information.
 func (m *exchangeRatesManagerImpl) PopulateCurrencies(ctx context.Context) error {
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
@@ -131,6 +134,8 @@ func (m *exchangeRatesManagerImpl) PopulateCurrencies(ctx context.Context) error
 	return nil
 }
 
+// fetchMissingOrStaleCurrencies identifies currencies that are either not present or need updates
+// based on their last update time. It returns a list of those currency codes, or an error if one occurs.
 func (m *exchangeRatesManagerImpl) fetchMissingOrStaleCurrencies(ctx context.Context) ([]string, error) {
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
