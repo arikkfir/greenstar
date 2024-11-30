@@ -30,6 +30,8 @@ type missingRate struct {
 	TargetCurrencyCodes string
 }
 
+// PopulateMissingExchangeRates searches for missing historical exchange rates based on existing transactions,
+// then attempts to obtain current quotes and store them in the database.
 func (m *exchangeRatesManagerImpl) PopulateMissingExchangeRates(ctx context.Context) error {
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
@@ -64,6 +66,13 @@ func (m *exchangeRatesManagerImpl) PopulateMissingExchangeRates(ctx context.Cont
 	return nil
 }
 
+// fetchExchangeRates obtains the current exchange rates for a given missing rate and stores them in the database.
+// It sends a request to the external currency API to fetch historical exchange rates based on the provided parameters.
+// Parameters:
+//   - ctx: The context for controlling execution and cancellation.
+//   - r: The structure containing missing rate details such as date and currency codes.
+//
+// Returns an error if the process fails at any step.
 func (m *exchangeRatesManagerImpl) fetchExchangeRates(ctx context.Context, r missingRate) error {
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
