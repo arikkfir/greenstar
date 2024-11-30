@@ -121,6 +121,9 @@ func (m *exchangeRatesManagerImpl) PopulateHistoricalRates(ctx context.Context, 
 		AccessMode:     pgx.ReadWrite,
 		DeferrableMode: pgx.NotDeferrable,
 	})
+	if err != nil {
+		return fmt.Errorf("failed creating transaction: %w", err)
+	}
 	defer tx.Rollback(ctx)
 
 	// Delete all rates first, to start from scratch
