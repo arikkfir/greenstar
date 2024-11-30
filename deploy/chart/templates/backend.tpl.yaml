@@ -54,7 +54,6 @@ spec:
       app.kubernetes.io/component: {{ $componentName | quote }}
   strategy:
     type: RollingUpdate
-  # TODO: add scheduling gates that DB was migrated; those gates should be removed by the init-job
   template:
     metadata:
       annotations:

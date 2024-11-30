@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-// TODO: obtain a lease to ensure only one replica initializes exchange rates
 // TODO: add a background process that uploads current rates table to the remote bucket, so next historical rates download is "fuller"
 
 type HistoricalExchangeRatesPeriod string
