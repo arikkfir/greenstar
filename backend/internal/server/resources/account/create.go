@@ -7,14 +7,21 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/shopspring/decimal"
 )
 
+var (
+	_ = decimal.Decimal{}
+	_ = time.Time{}
+)
+
 type CreateRequest struct {
 	TenantID            string           `json:"-"`
+	ID                  string           `json:"id,omitempty"`
 	Balance             *decimal.Decimal `json:"balance,omitempty"`
 	DisplayName         string           `json:"displayName,omitempty"`
 	Icon                *string          `json:"icon,omitempty"`
@@ -24,6 +31,7 @@ type CreateRequest struct {
 	properties          []string
 }
 
+func (lr *CreateRequest) HasID() bool       { return slices.Contains(lr.properties, "id") }
 func (lr *CreateRequest) HasBalance() bool  { return slices.Contains(lr.properties, "balance") }
 func (lr *CreateRequest) HasIcon() bool     { return slices.Contains(lr.properties, "icon") }
 func (lr *CreateRequest) HasParentID() bool { return slices.Contains(lr.properties, "parentID") }

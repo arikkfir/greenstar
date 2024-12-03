@@ -6,9 +6,16 @@ import (
 	"encoding/json"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/shopspring/decimal"
+)
+
+var (
+	_ = decimal.Decimal{}
+	_ = time.Time{}
 )
 
 type CreateRequest struct {
