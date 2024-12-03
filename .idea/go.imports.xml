@@ -3,6 +3,7 @@
   <component name="GoImports">
     <option name="excludedPackages">
       <array>
+        <option value="github.com/aws/smithy-go/testing" />
         <option value="github.com/docker/distribution/context" />
         <option value="github.com/pkg/errors" />
         <option value="golang.org/x/exp/slices" />
