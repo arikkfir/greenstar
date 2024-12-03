@@ -282,7 +282,6 @@ tasks:
   generate-helm-values:
     deps: [ setup-gcp-workload-identity-pool-provider ]
     cmds:
-      - rm -f ./hack/greenstar-values.yaml
       - touch ./hack/greenstar-values.yaml
       - yq -i ".currencyAPI.key = \"${CURRENCY_API_KEY}\"" ./hack/greenstar-values.yaml
       - yq -i ".descope.project.id = \"${DESCOPE_PROJECT_ID}\"" ./hack/greenstar-values.yaml
