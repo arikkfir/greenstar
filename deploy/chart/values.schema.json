@@ -151,6 +151,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
         "extraArgs": {
           "$ref": "#/$defs/extraArgs"
         },

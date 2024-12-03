@@ -71,6 +71,7 @@ frontend:
   volumes: [ ]
 
 initJob:
+  enabled: true
   extraArgs: [ ]
   extraEnv: [ ]
   image:
