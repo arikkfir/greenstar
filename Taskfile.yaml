@@ -180,26 +180,55 @@ tasks:
       - kubectl diff --namespace=observability -f deploy/local/kube-prometheus-stack-routes.yaml
       - kubectl diff --namespace=observability -f deploy/local/jaeger-all-in-one.yaml
 
-  setup-telepresence:
+  install-telepresence:
     deps: [ create-cluster ]
     cmds:
-      - |
-        telepresence helm install
-        telepresence uninstall --all-agents || true
-        telepresence quit --stop-daemons || true
-        telepresence connect --namespace=greenstar
-        # TODO: re-enable mounting once sshfs is set up
-        #telepresence intercept local-greenstar-backend --env-file backend/telepresence.env --mount false --port 8080:80 --workload local-greenstar-backend
-        #telepresence intercept local-greenstar-frontend --env-file frontend/telepresence.env --mount false --port 3000:80 --workload local-greenstar-frontend
-        #telepresence leave local-greenstar-backend || true
-        #telepresence leave local-greenstar-frontend || true
+      - telepresence helm install
     status:
       - helm --namespace=ambassador get metadata traffic-manager
+
+  telepresence-connect:
+    deps: [ install-telepresence ]
+    cmds:
+      - telepresence uninstall --all-agents || true
+      - telepresence quit --stop-daemons || true
+      - telepresence connect --namespace=greenstar
+    status:
       - test "$(telepresence status --output yaml|yq '.root_daemon.running')" = "true"
       - test "$(telepresence status --output yaml|yq '.traffic_manager.traffic_agent != null')" = "true"
       - test "$(telepresence status --output yaml|yq '.user_daemon.namespace')" = "greenstar"
       - test "$(telepresence status --output yaml|yq '.user_daemon.running')" = "true"
       - test "$(telepresence status --output yaml|yq '.user_daemon.status')" = "Connected"
+
+  telepresence-intercept-backend:
+    deps: [ telepresence-connect ]
+    cmds:
+      # TODO: re-enable mounting once sshfs is set up
+      - telepresence intercept "${HELM_RELEASE_NAME}-backend" --env-file backend/telepresence.env --mount false --port 8080:80
+    status:
+      - telepresence status --output=yaml | yq -e ".user_daemon.intercepts[] | select(.name == \"${HELM_RELEASE_NAME}-backend\") | [.name] | length == 1"
+
+  telepresence-leave-backend:
+    deps: [ telepresence-connect ]
+    cmds:
+      - telepresence leave "${HELM_RELEASE_NAME}-backend"
+    status:
+      - telepresence status --output=yaml | yq -e ".user_daemon.intercepts[] | select(.name == \"${HELM_RELEASE_NAME}-backend\") | [.name] | length == 0"
+
+  telepresence-intercept-frontend:
+    deps: [ telepresence-connect ]
+    cmds:
+      # TODO: re-enable mounting once sshfs is set up
+      - telepresence intercept "${HELM_RELEASE_NAME}-frontend" --env-file frontend/telepresence.env --mount false --port 3000:80
+    status:
+      - telepresence status --output=yaml | yq -e ".user_daemon.intercepts[] | select(.name == \"${HELM_RELEASE_NAME}-frontend\") | [.name] | length == 1"
+
+  telepresence-leave-frontend:
+    deps: [ telepresence-connect ]
+    cmds:
+      - telepresence leave "${HELM_RELEASE_NAME}-frontend"
+    status:
+      - telepresence status --output=yaml | yq -e ".user_daemon.intercepts[] | select(.name == \"${HELM_RELEASE_NAME}-frontend\") | [.name] | length == 0"
 
   setup-cluster:
     cmds:
@@ -253,7 +282,6 @@ tasks:
   generate-helm-values:
     deps: [ setup-gcp-workload-identity-pool-provider ]
     cmds:
-      - rm -f ./hack/greenstar-values.yaml
       - touch ./hack/greenstar-values.yaml
       - yq -i ".currencyAPI.key = \"${CURRENCY_API_KEY}\"" ./hack/greenstar-values.yaml
       - yq -i ".descope.project.id = \"${DESCOPE_PROJECT_ID}\"" ./hack/greenstar-values.yaml
