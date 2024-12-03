@@ -7,11 +7,21 @@ import {RichTreeViewPro} from "@mui/x-tree-view-pro";
 export interface AccountsTreeProps {
     accounts: Account[]
     loading?: boolean
+    selectedAccount?: Account
     onAccountSelected?: (account: Account | undefined) => void
 }
 
-export function AccountsTree({accounts, onAccountSelected}: AccountsTreeProps) {
+export function AccountsTree({selectedAccount, accounts, onAccountSelected}: AccountsTreeProps) {
     const [rootNodes, setRootNodes] = useState<AccountNode[]>([])
+    const [selectedItemID, setSelectedItemID] = useState<string | undefined>(selectedAccount ? selectedAccount.id : undefined);
+
+    useEffect(() => {
+        if (selectedAccount) {
+            setSelectedItemID(selectedAccount.id)
+        } else {
+            setSelectedItemID(undefined)
+        }
+    }, [selectedAccount])
 
     useEffect(() => {
         let nodesByID: { [key: string]: AccountNode } = {}
@@ -40,20 +50,21 @@ export function AccountsTree({accounts, onAccountSelected}: AccountsTreeProps) {
 
     const getItemLabel = useCallback((account: AccountNode) => account.displayName, [])
 
-    const handleItemSelectionToggle = (_: SyntheticEvent, id: string, isSelected: boolean) => {
+    const handleItemSelectionChange = useCallback((_: SyntheticEvent, id: string | null) => {
         if (onAccountSelected) {
-            if (isSelected) {
+            if (id) {
                 onAccountSelected(accounts.find(n => n.id === id))
             } else {
                 onAccountSelected(undefined)
             }
         }
-    };
+    }, [onAccountSelected, accounts]);
 
     return (
         <RichTreeViewPro<AccountNode, false> getItemLabel={getItemLabel}
                                              items={rootNodes}
-                                             onItemSelectionToggle={handleItemSelectionToggle}
+                                             selectedItems={selectedItemID}
+                                             onSelectedItemsChange={handleItemSelectionChange}
                                              slots={{item: TreeItemEx}}/>
     )
 }

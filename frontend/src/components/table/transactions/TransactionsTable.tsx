@@ -5,6 +5,8 @@ import {useContext, useEffect, useMemo, useState} from "react";
 import {LocaleContext} from "../../../providers/LocaleProvider.tsx";
 import {useColumns} from "./Columns.tsx";
 import {StatefulDataGrid} from "../StatefulDataGrid.tsx";
+import {GridColumnVisibilityModel} from "@mui/x-data-grid/hooks/features/columns/gridColumnsInterfaces";
+import {GridCallbackDetails} from "@mui/x-data-grid/models/api";
 
 // const nativeDateTimeFormat = new Intl.DateTimeFormat(navigator.language, {
 //     dateStyle: "short",
@@ -31,6 +33,10 @@ export function TransactionsTable({accounts, dataGridProps, sourceAccountId, tar
     const [rowCount, setRowCount] = useState<number>(-1)
     const [transactions, setTransactions] = useState<Transaction[]>([])
     const [paginationModel, setPaginationModel] = useState({page: 0, pageSize: -1});
+    const [colVisibilityModel, setColVisibilityModel] = useState<GridColumnVisibilityModel>({
+        "id": false,
+        "referenceId": false,
+    })
 
     const accountsByID = useMemo(() => {
         const accountsByID: { [key: string]: Account } = {}
@@ -66,6 +72,8 @@ export function TransactionsTable({accounts, dataGridProps, sourceAccountId, tar
 
     return (
         <StatefulDataGrid<Transaction> stateId="transactions"
+                                       columnVisibilityModel={colVisibilityModel}
+                                       onColumnVisibilityModelChange={(model: GridColumnVisibilityModel, _: GridCallbackDetails) => setColVisibilityModel(model)}
                                        columns={columns}
                                        autoPageSize={true}
                                        pagination={true}
