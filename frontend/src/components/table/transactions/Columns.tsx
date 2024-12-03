@@ -54,15 +54,25 @@ export function useColumns(accountsByID: { [p: string]: Account }) {
             {
                 hideable: true, sortable: true, resizable: true, editable: false,
                 groupable: false, pinnable: true, align: "left", filterable: true,
-                field: "convertedAmount",
-                headerName: "Amount",
-                type: "number",
-                valueFormatter: currencyFormatter,
+                field: "sourceAccountId", headerName: "From", type: "string", valueFormatter: accountFormatter,
             },
             {
                 hideable: true, sortable: true, resizable: true, editable: false,
                 groupable: false, pinnable: true, align: "left", filterable: true,
                 field: "date", headerName: "Date", type: "dateTime", valueFormatter: dateFormatter,
+            },
+            {
+                hideable: true, sortable: true, resizable: true, editable: false,
+                groupable: false, pinnable: true, align: "left", filterable: true,
+                field: "targetAccountId", headerName: "To", type: "string", valueFormatter: accountFormatter,
+            },
+            {
+                hideable: true, sortable: true, resizable: true, editable: false,
+                groupable: false, pinnable: true, align: "left", filterable: true,
+                field: "convertedAmount",
+                headerName: "Amount",
+                type: "number",
+                valueFormatter: currencyFormatter,
             },
             {
                 hideable: true, sortable: true, resizable: true, editable: false,
@@ -73,16 +83,6 @@ export function useColumns(accountsByID: { [p: string]: Account }) {
                 hideable: true, sortable: true, resizable: true, editable: false,
                 groupable: false, pinnable: true, align: "left", filterable: true,
                 field: "referenceId", headerName: "Reference", type: "string",
-            },
-            {
-                hideable: true, sortable: true, resizable: true, editable: false,
-                groupable: false, pinnable: true, align: "left", filterable: true,
-                field: "sourceAccountId", headerName: "From", type: "string", valueFormatter: accountFormatter,
-            },
-            {
-                hideable: true, sortable: true, resizable: true, editable: false,
-                groupable: false, pinnable: true, align: "left", filterable: true,
-                field: "targetAccountId", headerName: "To", type: "string", valueFormatter: accountFormatter,
             },
         ]),
         [currencyFormatter, accountFormatter]

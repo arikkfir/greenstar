@@ -1,4 +1,4 @@
-import {useContext, useEffect, useState} from "react";
+import {useCallback, useContext, useEffect, useState} from "react";
 import {Account, useAccountsClient} from "../client/account.ts";
 import {Paper} from "@mui/material";
 import Grid from "@mui/material/Grid2";
@@ -13,6 +13,17 @@ export function TransactionsPage() {
     const [error, setError] = useState<Error | undefined>()
     const [accounts, setAccounts] = useState<Account[]>([])
     const [selectedAccount, setSelectedAccount] = useState<Account | undefined>()
+
+    const handleEscape = useCallback((event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            setSelectedAccount(undefined);
+        }
+    }, [setSelectedAccount]);
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleEscape);
+        return () => window.removeEventListener('keydown', handleEscape);
+    }, []);
 
     useEffect(() => {
         if (locale.currency) {
@@ -48,6 +59,7 @@ export function TransactionsPage() {
                 <Paper sx={{height: '100%'}}>
                     <AccountsTree loading={loadingAccounts}
                                   accounts={accounts}
+                                  selectedAccount={selectedAccount}
                                   onAccountSelected={acc => setSelectedAccount(acc)}/>
                 </Paper>
             </Grid>
