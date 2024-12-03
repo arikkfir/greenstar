@@ -30,8 +30,8 @@ type Action struct {
 	Descope                       auth.DescopeConfig
 	CurrencyAPIKey                string `required:"true" env:"CURRENCY_API_KEY"`
 	GenerateSampleData            bool   `flag:"true"`
-	Namespace                     string `required:"true" env:"POD_NAMESPACE"`
-	ExchangeRatesCronJobName      string `required:"true" env:"EXCHANGE_RATES_CRONJOB_NAME"`
+	Namespace                     string `flag:"true" env:"POD_NAMESPACE"`
+	ExchangeRatesCronJobName      string `flag:"true" env:"EXCHANGE_RATES_CRONJOB_NAME"`
 	HistoricalExchangeRatesPeriod string `flag:"true"`
 }
 
@@ -42,16 +42,6 @@ func (e *Action) Run(ctx context.Context) error {
 	var err error
 
 	ctx = util.ContextWithLogger(ctx, slog.Default())
-
-	// Connect to host Kubernetes cluster
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		return fmt.Errorf("failed creating Kubernetes config: %w", err)
-	}
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return fmt.Errorf("failed creating Kubernetes client: %w", err)
-	}
 
 	// Descope
 	descopeClient, err := e.Descope.NewSDK(ctx)
@@ -131,22 +121,37 @@ func (e *Action) Run(ctx context.Context) error {
 		return fmt.Errorf("failed populating missing exchange rates: %w", err)
 	}
 
-	// Attempt to acquire the lease
-	slog.Default().InfoContext(ctx, "Un-suspending the exchange-rates cron-job")
-	err = wait.PollUntilContextTimeout(ctx, time.Second, 5*time.Minute, true, func(ctx context.Context) (bool, error) {
-		cronJob, err := clientset.BatchV1().CronJobs(e.Namespace).Get(ctx, e.ExchangeRatesCronJobName, metav1.GetOptions{})
-		if err != nil {
-			return false, fmt.Errorf("failed getting cron job '%s': %w", e.ExchangeRatesCronJobName, err)
+	// Unsuspend the exchange rates cron-job if specified
+	if e.ExchangeRatesCronJobName != "" {
+		if e.Namespace == "" {
+			return fmt.Errorf("--namespace is required when --exchange-rates-cronjob-name is specified")
 		}
 
-		cronJob.Spec.Suspend = lang.PtrOf(false)
-		if _, err = clientset.BatchV1().CronJobs(e.Namespace).Update(ctx, cronJob, metav1.UpdateOptions{}); err != nil {
-			return false, fmt.Errorf("failed updating cron job '%s': %w", e.ExchangeRatesCronJobName, err)
+		// Connect to host Kubernetes cluster
+		config, err := rest.InClusterConfig()
+		if err != nil {
+			return fmt.Errorf("failed creating Kubernetes config: %w", err)
 		}
-		return true, nil
-	})
-	if err != nil {
-		return fmt.Errorf("failed un-suspending the exchange-rates cron-job: %w", err)
+		clientset, err := kubernetes.NewForConfig(config)
+		if err != nil {
+			return fmt.Errorf("failed creating Kubernetes client: %w", err)
+		}
+		slog.Default().InfoContext(ctx, "Un-suspending the exchange-rates cron-job")
+		err = wait.PollUntilContextTimeout(ctx, time.Second, 5*time.Minute, true, func(ctx context.Context) (bool, error) {
+			cronJob, err := clientset.BatchV1().CronJobs(e.Namespace).Get(ctx, e.ExchangeRatesCronJobName, metav1.GetOptions{})
+			if err != nil {
+				return false, fmt.Errorf("failed getting cron job '%s': %w", e.ExchangeRatesCronJobName, err)
+			}
+
+			cronJob.Spec.Suspend = lang.PtrOf(false)
+			if _, err = clientset.BatchV1().CronJobs(e.Namespace).Update(ctx, cronJob, metav1.UpdateOptions{}); err != nil {
+				return false, fmt.Errorf("failed updating cron job '%s': %w", e.ExchangeRatesCronJobName, err)
+			}
+			return true, nil
+		})
+		if err != nil {
+			return fmt.Errorf("failed un-suspending the exchange-rates cron-job: %w", err)
+		}
 	}
 
 	return nil
