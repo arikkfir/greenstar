@@ -10,6 +10,7 @@ import (
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/account"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/tenant"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/transaction"
+	"github.com/arikkfir/greenstar/backend/internal/server/sample"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/arikkfir/greenstar/backend/internal/util/db"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
@@ -111,7 +112,13 @@ func (e *Action) Run(ctx context.Context) error {
 
 	// Generate sample data
 	if e.GenerateSampleData {
-		if err := appServer.GenerateSampleTenant(ctx, "acme", "A.C.M.E", e.Descope.DescopeBackendAccessKeyToken); err != nil {
+		th := appServer.TenantsHandler
+		txh := appServer.TransactionsHandler
+		ah := accountsHandler
+		accessKey := e.Descope.DescopeBackendAccessKeyToken
+		tenantID := "acme"
+		tenantDisplayName := "A.C.M.E"
+		if err := sample.Generate(ctx, appServer.Descope, accessKey, pgPool, th, tenantID, tenantDisplayName, txh, ah); err != nil {
 			return err
 		}
 	}

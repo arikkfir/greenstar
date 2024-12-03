@@ -1,0 +1,271 @@
+defaultCurrency: ILS
+accounts:
+  - id: employers
+    icon: Work
+    children:
+      - id: microsoft
+        outgoingTransactions:
+          - targetAccountID: bankOfAmerica
+            date: '{{ now | dateModify "-4mo" | rfc3339 }}'
+            amount: 25000
+            description: Salary
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 4
+      - id: amazon
+        outgoingTransactions:
+          - targetAccountID: bankOfAmerica
+            date: '{{ now | dateModify "-8mo" | rfc3339 }}'
+            amount: 30000
+            description: Salary
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 4
+      - id: google
+        outgoingTransactions:
+          - targetAccountID: bankOfAmerica
+            date: '{{ now | dateModify "-12mo" | rfc3339 }}'
+            amount: 20000
+            description: Salary
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 4
+  - id: insuranceCompanies
+    icon: Shield
+    children:
+      - id: Libra
+        icon: Token
+        children:
+          - id: skodaInsurancePayments
+            icon: Skoda
+  - id: government
+    icon: AccountBalance
+    children:
+      - id: transportationOffice
+        icon: EmojiTransportation
+        children:
+          - id: skodaLicensePayments
+            icon: Skoda
+  - id: realEstateTenants
+    icon: VpnKey
+    children:
+      - id: manhattanApartment
+        icon: Apartment
+        children:
+          - id: jack
+            icon: Hail
+            outgoingTransactions:
+              - targetAccountID: primaryCheckingAccount
+                date: '{{ now | dateModify "-36mo" | rfc3339 }}'
+                amount: 2500
+                description: Rent for Manhattan apartment
+                repeat:
+                  dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+                  count: 24
+          - id: john
+            icon: Hail
+            outgoingTransactions:
+              - targetAccountID: primaryCheckingAccount
+                date: '{{ now | dateModify "-12mo" | rfc3339 }}'
+                amount: 2700
+                description: Rent for Manhattan apartment
+                repeat:
+                  dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+                  count: 12
+      - id: countryHouse
+        icon: Cottage
+        children:
+          - id: jennifer
+            icon: Hail
+            outgoingTransactions:
+              - targetAccountID: primaryCheckingAccount
+                date: '{{ now | dateModify "-24mo" | rfc3339 }}'
+                amount: 1400
+                description: Rent for country house
+                repeat:
+                  dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+                  count: 20
+  - id: banks
+    icon: AccountBalance
+    children:
+      - id: bankOfAmerica
+        icon: BankOfAmerica
+        children:
+          - id: skodaLoanPayments
+            icon: Paid
+          - id: manhattanMortgagePayments
+            icon: Paid
+          - id: countryHouseMortgagePayments
+            icon: Paid
+  - id: checkingAccounts
+    icon: AssuredWorkload
+    children:
+      - id: primaryCheckingAccount
+        icon: AccountBalanceWallet
+        outgoingTransactions:
+
+          # Car payments
+          - targetAccountID: skodaLoanPayments
+            date: '{{ now | dateModify "-36mo" | rfc3339 }}'
+            amount: 1500
+            description: Car loan installment
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 24
+          - targetAccountID: skodaLicensePayments
+            date: '{{ now | dateModify "-3y" | rfc3339 }}'
+            amount: 1200
+            description: Car licence
+            repeat:
+              dateTemplate: '{{ . | dateModify "1y" | rfc3339 }}'
+              count: 3
+          - targetAccountID: skodaInsurancePayments
+            date: '{{ now | dateModify "-3y" | rfc3339 }}'
+            amount: 4000
+            description: Car insurance
+            repeat:
+              dateTemplate: '{{ . | dateModify "1y" | rfc3339 }}'
+              count: 3
+
+          # Mortgage payments
+          - targetAccountID: manhattanMortgagePayments
+            date: '{{ now | dateModify "-24mo" | rfc3339 }}'
+            amount: 5000
+            description: Manhattan apt. mortgage installment
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 24
+          - targetAccountID: countryHouseMortgagePayments
+            date: '{{ now | dateModify "-24mo" | rfc3339 }}'
+            amount: 3000
+            description: Country house apt. mortgage installment
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 12
+
+          # Entertainment
+          - targetAccountID: netflix
+            date: '{{ now | dateModify "-12mo" | rfc3339 }}'
+            amount: 29.99
+            description: Netflix Subscription
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 12
+          - targetAccountID: primeVideo
+            date: '{{ now | dateModify "-12mo" | rfc3339 }}'
+            amount: 14.98
+            description: Amazon Prime Video Subscription
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 12
+          - targetAccountID: spotify
+            date: '{{ now | dateModify "-12mo" | rfc3339 }}'
+            amount: 9.99
+            description: Spotify Subscription
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 12
+          - targetAccountID: youtube
+            date: '{{ now | dateModify "-3mo" | rfc3339 }}'
+            amount: 12.99
+            description: YouTube Premium Subscription
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 3
+
+          # Leisure
+          - targetAccountID: theBrownHogPub
+            date: '{{ now | dateModify "-4mo" | rfc3339 }}'
+            amount: 123.45
+            description: Beers with friends
+          - targetAccountID: theBrownHogPub
+            date: '{{ now | dateModify "-2mo" | rfc3339 }}'
+            amount: 123.45
+            description: Jack's birthday at the pub
+          - targetAccountID: monCheryRestaurant
+            date: '{{ now | dateModify "-6mo" | rfc3339 }}'
+            amount: 462.65
+            description: Wedding anniversary
+          - targetAccountID: coralStrandsHotel
+            date: '{{ now | dateModify "-8mo" | rfc3339 }}'
+            amount: 1065
+            description: Seychelles Trip
+
+          # Household
+          - targetAccountID: groceries
+            date: '{{ now | dateModify "-12mo" | rfc3339 }}'
+            amount: 86
+            description: Groceries
+            repeat:
+              dateTemplate: '{{ . | dateModify "1mo" | rfc3339 }}'
+              count: 12
+          - targetAccountID: meat
+            date: '{{ now | dateModify "-12mo" | rfc3339 }}'
+            amount: 86
+            description: Meat
+            repeat:
+              dateTemplate: '{{ . | dateModify "2mo" | rfc3339 }}'
+              count: 6
+          - targetAccountID: electronics
+            date: '{{ now | dateModify "-9mo" | rfc3339 }}'
+            amount: 299.99
+            description: LG TV
+
+          # Clothing
+          - targetAccountID: nike
+            date: '{{ now | dateModify "-7mo" | rfc3339 }}'
+            amount: 79.99
+            description: Sneakers for Julie
+          - targetAccountID: adidas
+            date: '{{ now | dateModify "-11mo" | rfc3339 }}'
+            amount: 69.99
+            description: Sneakers for Jean
+          - targetAccountID: zara
+            date: '{{ now | dateModify "-2mo" | rfc3339 }}'
+            amount: 687.95
+            description: Clothes for Jean
+
+  - id: expenses
+    icon: Shopify
+    children:
+      - id: entertainment
+        icon: LiveTv
+        children:
+          - id: netflix
+          - id: primeVideo
+          - id: spotify
+          - id: youtube
+            icon: YouTube
+      - id: leisure
+        icon: Sailing
+        children:
+          - id: goingOut
+            icon: Nightlife
+            children:
+              - id: monCheryRestaurant
+                icon: Restaurant
+              - id: theBrownHogPub
+                icon: SportsBar
+          - id: vacations
+            icon: FlightTakeoff
+            children:
+              - id: coralStrandsHotel
+                icon: Hotel
+      - id: household
+        icon: RoomPreferences
+        children:
+          - id: groceries
+            icon: LocalGroceryStore
+          - id: meat
+            icon: KebabDining
+          - id: electronics
+            icon: FiberDvr
+      - id: clothing
+        icon: Checkroom
+        children:
+          - id: shoes
+            icon: ShoeSneaker
+            children:
+              - id: nike
+              - id: adidas
+          - id: zara
