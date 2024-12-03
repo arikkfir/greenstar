@@ -201,7 +201,7 @@ jobs:
         with:
           export-env: true
         env:
-          CURRENCYAPI_KEY: op://Development/GreenSTAR/currencyapi/api key
+          CURRENCY_API_KEY: op://Development/GreenSTAR/currencyapi/api key
           DESCOPE_PROJECT_ID: op://Development/GreenSTAR/descope/project_id
           DESCOPE_MANAGEMENT_KEY_ID: op://Development/GreenSTAR/descope/management key id
           DESCOPE_MANAGEMENT_KEY_TOKEN: op://Development/GreenSTAR/descope/management key token
