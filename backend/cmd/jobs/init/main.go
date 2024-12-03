@@ -82,7 +82,7 @@ func (e *Action) Run(ctx context.Context) error {
 			return fmt.Errorf("timed out waiting for Postgres connection pool to become available")
 		case <-ticker.C:
 			if err := pgPool.Ping(ctx); err != nil {
-				slog.Default().InfoContext(ctx, "PostgreSQL not yet available")
+				slog.Default().InfoContext(ctx, "PostgreSQL not yet available", "err", err)
 			} else {
 				pgAvailable = true
 			}
