@@ -263,6 +263,7 @@ tasks:
     cmds:
       - ./bin/generate-rest-client --api-file=api.yaml
     sources:
+      - ./api.yaml
       - ./bin/generate-rest-client
     generates:
       - frontend/src/client/*.ts
@@ -274,6 +275,7 @@ tasks:
     cmds:
       - ./bin/generate-rest-server --api-file=api.yaml
     sources:
+      - ./api.yaml
       - ./bin/generate-rest-server
     generates:
       - backend/internal/server/resources/*/*.go
