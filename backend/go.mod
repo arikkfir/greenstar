@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/storage v1.30.1
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/arikkfir/command v0.8.1
-	github.com/descope/go-sdk v1.6.5
+	github.com/descope/go-sdk v1.6.8
 	github.com/go-logr/logr v1.4.2
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/google/uuid v1.6.0
