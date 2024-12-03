@@ -11,8 +11,8 @@ package {{ .model.Name | toSnake }}
 {{- if ne .model.Create nil }}
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	{{- if $importDecimal }}
@@ -21,8 +21,13 @@ import (
 	"net/http"
 	"slices"
 	{{- if $importTime }}
-		"time"
+	"time"
 	{{- end }}
+)
+
+var (
+	_ = decimal.Decimal{}
+	_ = time.Time{}
 )
 
 type CreateRequest struct {

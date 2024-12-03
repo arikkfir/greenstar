@@ -14,6 +14,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+var (
+	_ = decimal.Decimal{}
+	_ = time.Time{}
+)
+
 type CreateRequest struct {
 	TenantID        string          `json:"-"`
 	Amount          decimal.Decimal `json:"amount,omitempty"`
