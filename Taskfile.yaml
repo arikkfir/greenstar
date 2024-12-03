@@ -255,7 +255,7 @@ tasks:
     cmds:
       - rm -f ./hack/greenstar-values.yaml
       - touch ./hack/greenstar-values.yaml
-      - yq -i ".currencyAPI.key = \"${CURRENCYAPI_KEY}\"" ./hack/greenstar-values.yaml
+      - yq -i ".currencyAPI.key = \"${CURRENCY_API_KEY}\"" ./hack/greenstar-values.yaml
       - yq -i ".descope.project.id = \"${DESCOPE_PROJECT_ID}\"" ./hack/greenstar-values.yaml
       - yq -i ".descope.managementKey.id = \"${DESCOPE_MANAGEMENT_KEY_ID}\"" ./hack/greenstar-values.yaml
       - yq -i ".descope.managementKey.key = \"${DESCOPE_MANAGEMENT_KEY_TOKEN}\"" ./hack/greenstar-values.yaml
@@ -265,7 +265,7 @@ tasks:
       - yq -i '.oidc.gcp.config = load_str("./hack/gcp-credential-configuration.json")' ./hack/greenstar-values.yaml
     status:
       - test -f "./hack/gcp-credential-configuration.json"
-      - test "$(yq ".currencyAPI.key" < ./hack/greenstar-values.yaml)" = "${CURRENCYAPI_KEY}"
+      - test "$(yq ".currencyAPI.key" < ./hack/greenstar-values.yaml)" = "${CURRENCY_API_KEY}"
       - test "$(yq ".descope.project.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_PROJECT_ID}"
       - test "$(yq ".descope.managementKey.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_MANAGEMENT_KEY_ID}"
       - test "$(yq ".descope.managementKey.key" < ./hack/greenstar-values.yaml)" = "${DESCOPE_MANAGEMENT_KEY_TOKEN}"

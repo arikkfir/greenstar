@@ -41,7 +41,7 @@ tasks:
         INITJOB_KSA_GCP_PRINCIPAL=${INITJOB_KSA_GCP_PRINCIPAL:-principal://iam.googleapis.com/${GCP_OIDC_POOL_NAME}/subject/system:serviceaccount:greenstar:${HELM_RELEASE_NAME}-init-job}
         
         # Secrets
-        CURRENCYAPI_KEY=${CURRENCYAPI_KEY:-$(op read "op://Development/GreenSTAR/currencyapi/api key")}
+        CURRENCY_API_KEY=${CURRENCY_API_KEY:-$(op read "op://Development/GreenSTAR/currencyapi/api key")}
         DESCOPE_BACKEND_ACCESS_KEY_ID=${DESCOPE_BACKEND_ACCESS_KEY_ID:-$(op read "op://Development/GreenSTAR/descope/backend access key id")}
         DESCOPE_BACKEND_ACCESS_KEY_TOKEN=${DESCOPE_BACKEND_ACCESS_KEY_TOKEN:-$(op read "op://Development/GreenSTAR/descope/backend access key token")}
         DESCOPE_MANAGEMENT_KEY_ID=${DESCOPE_MANAGEMENT_KEY_ID:-$(op read "op://Development/GreenSTAR/descope/management key id")}
