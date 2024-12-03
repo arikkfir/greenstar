@@ -14,9 +14,25 @@ import (
 	trace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	ttt "go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
+	"os"
+	"strconv"
 )
 
+var Disabled bool
+
 var Tracer ttt.Tracer
+
+func init() {
+	if v, found := os.LookupEnv("OTEL_SDK_DISABLED"); found {
+		if b, err := strconv.ParseBool(v); err != nil {
+			panic(fmt.Errorf("failed to parse OTEL_SDK_DISABLED: %w", err))
+		} else if b {
+			Tracer = noop.NewTracerProvider().Tracer("github.com/arikkfir/greenstar/backend")
+			Disabled = true
+		}
+	}
+}
 
 type OTelHook struct {
 	ServiceName string
@@ -24,6 +40,10 @@ type OTelHook struct {
 }
 
 func (h *OTelHook) PreRun(ctx context.Context) error {
+	if Disabled {
+		return nil
+	}
+
 	var cleanups []func(context.Context) error
 
 	// shutdown calls cleanup functions registered via cleanups.
