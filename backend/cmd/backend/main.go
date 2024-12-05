@@ -162,7 +162,7 @@ func (e *Action) newServer(ctx context.Context, logSuccessfulRequests bool, desc
 
 func main() {
 
-	defaultMaxAge, err := time.ParseDuration("60s")
+	defaultMaxAge, err := time.ParseDuration("5s")
 	if err != nil {
 		panic(err)
 	}
