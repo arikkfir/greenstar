@@ -1,21 +1,6 @@
 import {createContext, useEffect, useMemo, useState} from "react";
 import {CurrenciesByCountryCode} from "../util/currencies.ts";
-
-const locationIQAccessToken = "pk.8bf13229466b44319e00651d2d6e15db";
-
-interface LocationIQResponse {
-    display_name: string
-    address: {
-        name: string
-        house_number: string
-        road: string
-        city: string
-        state: string
-        postcode: string
-        country: string
-        country_code: string
-    }
-}
+import {getLocation, LocationIQResponse} from "../services/location_iq.ts";
 
 export interface Locale {
     language: string
@@ -51,21 +36,8 @@ export function LocaleProvider({children}: { children: any }) {
             setLocation(undefined)
             setLocationError(undefined)
         } else {
-            const urlParams = new URLSearchParams();
-            urlParams.set("key", locationIQAccessToken)
-            urlParams.set("lat", position.coords.latitude + "")
-            urlParams.set("lon", position.coords.longitude + "")
-            urlParams.set("format", "json")
-            fetch("https://us1.locationiq.com/v1/reverse?" + urlParams, {method: 'GET'})
-                .then(resp => {
-                    if (!resp.ok) {
-                        setLocation(undefined)
-                        setLocationError(new Error("Unable to obtain your location: " + resp.statusText + " (" + resp.status + ")"))
-                    } else {
-                        return resp.json()
-                    }
-                })
-                .then((data: LocationIQResponse) => {
+            getLocation(position)
+                .then(data => {
                     setLocation(data)
                     setLocationError(undefined)
                 })
@@ -74,7 +46,7 @@ export function LocaleProvider({children}: { children: any }) {
                     setLocationError(e)
                 })
         }
-    }, [position, positionError, setLocation, setLocationError, locationIQAccessToken]);
+    }, [position, positionError, setLocation, setLocationError]);
 
     useEffect(() => {
         if (locationError || !location) {

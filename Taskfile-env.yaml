@@ -47,6 +47,7 @@ tasks:
         DESCOPE_MANAGEMENT_KEY_ID=${DESCOPE_MANAGEMENT_KEY_ID:-$(op read "op://Development/GreenSTAR/descope/management key id")}
         DESCOPE_MANAGEMENT_KEY_TOKEN=${DESCOPE_MANAGEMENT_KEY_TOKEN:-$(op read "op://Development/GreenSTAR/descope/management key token")}
         DESCOPE_PROJECT_ID=${DESCOPE_PROJECT_ID:-$(op read "op://Development/GreenSTAR/descope/project_id")}
+        LOCATION_IQ_ACCESS_TOKEN=${LOCATION_IQ_ACCESS_TOKEN:-$(op read "op://Development/GreenSTAR/locationiq/accesstoken")}
         
         # Third-party versions
         HELM_RELEASE_NAME=${HELM_RELEASE_NAME}
