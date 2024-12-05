@@ -9,30 +9,19 @@ import (
 
 	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
-	"github.com/shopspring/decimal"
 )
 
 type UpdateRequest struct {
-	TenantID            string           `json:"-"`
-	ID                  string           `json:"id"`
-	Balance             *decimal.Decimal `json:"balance,omitempty"`
-	DisplayName         string           `json:"displayName,omitempty"`
-	Icon                *string          `json:"icon,omitempty"`
-	ParentID            *string          `json:"parentID,omitempty"`
-	TotalIncomingAmount *decimal.Decimal `json:"totalIncomingAmount,omitempty"`
-	TotalOutgoingAmount *decimal.Decimal `json:"totalOutgoingAmount,omitempty"`
-	properties          []string
+	TenantID    string  `json:"-"`
+	ID          string  `json:"id"`
+	DisplayName string  `json:"displayName,omitempty"`
+	Icon        *string `json:"icon,omitempty"`
+	ParentID    *string `json:"parentID,omitempty"`
+	properties  []string
 }
 
-func (lr *UpdateRequest) HasBalance() bool  { return slices.Contains(lr.properties, "balance") }
 func (lr *UpdateRequest) HasIcon() bool     { return slices.Contains(lr.properties, "icon") }
 func (lr *UpdateRequest) HasParentID() bool { return slices.Contains(lr.properties, "parentID") }
-func (lr *UpdateRequest) HasTotalIncomingAmount() bool {
-	return slices.Contains(lr.properties, "totalIncomingAmount")
-}
-func (lr *UpdateRequest) HasTotalOutgoingAmount() bool {
-	return slices.Contains(lr.properties, "totalOutgoingAmount")
-}
 func (lr *UpdateRequest) UnmarshalJSON(data []byte) error {
 	lr.properties = nil
 	var tempMap map[string]json.RawMessage

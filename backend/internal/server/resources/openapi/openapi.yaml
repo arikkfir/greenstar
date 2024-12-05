@@ -747,10 +747,6 @@ components:
     "NewAccount":
       type: object
       properties:
-        "balance":
-          type: number
-          format: double
-          nullable: true
         "displayName":
           type: string
           nullable: false
@@ -759,22 +755,10 @@ components:
           nullable: true
         "parentID":
           type: string
-          nullable: true
-        "totalIncomingAmount":
-          type: number
-          format: double
-          nullable: true
-        "totalOutgoingAmount":
-          type: number
-          format: double
           nullable: true
     "PatchAccount":
       type: object
       properties:
-        "balance":
-          type: number
-          format: double
-          nullable: true
         "displayName":
           type: string
           nullable: true
@@ -784,21 +768,9 @@ components:
         "parentID":
           type: string
           nullable: true
-        "totalIncomingAmount":
-          type: number
-          format: double
-          nullable: true
-        "totalOutgoingAmount":
-          type: number
-          format: double
-          nullable: true
     "UpdateAccount":
       type: object
       properties:
-        "balance":
-          type: number
-          format: double
-          nullable: true
         "displayName":
           type: string
           nullable: false
@@ -807,14 +779,6 @@ components:
           nullable: true
         "parentID":
           type: string
-          nullable: true
-        "totalIncomingAmount":
-          type: number
-          format: double
-          nullable: true
-        "totalOutgoingAmount":
-          type: number
-          format: double
           nullable: true
     "Tenant":
       type: object
