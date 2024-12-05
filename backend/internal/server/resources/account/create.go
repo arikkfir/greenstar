@@ -20,14 +20,11 @@ var (
 )
 
 type CreateRequest struct {
-	TenantID            string           `json:"-"`
-	Balance             *decimal.Decimal `json:"balance,omitempty"`
-	DisplayName         string           `json:"displayName,omitempty"`
-	Icon                *string          `json:"icon,omitempty"`
-	ParentID            *string          `json:"parentID,omitempty"`
-	TotalIncomingAmount *decimal.Decimal `json:"totalIncomingAmount,omitempty"`
-	TotalOutgoingAmount *decimal.Decimal `json:"totalOutgoingAmount,omitempty"`
-	properties          []string
+	TenantID    string  `json:"-"`
+	DisplayName string  `json:"displayName,omitempty"`
+	Icon        *string `json:"icon,omitempty"`
+	ParentID    *string `json:"parentID,omitempty"`
+	properties  []string
 }
 
 func (lr *CreateRequest) HasBalance() bool  { return slices.Contains(lr.properties, "balance") }

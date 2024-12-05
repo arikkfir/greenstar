@@ -62,12 +62,15 @@ models:
       TotalIncomingAmount:
         type: decimal
         optional: true
+        readOnly: true
       TotalOutgoingAmount:
         type: decimal
         optional: true
+        readOnly: true
       Balance:
         type: decimal
         optional: true
+        readOnly: true
     create:
       permissions:
         - scope: tenant

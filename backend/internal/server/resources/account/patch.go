@@ -24,16 +24,9 @@ type PatchRequest struct {
 	properties          []string
 }
 
-func (lr *PatchRequest) HasBalance() bool     { return slices.Contains(lr.properties, "balance") }
 func (lr *PatchRequest) HasDisplayName() bool { return slices.Contains(lr.properties, "displayName") }
 func (lr *PatchRequest) HasIcon() bool        { return slices.Contains(lr.properties, "icon") }
 func (lr *PatchRequest) HasParentID() bool    { return slices.Contains(lr.properties, "parentID") }
-func (lr *PatchRequest) HasTotalIncomingAmount() bool {
-	return slices.Contains(lr.properties, "totalIncomingAmount")
-}
-func (lr *PatchRequest) HasTotalOutgoingAmount() bool {
-	return slices.Contains(lr.properties, "totalOutgoingAmount")
-}
 func (lr *PatchRequest) UnmarshalJSON(data []byte) error {
 	lr.properties = nil
 	var tempMap map[string]json.RawMessage
