@@ -319,7 +319,6 @@ tasks:
   dev:
     deps: [ generate-rest-server, setup-cluster ]
     cmds:
-      - task: setup-observability
       - task: generate-helm-values
       - skaffold dev --tail=false --toot=true
 
