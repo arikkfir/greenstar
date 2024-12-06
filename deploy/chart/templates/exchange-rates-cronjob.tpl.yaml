@@ -89,9 +89,10 @@ spec:
                   value: "disable"
                 - name: CURRENCY_API_KEY
                   value: {{ .Values.currencyAPI.key | quote }}
-              {{- if not (empty .Values.exchangeRatesCronJob.extraEnv) }}
-                {{- toYaml .Values.exchangeRatesCronJob.extraEnv | nindent 16 }}
-              {{- end }}
+                {{- range $key, $value := .Values.exchangeRatesCronJob.extraEnv }}
+                - name: {{ $key | quote }}
+                  {{ toYaml $value | nindent 18 }}
+                {{- end }}
               name: {{ $componentName | quote }}
               ports:
                 - containerPort: 8000

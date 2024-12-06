@@ -126,8 +126,9 @@ spec:
                   name: {{ $secretName | quote }}
                   key: init-pwd
                   optional: false
-            {{- if not (empty .Values.postgres.extraEnv) }}
-            {{- toYaml .Values.postgres.extraEnv | nindent 12 }}
+            {{- range $key, $value := .Values.postgres.extraEnv }}
+            - name: {{ $key | quote }}
+              {{ toYaml $value | nindent 14 }}
             {{- end }}
           name: {{ $componentName | quote }}
           ports:

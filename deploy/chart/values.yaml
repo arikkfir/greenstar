@@ -28,7 +28,7 @@ observability:
 
 backend:
   extraArgs: [ ]
-  extraEnv: [ ]
+  extraEnv: {}
   image:
     repository: ghcr.io/arikkfir/greenstar/backend
     tag: ""
@@ -51,7 +51,7 @@ backend:
 
 frontend:
   extraArgs: [ ]
-  extraEnv: [ ]
+  extraEnv: {}
   image:
     repository: ghcr.io/arikkfir/greenstar/frontend
     tag: ""
@@ -76,7 +76,7 @@ frontend:
 initJob:
   enabled: true
   extraArgs: [ ]
-  extraEnv: [ ]
+  extraEnv: {}
   image:
     repository: ghcr.io/arikkfir/greenstar/init-job
     tag: ""
@@ -97,7 +97,7 @@ initJob:
 
 exchangeRatesCronJob:
   extraArgs: [ ]
-  extraEnv: [ ]
+  extraEnv: {}
   image:
     repository: ghcr.io/arikkfir/greenstar/exchange-rates-job
     tag: ""
@@ -122,7 +122,7 @@ postgres:
   backendPassword: ""
 
   extraArgs: [ ]
-  extraEnv: [ ]
+  extraEnv: {}
   extraUsers: { }
 
   # Set init job's password (defaults to random alphanumeric passwords)

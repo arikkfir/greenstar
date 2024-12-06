@@ -143,8 +143,9 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            {{- if not (empty .Values.initJob.extraEnv) }}
-            {{- toYaml .Values.initJob.extraEnv | nindent 12 }}
+            {{- range $key, $value := .Values.initJob.extraEnv }}
+            - name: {{ $key | quote }}
+              {{ toYaml $value | nindent 14 }}
             {{- end }}
           name: {{ $componentName | quote }}
           ports:

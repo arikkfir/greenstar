@@ -328,10 +328,8 @@
       }
     },
     "extraEnv": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      }
+      "type": "object",
+      "additionalProperties": true
     },
     "image": {
       "type": "object",
@@ -342,8 +340,7 @@
           "minLength": 1
         },
         "tag": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "pullPolicy": {
           "type": "string",

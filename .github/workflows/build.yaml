@@ -245,7 +245,6 @@ jobs:
       - name: Generate Helm values file
         run: |
           task -v generate-helm-values
-          yq -i ".frontend.extraEnv += [{\"name\": \"OTEL_SDK_DISABLED\",\"value\": \"true\"}]" ./hack/greenstar-values.yaml
 
       - name: Authenticate to GHCR
         uses: docker/login-action@v3
