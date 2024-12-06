@@ -8,17 +8,17 @@ ingress:
 
 backend:
   extraEnv:
-    - name: OTEL_METRICS_EXPORTER
+    OTEL_METRICS_EXPORTER:
       value: "prometheus"
-    - name: OTEL_LOGS_EXPORTER
+    OTEL_LOGS_EXPORTER:
       value: "none"
-    - name: OTEL_EXPORTER_PROMETHEUS_HOST
-      value: "0.0.0.0"
-    - name: OTEL_EXPORTER_PROMETHEUS_PORT
+    OTEL_EXPORTER_PROMETHEUS_HOST:
+      value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
+    OTEL_EXPORTER_PROMETHEUS_PORT:
       value: "8000"
-    - name: OTEL_TRACES_EXPORTER
+    OTEL_TRACES_EXPORTER:
       value: "otlp"
-    - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
       value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
   ingress:
     enabled: true
@@ -31,23 +31,23 @@ backend:
 
 exchangeRatesCronJob:
   extraEnv:
-    - name: OTEL_METRICS_EXPORTER
+    OTEL_METRICS_EXPORTER:
       value: "prometheus"
-    - name: OTEL_LOGS_EXPORTER
+    OTEL_LOGS_EXPORTER:
       value: "none"
-    - name: OTEL_EXPORTER_PROMETHEUS_HOST
-      value: "0.0.0.0"
-    - name: OTEL_EXPORTER_PROMETHEUS_PORT
+    OTEL_EXPORTER_PROMETHEUS_HOST:
+      value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
+    OTEL_EXPORTER_PROMETHEUS_PORT:
       value: "8000"
-    - name: OTEL_TRACES_EXPORTER
+    OTEL_TRACES_EXPORTER:
       value: "otlp"
-    - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
       value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
 
 frontend:
   extraArgs: [ "--", "--logLevel=info", "--port=3000", "--host=0.0.0.0" ]
   extraEnv:
-    - name: "VITE_SLOW_REQUESTS"
+    VITE_SLOW_REQUESTS:
       value: "F"
   ingress:
     enabled: true
@@ -70,19 +70,17 @@ frontend:
 
 initJob:
   extraEnv:
-    - name: GENERATE_SAMPLE_DATA
-      value: "T"
-    - name: OTEL_METRICS_EXPORTER
+    OTEL_METRICS_EXPORTER:
       value: "prometheus"
-    - name: OTEL_LOGS_EXPORTER
+    OTEL_LOGS_EXPORTER:
       value: "none"
-    - name: OTEL_EXPORTER_PROMETHEUS_HOST
+    OTEL_EXPORTER_PROMETHEUS_HOST:
       value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
-    - name: OTEL_EXPORTER_PROMETHEUS_PORT
+    OTEL_EXPORTER_PROMETHEUS_PORT:
       value: "8000"
-    - name: OTEL_TRACES_EXPORTER
+    OTEL_TRACES_EXPORTER:
       value: "otlp"
-    - name: OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
       value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
 
 postgres:

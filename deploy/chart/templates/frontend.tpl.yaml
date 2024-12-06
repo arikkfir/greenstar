@@ -67,10 +67,13 @@ spec:
           args:
             {{- toYaml .Values.frontend.extraArgs | nindent 12 }}
           {{- end }}
-          {{- if not (empty .Values.frontend.extraEnv) }}
           env:
-            {{- toYaml .Values.frontend.extraEnv | nindent 12 }}
-          {{- end }}
+            - name: DUMMY
+              value: DUMB
+            {{- range $key, $value := .Values.frontend.extraEnv }}
+            - name: {{ $key | quote }}
+              {{ toYaml $value | nindent 14 }}
+            {{- end }}
           name: {{ $componentName | quote }}
           ports:
             - containerPort: 3000
