@@ -30,7 +30,7 @@ import (
 type Action struct {
 	Descope                       auth.DescopeConfig
 	CurrencyAPIKey                string `required:"true" env:"CURRENCY_API_KEY"`
-	GenerateSampleData            bool   `flag:"true"`
+	DisableSampleDataGeneration            bool   `flag:"true"`
 	Namespace                     string `flag:"true" env:"POD_NAMESPACE"`
 	ExchangeRatesCronJobName      string `flag:"true" env:"EXCHANGE_RATES_CRONJOB_NAME"`
 	HistoricalExchangeRatesPeriod string `flag:"true"`
@@ -111,7 +111,7 @@ func (e *Action) Run(ctx context.Context) error {
 	}
 
 	// Generate sample data
-	if e.GenerateSampleData {
+	if !e.DisableSampleDataGeneration {
 		th := appServer.TenantsHandler
 		txh := appServer.TransactionsHandler
 		ah := accountsHandler
@@ -121,6 +121,8 @@ func (e *Action) Run(ctx context.Context) error {
 		if err := sample.Generate(ctx, appServer.Descope, accessKey, pgPool, th, tenantID, tenantDisplayName, txh, ah); err != nil {
 			return err
 		}
+	} else {
+		slog.Default().WarnContext(ctx, "Sample data generation has been DISABLED")
 	}
 
 	// Ensure fill-in any missing rates
