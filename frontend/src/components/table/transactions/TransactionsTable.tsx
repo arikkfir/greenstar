@@ -1,31 +1,49 @@
-import {Transaction, useTransactionsClient} from "../../../client/transaction.ts";
 import {Account} from "../../../client/account.ts";
-import {DataGridPremiumProps, GridColDef} from "@mui/x-data-grid-premium";
-import {useContext, useEffect, useMemo, useState} from "react";
+import {Transaction, useTransactionsClient} from "../../../client/transaction.ts";
+import {
+    DataGridPremiumProps,
+    GridCallbackDetails,
+    GridColDef,
+    GridColumnVisibilityModel
+} from "@mui/x-data-grid-premium";
 import {LocaleContext} from "../../../providers/LocaleProvider.tsx";
-import {useColumns} from "./Columns.tsx";
-import {StatefulDataGrid} from "../StatefulDataGrid.tsx";
-import {GridColumnVisibilityModel} from "@mui/x-data-grid/hooks/features/columns/gridColumnsInterfaces";
-import {GridCallbackDetails} from "@mui/x-data-grid/models/api";
+import {useCurrencyFormatter, useDateFormatter} from "../../../hooks/locale.tsx";
+import {useCallback, useContext, useEffect, useMemo, useState} from "react";
+import {AccountsMap, MapAccountsByID} from "../../../client/account-util.ts";
+import {CustomDataGrid} from "../CustomDataGrid.tsx";
 
-// const nativeDateTimeFormat = new Intl.DateTimeFormat(navigator.language, {
-//     dateStyle: "short",
-//     timeStyle: "short",
-// });
-
-// const nativeRelativeTimeFormat = new Intl.RelativeTimeFormat(navigator.language, {style: 'short'});
-
-export interface DataGridProps extends Omit<DataGridPremiumProps<Transaction>, "columns" | "loading" | "rows"> {
+function buildGridColumnDefinitions(accountsByID: AccountsMap): GridColDef<Transaction>[] {
+    const currencyFormatter = useCurrencyFormatter()
+    const dateFormatter = useDateFormatter()
+    const accountFormatter = useCallback((id: string) => accountsByID[id]?.displayName || id, [accountsByID])
+    return useMemo(() => ([
+            {field: 'id', headerName: "ID", groupable: false, type: "string"},
+            {field: "sourceAccountId", headerName: "From", type: "string", valueFormatter: accountFormatter},
+            {field: "date", headerName: "Date", type: "dateTime", valueFormatter: dateFormatter},
+            {field: "targetAccountId", headerName: "To", type: "string", valueFormatter: accountFormatter},
+            {
+                field: "convertedAmount",
+                headerName: "Amount",
+                groupable: false,
+                type: "number",
+                valueFormatter: currencyFormatter
+            },
+            {field: "description", headerName: "Description", groupable: false, type: "string"},
+            {field: "referenceId", headerName: "Reference", groupable: false, type: "string"},
+        ]),
+        [currencyFormatter, accountFormatter]
+    );
 }
 
-export interface TransactionsTableProps {
+export interface TransactionsTableProps extends Omit<DataGridPremiumProps<Transaction>, "columns" | "loading" | "rows"> {
+    stateId: string
     accounts: Account[]
-    dataGridProps?: DataGridProps,
     sourceAccountId?: string,
     targetAccountId?: string,
 }
 
-export function TransactionsTable({accounts, dataGridProps, sourceAccountId, targetAccountId}: TransactionsTableProps) {
+export function TransactionsTable(props: TransactionsTableProps) {
+    const {stateId, accounts, sourceAccountId, targetAccountId, ...dataGridProps} = props
     const locale = useContext(LocaleContext)
     const transactionsClient = useTransactionsClient()
     const [loading, setLoading] = useState(true)
@@ -37,14 +55,8 @@ export function TransactionsTable({accounts, dataGridProps, sourceAccountId, tar
         "id": false,
         "referenceId": false,
     })
-
-    const accountsByID = useMemo(() => {
-        const accountsByID: { [key: string]: Account } = {}
-        accounts.forEach(acc => accountsByID[acc.id] = acc)
-        return accountsByID
-    }, [accounts]);
-
-    const columns: GridColDef<Transaction>[] = useColumns(accountsByID);
+    const accountsByID = useMemo(() => MapAccountsByID(accounts), [accounts]);
+    const columns: GridColDef<Transaction>[] = buildGridColumnDefinitions(accountsByID);
 
     useEffect(() => {
         if (locale.currency && paginationModel.pageSize > 0) {
@@ -71,20 +83,20 @@ export function TransactionsTable({accounts, dataGridProps, sourceAccountId, tar
     }
 
     return (
-        <StatefulDataGrid<Transaction> stateId="transactions"
-                                       columnVisibilityModel={colVisibilityModel}
-                                       onColumnVisibilityModelChange={(model: GridColumnVisibilityModel, _: GridCallbackDetails) => setColVisibilityModel(model)}
-                                       columns={columns}
-                                       autoPageSize={true}
-                                       pagination={true}
-                                       paginationMode="server"
-                                       paginationModel={paginationModel}
-                                       onPaginationModelChange={setPaginationModel}
-                                       autosizeOnMount={true}
-                                       autosizeOptions={autosizeOptions}
-                                       loading={loading}
-                                       rows={transactions}
-                                       rowCount={rowCount}
-                                       {...dataGridProps} />
+        <CustomDataGrid<Transaction> stateId={stateId}
+                                     columnVisibilityModel={colVisibilityModel}
+                                     onColumnVisibilityModelChange={(model: GridColumnVisibilityModel, _: GridCallbackDetails) => setColVisibilityModel(model)}
+                                     columns={columns}
+                                     autoPageSize={true}
+                                     pagination={true}
+                                     paginationMode="server"
+                                     paginationModel={paginationModel}
+                                     onPaginationModelChange={setPaginationModel}
+                                     autosizeOnMount={true}
+                                     autosizeOptions={autosizeOptions}
+                                     loading={loading}
+                                     rows={transactions}
+                                     rowCount={rowCount}
+                                     {...dataGridProps} />
     )
 }

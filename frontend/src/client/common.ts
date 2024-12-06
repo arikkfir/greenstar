@@ -1,37 +1,13 @@
-let tenantID = "";
-
-export function useDomain(): string {
-    const match = /^(?:[a-zA-Z0-9-_]+\.)?app\.(greenstar.(?:test|kfirs\.com))$/.exec(window.location.hostname)
-    if (!match) {
-        throw new Error(`could not extract domain from hostname: ${window.location.hostname}`)
-    } else {
-        return match[1]
-    }
-}
-
-export function isHealthEndpoint(): boolean {
-    return window.location.pathname === "/healthz"
-}
-
-export function isSignupPage(): boolean {
-    return window.location.hostname == "app." + useDomain() && window.location.pathname.startsWith("/signup")
-}
-
-export function isTenantSelectionPage(): boolean {
-    return window.location.hostname == "app." + useDomain() && window.location.pathname.startsWith("/tenants")
-}
+import {useDomain} from "../hooks/domain.ts";
+import {useTenantID as newUseTenantID} from "../hooks/tenant.ts";
 
 export function useTenantID(): string {
-    if (tenantID == "") {
-        const match = /^([a-zA-Z0-9-_]+)\.app\.(greenstar.(?:test|kfirs\.com))$/.exec(window.location.hostname)
-        if (!match) {
-            throw new Error(`could not extract tenant ID from hostname: ${window.location.hostname}`)
-        } else {
-            tenantID = match[1]
-        }
-    }
-    return tenantID;
+    // TODO: migrate generated client code to use the new "useTenantID()"
+    return newUseTenantID()
 }
 
+// TODO: move BaseAPIURL into a hook
 export const BaseAPIURL = `https://api.${useDomain()}`
+
+// TODO: move QueryNilValue into a hook
 export const QueryNilValue = "<nil>"

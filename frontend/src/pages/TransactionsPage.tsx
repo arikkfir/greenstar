@@ -1,15 +1,14 @@
-import {useCallback, useContext, useEffect, useState} from "react";
+import {SyntheticEvent, useCallback, useContext, useEffect, useState} from "react";
 import {Account, useAccountsClient} from "../client/account.ts";
-import {Paper} from "@mui/material";
-import Grid from "@mui/material/Grid2";
+import {LocaleContext} from "../providers/LocaleProvider.tsx";
+import {Box, Paper} from "@mui/material";
 import {AccountsTree} from "../components/tree/accounts/AccountsTree.tsx";
 import {TransactionsTable} from "../components/table/transactions/TransactionsTable.tsx";
-import {LocaleContext} from "../providers/LocaleProvider.tsx";
+import {AccountID} from "../client/account-util.ts";
 
 export function TransactionsPage() {
     const locale = useContext(LocaleContext)
     const accountsClient = useAccountsClient()
-    const [loadingAccounts, setLoadingAccounts] = useState(true)
     const [error, setError] = useState<Error | undefined>()
     const [accounts, setAccounts] = useState<Account[]>([])
     const [selectedAccount, setSelectedAccount] = useState<Account | undefined>()
@@ -27,7 +26,6 @@ export function TransactionsPage() {
 
     useEffect(() => {
         if (locale.currency) {
-            setLoadingAccounts(true)
             setError(undefined)
             accountsClient.List({currency: locale.currency})
                 .then(r => {
@@ -35,17 +33,19 @@ export function TransactionsPage() {
                     setSelectedAccount(undefined)
                 })
                 .catch(e => setError(e))
-                .finally(() => setLoadingAccounts(false))
         } else if (locale.error) {
-            setLoadingAccounts(false)
             setAccounts([])
             setError(locale.error)
         } else {
-            setLoadingAccounts(false)
             setAccounts([])
             setError(undefined)
         }
-    }, [locale, setLoadingAccounts, setError, accountsClient, setAccounts, setSelectedAccount]);
+    }, [locale, setError, accountsClient, setAccounts, setSelectedAccount]);
+
+    const handleAccountSelectionChange = useCallback(
+        (_: SyntheticEvent, id: AccountID | null) => setSelectedAccount(accounts.find(a => a.id === id)),
+        [accounts, setSelectedAccount]
+    )
 
     if (error) {
         return (
@@ -54,22 +54,34 @@ export function TransactionsPage() {
     }
 
     return (
-        <Grid container spacing={2} sx={{width: '100%'}}>
-            <Grid size={3}>
-                <Paper sx={{height: '100%'}}>
-                    <AccountsTree loading={loadingAccounts}
-                                  accounts={accounts}
-                                  selectedAccount={selectedAccount}
-                                  onAccountSelected={acc => setSelectedAccount(acc)}/>
-                </Paper>
-            </Grid>
-            <Grid size={9}>
-                <Paper sx={{height: '100%', minWidth: 0, minHeight: 0}}>
-                    <TransactionsTable accounts={accounts}
-                                       sourceAccountId={selectedAccount?.id}
-                                       targetAccountId={selectedAccount?.id}/>
-                </Paper>
-            </Grid>
-        </Grid>
+        <Box sx={{
+            flexGrow: 1, flexShrink: 1,
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'stretch',
+            alignContent: 'stretch',
+            gap: '1rem',
+            p: 2, overflow: "hidden",
+        }}>
+            <Paper sx={{flexGrow: 0, flexShrink: 0, minWidth: '20rem'}}>
+                <AccountsTree accounts={accounts}
+                              selectedAccount={selectedAccount}
+                              onSelectedItemsChange={handleAccountSelectionChange}/>
+            </Paper>
+            <Paper sx={{
+                flexGrow: 1, flexShrink: 1,
+                display: 'flex', flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'stretch',
+                alignContent: 'stretch', overflow: "hidden",
+            }}>
+                <TransactionsTable sx={{flexGrow: 1, flexShrink: 1}}
+                                   stateId="transactions"
+                                   accounts={accounts}
+                                   sourceAccountId={selectedAccount?.id}
+                                   targetAccountId={selectedAccount?.id}/>
+            </Paper>
+        </Box>
     )
 }
