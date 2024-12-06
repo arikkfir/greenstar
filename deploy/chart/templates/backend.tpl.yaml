@@ -109,10 +109,6 @@ spec:
               value: "disable"
             - name: HTTP_ALLOWED_ORIGINS
               value: "https://signup.{{ .Values.ingress.domain }},https://app.{{ .Values.ingress.domain }},https://*.app.{{ .Values.ingress.domain }}"
-            - name: HTTP_ALLOW_HEADERS
-              value: "x-request-id,authorization"
-            - name: HTTP_ALLOW_METHODS
-              value: "POST,GET,PATCH,PUT,DELETE"
             {{- if not (empty .Values.backend.extraEnv) }}
             {{- toYaml .Values.backend.extraEnv | nindent 12 }}
             {{- end }}
