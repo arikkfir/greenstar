@@ -23,6 +23,7 @@ ENTRYPOINT ["npm","run","dev"]
 
 FROM development AS builder
 ARG VITE_DESCOPE_PROJECT_ID
+ARG VITE_LOCATION_IQ_ACCESS_TOKEN
 ARG VITE_SLOW_REQUESTS
 ENV NODE_ENV=production
 RUN npm run build

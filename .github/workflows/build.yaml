@@ -91,6 +91,7 @@ jobs:
         env:
           APPLY_PATCHES_SH: op://Development/GreenSTAR/frontend/apply-patches.sh
           DESCOPE_PROJECT_ID: op://Development/GreenSTAR/descope/project_id
+          LOCATION_IQ_ACCESS_TOKEN: op://Development/GreenSTAR/locationiq/accesstoken
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - if: matrix.images.name == 'frontend'
@@ -122,6 +123,7 @@ jobs:
           file: ${{ matrix.images.file }}
           build-args: |
             VITE_DESCOPE_PROJECT_ID=${{ env.DESCOPE_PROJECT_ID }}
+            VITE_LOCATION_IQ_ACCESS_TOKEN=${{ env.LOCATION_IQ_ACCESS_TOKEN }}
             VITE_SLOW_REQUESTS=F
             VERSION=v0.0.0+${{ github.sha }}
           target: production
