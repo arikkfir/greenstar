@@ -270,6 +270,15 @@
         },
         "volumes": {
           "$ref": "#/$defs/volumesConfiguration"
+        },
+        "readinessProbe": {
+          "type": "boolean"
+        },
+        "livenessProbe": {
+          "type": "boolean"
+        },
+        "startupProbe": {
+          "type": "boolean"
         }
       }
     },

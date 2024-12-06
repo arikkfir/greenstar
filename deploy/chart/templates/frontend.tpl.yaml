@@ -82,6 +82,7 @@ spec:
             requests:
               cpu: {{ .Values.frontend.resources.requests.cpu | default "50m" | quote }}
               memory: {{ .Values.frontend.resources.requests.memory | default "32Mi" | quote }}
+          {{- if .Values.frontend.livenessProbe }}
           livenessProbe:
             httpGet:
               port: http
@@ -90,6 +91,8 @@ spec:
             periodSeconds: 5
             terminationGracePeriodSeconds: 30
             timeoutSeconds: 3
+          {{- end }}
+          {{- if .Values.frontend.readinessProbe }}
           readinessProbe:
             httpGet:
               port: http
@@ -97,6 +100,8 @@ spec:
             failureThreshold: 3
             periodSeconds: 1
             timeoutSeconds: 1
+          {{- end }}
+          {{- if .Values.frontend.startupProbe }}
           startupProbe:
             httpGet:
               port: http
@@ -107,6 +112,7 @@ spec:
             failureThreshold: 10
             timeoutSeconds: 1
             terminationGracePeriodSeconds: 60
+          {{- end }}
           {{- if not (empty .Values.frontend.volumeMounts) }}
           volumeMounts:
             {{- toYaml .Values.frontend.volumeMounts | nindent 12 }}
