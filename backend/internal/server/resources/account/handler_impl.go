@@ -8,7 +8,9 @@ import (
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/arikkfir/greenstar/backend/internal/util/db"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/pganalyze/pg_query_go/v5"
 	"strings"
 )
@@ -188,9 +190,17 @@ func (h *HandlerImpl) Get(ctx context.Context, req GetRequest) (*GetResponse, er
 	if err := tx.QueryRow(ctx, getSQL, req.TenantID, req.ID, *req.Currency).Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.DisplayName, &res.Icon, &res.ParentID, &res.TotalIncomingAmount, &res.TotalOutgoingAmount, &res.Balance); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, util.ErrNotFound
-		} else {
-			return nil, fmt.Errorf("failed fetching row: %w", err)
 		}
+
+		var pge *pgconn.PgError
+		if errors.As(err, &pge) {
+			switch pge.Code {
+			case pgerrcode.InvalidTextRepresentation:
+				return nil, fmt.Errorf("%w: %s", util.ErrUnprocessableEntity, pge.Message)
+			}
+		}
+
+		return nil, fmt.Errorf("failed fetching row: %w", err)
 	}
 
 	return &res, nil
