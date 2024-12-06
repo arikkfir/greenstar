@@ -1,9 +1,9 @@
 import {Box} from "@mui/material";
 
-export function DashboardPage() {
+export function SettingsPage() {
     return (
         <Box>
-            Dashboard
+            Settings
         </Box>
     )
 }

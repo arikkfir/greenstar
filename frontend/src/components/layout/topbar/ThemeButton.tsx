@@ -1,11 +1,11 @@
-import {MouseEvent, useCallback, useState} from "react";
 import {Divider, IconButton, Menu, MenuItem, useColorScheme} from "@mui/material";
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
-import ContrastIcon from '@mui/icons-material/Contrast';
+import {MouseEvent, useCallback, useState} from "react";
+import ContrastIcon from "@mui/icons-material/Contrast";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import SettingsBrightnessIcon from "@mui/icons-material/SettingsBrightness";
 
-type Mode = 'light' | 'dark' | 'system';
+export type Mode = 'light' | 'dark' | 'system';
 
 export function ThemeButton() {
     const {mode, setMode} = useColorScheme()

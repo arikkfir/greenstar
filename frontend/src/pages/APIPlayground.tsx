@@ -3,7 +3,7 @@ import SwaggerUI from "swagger-ui-react";
 import {BaseAPIURL} from "../client/common.ts";
 import {useSession} from "@descope/react-sdk";
 
-export const APIPlayground = () => {
+export function APIPlaygroundPage() {
     const {sessionToken} = useSession()
     return (
         <SwaggerUI url={`${BaseAPIURL}/openapi.yaml`}
@@ -16,6 +16,11 @@ export const APIPlayground = () => {
                    withCredentials={true}
                    onComplete={(system) => system.authActions.authorize({
                        Bearer: {value: `Bearer ${sessionToken}`}
-                   })}/>
+                   })}
+                   queryConfigEnabled={true}
+                   showCommonExtensions={true}
+                   showExtensions={true}
+                   showMutatedRequest={true}
+                   tryItOutEnabled={true}/>
     )
 }

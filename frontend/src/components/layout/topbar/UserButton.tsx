@@ -1,10 +1,10 @@
+import {useNavigate} from "react-router";
+import {useDescope, useSession, useUser} from "@descope/react-sdk";
 import {MouseEvent, useCallback, useState} from "react";
 import {Avatar, Divider, IconButton, Menu, MenuItem} from "@mui/material";
-import AccountCircle from "@mui/icons-material/AccountCircle";
-import {useNavigate} from "react-router-dom";
-import Settings from '@mui/icons-material/Settings';
-import Logout from '@mui/icons-material/Logout';
-import {useDescope, useSession, useUser} from "@descope/react-sdk";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 export function UserButton() {
     const navigate = useNavigate()
@@ -31,7 +31,7 @@ export function UserButton() {
     return (
         <>
             <IconButton size="large" color="inherit" onClick={openUserMenu}>
-                {initials ? <Avatar sx={{width: 32, height: 32}}>{initials}</Avatar> : <AccountCircle/>}
+                {initials ? <Avatar sx={{width: 32, height: 32}}>{initials}</Avatar> : <AccountCircleIcon/>}
             </IconButton>
             <Menu id="menu-appbar"
                   anchorEl={userMenuAnchorEl}
@@ -39,17 +39,17 @@ export function UserButton() {
                   open={!!userMenuAnchorEl}
                   onClose={() => setUserMenuAnchorEl(null)}
             >
-                <MenuItem onClick={() => navigateTo("/user/profile")}>
-                    <AccountCircle sx={{mr: 1}} fontSize="small"/>
+                <MenuItem onClick={() => navigateTo("/profile")}>
+                    <AccountCircleIcon sx={{mr: 1}} fontSize="small"/>
                     My Profile
                 </MenuItem>
                 <MenuItem onClick={() => navigateTo("/settings")}>
-                    <Settings sx={{mr: 1}} fontSize="small"/>
+                    <SettingsIcon sx={{mr: 1}} fontSize="small"/>
                     Settings
                 </MenuItem>
                 <Divider/>
                 <MenuItem onClick={() => sdk.logout()}>
-                    <Logout sx={{mr: 1}} fontSize="small"/>
+                    <LogoutIcon sx={{mr: 1}} fontSize="small"/>
                     Log out
                 </MenuItem>
             </Menu>

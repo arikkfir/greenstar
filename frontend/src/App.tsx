@@ -1,80 +1,23 @@
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
-import {createTheme, CssBaseline, ThemeProvider, useColorScheme} from "@mui/material";
-import {useMemo} from "react";
+import {Box, useTheme} from "@mui/material";
+import {Descope, useSession, useUser} from "@descope/react-sdk";
 import {useTenantID} from "./client/common.ts";
-import {Layout} from "./Layout.tsx";
+import {SpinnerBlock} from "./components/SpinnerBlock.tsx";
+import {LocaleProvider} from "./providers/LocaleProvider.tsx";
+import {Outlet, Route, Routes} from "react-router";
 import {DashboardPage} from "./pages/DashboardPage.tsx";
 import {TransactionsPage} from "./pages/TransactionsPage.tsx";
-import {APIPlayground} from "./pages/APIPlayground.tsx";
-import {LocaleProvider} from "./providers/LocaleProvider.tsx";
+import {APIPlaygroundPage} from "./pages/APIPlayground.tsx";
+import {SettingsPage} from "./pages/SettingsPage.tsx";
 import {UserProfilePage} from "./pages/UserProfilePage.tsx";
-import {Descope, useSession, useUser} from "@descope/react-sdk";
-import {SpinnerBlock} from "./components/SpinnerBlock.tsx";
-
-function WithTheme({children}: any) {
-    const theme = useMemo(() => createTheme({
-        colorSchemes: {dark: true, light: true},
-        cssVariables: {
-            colorSchemeSelector: 'class'
-        }
-        // components: {
-        //     MuiDataGrid: {
-        //         styleOverrides: {
-        //             root: {
-        //                 backgroundColor: 'red',
-        //             },
-        //         },
-        //     },
-        // }
-    }), []);
-
-    return (
-        <ThemeProvider theme={theme}>
-            {children}
-        </ThemeProvider>
-    )
-}
+import {ThemeButton} from "./components/layout/topbar/ThemeButton.tsx";
+import {TopBar} from "./components/layout/topbar/TopBar.tsx";
+import {Footer} from "./components/layout/Footer.tsx";
 
 export function App() {
     const {isAuthenticated, isSessionLoading} = useSession();
     const {isUserLoading} = useUser();
     const tenantID = useTenantID();
-    const {mode} = useColorScheme()
-
-    const router = useMemo(() => createBrowserRouter([
-        {
-            id: "root",
-            path: "/",
-            element: <Layout/>,
-            children: [
-                {
-                    index: true,
-                    element: <DashboardPage/>,
-                },
-                {
-                    id: "transactions",
-                    path: "/transactions",
-                    element: <TransactionsPage/>,
-                },
-                {
-                    id: "userProfile",
-                    path: "/user/profile",
-                    element: <UserProfilePage/>,
-                },
-                {
-                    id: "settings",
-                    path: "/settings",
-                    element: <h1>Settings</h1>,
-                },
-                {
-                    id: "api",
-                    path: "/api",
-                    element: <APIPlayground/>,
-                },
-            ],
-        },
-    ]), [tenantID])
-
+    const theme = useTheme()
 
     if (isSessionLoading || isUserLoading) {
         return (
@@ -86,23 +29,62 @@ export function App() {
         let descopeOpts: any = {
             flowId: "custom-sign-in",
             tenant: tenantID,
-        }
-        if (mode === "dark" || mode === "light") {
-            descopeOpts.theme = mode
+            theme: theme.palette.mode,
         }
         return (
-            <Descope {...descopeOpts}/>
+            <Box sx={{
+                p: 0,
+                m: 0,
+                width: '100vw',
+                height: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                <ThemeButton/>
+                <Descope {...descopeOpts}/>
+            </Box>
         );
     }
 
     return (
-        <WithTheme>
-            <CssBaseline/>
-            <LocaleProvider>
-                <LocaleProvider>
-                    <RouterProvider router={router}/>
-                </LocaleProvider>
-            </LocaleProvider>
-        </WithTheme>
+        <LocaleProvider>
+            <Routes>
+                <Route element={<RootLayout/>}>
+                    <Route index element={<DashboardPage/>}/>
+                    <Route path="transactions" element={<TransactionsPage/>}/>
+                    <Route path="api" element={<APIPlaygroundPage/>}/>
+                    <Route path="settings" element={<SettingsPage/>}/>
+                    <Route path="profile" element={<UserProfilePage/>}/>
+                </Route>
+            </Routes>
+        </LocaleProvider>
+    )
+}
+
+export function RootLayout() {
+    const theme = useTheme();
+    return (
+        <Box sx={{
+            backgroundColor: theme.palette.background.default,
+            p: 0, m: 0,
+            width: '100vw', height: '100vh', overflow: "hidden",
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'stretch', alignContent: 'stretch', gap: 0,
+        }}>
+            <TopBar sx={{flexGrow: 0, flexShrink: 0}}/>
+            <Box component="main" sx={{
+                flexGrow: 1, flexShrink: 1,
+                display: 'flex', overflow: "hidden",
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'stretch',
+                alignContent: 'stretch',
+            }}>
+                <Outlet/>
+            </Box>
+            <Footer sx={{flxGrow: 0, flexShrink: 0}}/>
+        </Box>
     )
 }

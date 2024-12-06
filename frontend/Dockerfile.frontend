@@ -12,7 +12,7 @@ FROM node:23.3.0-alpine AS development
 WORKDIR /app
 ENV NODE_ENV=development
 COPY --from=dependencies /app ./
-COPY .eslintrc.cjs ./
+COPY eslint.config.js ./
 COPY index.html ./
 COPY src ./src/
 COPY tsconfig.app.json ./
