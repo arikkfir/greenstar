@@ -19,7 +19,7 @@
     "@mui/material": "^6.1.6",
     "@mui/x-data-grid-premium": "^7.22.1",
     "@mui/x-tree-view-pro": "^7.22.1",
-    "express": "^4.21.1",
+    "express": "^4.21.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",
