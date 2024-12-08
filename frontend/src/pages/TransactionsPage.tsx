@@ -64,7 +64,7 @@ export function TransactionsPage() {
             gap: '1rem',
             p: 2, overflow: "hidden",
         }}>
-            <Paper sx={{flexGrow: 0, flexShrink: 0, minWidth: '20rem'}}>
+            <Paper sx={{flexGrow: 0, flexShrink: 0, minWidth: '20rem', p: 1, overflow: 'scroll'}}>
                 <AccountsTree accounts={accounts}
                               selectedAccount={selectedAccount}
                               onSelectedItemsChange={handleAccountSelectionChange}/>
@@ -72,9 +72,8 @@ export function TransactionsPage() {
             <Paper sx={{
                 flexGrow: 1, flexShrink: 1,
                 display: 'flex', flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'stretch',
-                alignContent: 'stretch', overflow: "hidden",
+                justifyContent: 'center', alignItems: 'stretch', alignContent: 'stretch',
+                overflow: "hidden",
             }}>
                 <TransactionsTable sx={{flexGrow: 1, flexShrink: 1}}
                                    stateId="transactions"
