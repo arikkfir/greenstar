@@ -22,7 +22,10 @@ setup('setup', async ({page, baseURL}) => {
         managementKey: process.env.DESCOPE_MANAGEMENT_KEY_TOKEN,
     });
 
-    await descope.management.user.createTestUser(testUserLoginID, `arikkfir+${testUserLoginID}@gmail.com`);
+    await descope.management.user.createTestUser(testUserLoginID, `arikkfir+${testUserLoginID}@gmail.com`, null, `Test User ${testUserLoginID}`, null, [{
+        tenantId: 'acme',
+        roleNames: ['User']
+    }]);
 
     const magicLink = await descope.management.user.generateMagicLinkForTestUser(
         "email",
@@ -40,6 +43,9 @@ setup('setup', async ({page, baseURL}) => {
         },
         [auth.data.sessionJwt, auth.data?.refreshJwt]
     );
+
+    // Required to allow discovering location from geolocation
+    await page.context().grantPermissions(['geolocation'], {origin: "https://acme.app.greenstar.test"});
 
     if (!fs.existsSync(path.dirname(authFile))) {
         fs.mkdirSync(path.dirname(authFile))

@@ -65,16 +65,16 @@ export const AccountTreeItem = forwardRef(function (props: AccountTreeItemProps,
     const currencyFormatter = useCurrencyFormatter()
     return (
         <TreeItem2Provider itemId={itemId}>
-            <TreeItem2Root {...getRootProps(other)}>
-                <TreeItem2Content {...getContentProps()}>
-                    <TreeItem2IconContainer {...getIconContainerProps()}>
+            <TreeItem2Root {...getRootProps(other)} >
+                <TreeItem2Content {...getContentProps()} data-testid={`accountNode:${item.id}`}>
+                    <TreeItem2IconContainer {...getIconContainerProps()} data-testid={`expander:${item.id}`}>
                         <TreeItem2Icon status={status}/>
                     </TreeItem2IconContainer>
-                    <TreeItem2Checkbox {...getCheckboxProps()} />
+                    <TreeItem2Checkbox {...getCheckboxProps()} data-testid={`checkbox:${item.id}`} />
                     <Box sx={{flexGrow: 1, display: 'flex', gap: 1}}>
-                        <DynamicIcon icon={item.icon || 'Work'}/>
-                        <TreeItem2Label sx={{flexGrow: 1}} {...getLabelProps()} />
-                        <Box sx={{
+                        <DynamicIcon icon={item.icon || 'Work'} data-testid={`icon:${item.id}`}/>
+                        <TreeItem2Label sx={{flexGrow: 1}} {...getLabelProps()} data-testid={`label:${item.id}`} />
+                        <Box data-testid={`balance:${item.id}`} sx={{
                             flexGrow: 0,
                             flexShrink: 0
                         }}>{item.balance ? currencyFormatter(item.balance) : "-"}</Box>
