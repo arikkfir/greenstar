@@ -26,9 +26,19 @@ export default defineConfig({
         ],
     use: {
         baseURL: 'https://acme.app.greenstar.test',
+        contextOptions: {
+            geolocation: { longitude: 34.89242, latitude: 32.1869342 },
+            locale: 'he-IL',
+            permissions: ['geolocation'],
+        },
+        screenshot: 'on',
         trace: 'on',
+        video: 'on',
     },
-    timeout: process.env.CI ? undefined : 5000,
+    expect: {
+        timeout: 1000 * 5,
+    },
+    timeout: 1000 * 60 * 5,
     projects: [
         {
             name: 'Setup',
