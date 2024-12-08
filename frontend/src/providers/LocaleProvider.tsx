@@ -1,79 +1,79 @@
-import {createContext, useEffect, useMemo, useState} from "react";
+import {createContext, useEffect, useState} from "react";
 import {CurrenciesByCountryCode} from "../util/currencies.ts";
 import {getLocation, LocationIQResponse} from "../services/location_iq.ts";
 
 export interface Locale {
     language: string
-    position?: GeolocationPosition
+    currency: string
     location?: LocationIQResponse,
-    currency?: string
     error?: Error
 }
 
-export const LocaleContext = createContext<Locale>({language: navigator.language});
-
-export function LocaleProvider({children}: { children: any }) {
-    const [position, setPosition] = useState<GeolocationPosition | undefined>();
-    const [positionError, setPositionError] = useState<Error | undefined>();
-    const [location, setLocation] = useState<LocationIQResponse | undefined>();
-    const [locationError, setLocationError] = useState<Error | undefined>();
-    const [currency, setCurrency] = useState<string | undefined>();
-    const [currencyError, setCurrencyError] = useState<Error | undefined>();
-
-    useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => setPosition(position),
-                (error) => setPositionError(new Error(error.message)));
+function getDefaultLocale(): Locale {
+    try {
+        const storedLocale = localStorage.getItem("locale");
+        if (storedLocale) {
+            return JSON.parse(storedLocale)
         } else {
-            setPosition(undefined)
-            setPositionError(new Error('Unable to obtain your geolocation'));
-        }
-    }, [setPosition, setPositionError]);
-
-    useEffect(() => {
-        if (positionError || !position) {
-            setLocation(undefined)
-            setLocationError(undefined)
-        } else {
-            getLocation(position)
-                .then(data => {
-                    setLocation(data)
-                    setLocationError(undefined)
-                })
-                .catch(e => {
-                    setLocation(undefined)
-                    setLocationError(e)
-                })
-        }
-    }, [position, positionError, setLocation, setLocationError]);
-
-    useEffect(() => {
-        if (locationError || !location) {
-            setCurrency(undefined)
-            setCurrencyError(undefined)
-        } else {
-            const countryCode = location.address.country_code.toUpperCase()
-            const currencyCode = CurrenciesByCountryCode[countryCode]
-            if (currencyCode) {
-                setCurrency(currencyCode)
-                setCurrencyError(undefined)
-            } else {
-                setCurrency(undefined)
-                setCurrencyError(new Error("Could not discover your preferred currency (defaulting to USD)"))
+            return {
+                language: navigator.language,
+                currency: 'USD',
             }
         }
-    }, [location, locationError, setCurrency, setCurrencyError]);
-
-    const locale = useMemo((): Locale => {
+    } catch (error) {
+        console.error('Failed to load location from local storage:', error);
         return {
             language: navigator.language,
-            position: position,
-            location: location,
-            currency: currency,
-            error: positionError || locationError || currencyError
+            currency: 'USD',
+            error: error instanceof Error ? error : new Error("Failed generating default locale: " + error),
         }
-    }, [navigator.language, position, location, currency, positionError, locationError, currencyError])
+    }
+}
+const defaultLocale = getDefaultLocale()
+
+export const LocaleContext = createContext<Locale>(defaultLocale);
+
+export function LocaleProvider({children}: { children: any }) {
+    const [locale, setLocale] = useState<Locale>(defaultLocale);
+
+    useEffect(() => {
+        if (!navigator.geolocation) {
+            setLocale(defaultLocale)
+            console.warn("Geolocation is not supported by your browser.")
+            return
+        }
+
+        const getPositionPromise = new Promise<GeolocationPosition>(
+            (resolve, reject) =>
+                navigator.geolocation.getCurrentPosition(
+                    (position) => resolve(position),
+                    (error) => reject(new Error(error.message)),
+                    {timeout: 5000, maximumAge: 1000 * 60 * 60 * 4},
+                ),
+        )
+
+        getPositionPromise
+            .then(position => {
+                console.info("Obtained geolocation position: ", position)
+                return getLocation(position)
+            })
+            .then((location): Locale => {
+                console.info("Obtained location from coordinates: ", location)
+                return {
+                    language: navigator.language,
+                    location: location,
+                    currency: CurrenciesByCountryCode[location.address.country_code.toUpperCase()] || 'USD',
+                    error: undefined,
+                }
+            })
+            .then(locale => {
+                console.info("Stored locale in local storage: ", locale)
+                localStorage.setItem("locale", JSON.stringify(locale))
+                return locale
+            })
+            .then(setLocale)
+            .catch(e => console.error("Failed to obtain your locale: ", e))
+    }, []);
 
     return (
         <LocaleContext.Provider value={locale}>
