@@ -341,7 +341,7 @@ tasks:
     deps: [ toolchain:node ]
     dir: e2e
     cmds:
-      - npx playwright test --headed
+      - npx playwright test {{.CLI_ARGS}}
 
   test-report:
     deps: [ toolchain:node ]
