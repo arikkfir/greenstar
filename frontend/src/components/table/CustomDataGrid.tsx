@@ -24,13 +24,18 @@ export function CustomDataGrid<R extends GridValidRowModel = any>(props: CustomD
     const saveSnapshot = useCallback(() => {
         if (apiRef?.current?.exportState && localStorage) {
             const currentState = apiRef.current.exportState();
+            delete currentState?.columns?.dimensions
             localStorage.setItem(prefixedStateID, JSON.stringify(currentState));
         }
     }, [apiRef]);
 
     useLayoutEffect(() => {
         const stateFromLocalStorage = localStorage?.getItem(prefixedStateID);
-        setInitialState(stateFromLocalStorage ? JSON.parse(stateFromLocalStorage) : {});
+        const state = stateFromLocalStorage ? JSON.parse(stateFromLocalStorage) : {}
+        if (state && state.columns && state.columns.dimensions) {
+            delete state.columns.dimensions
+        }
+        setInitialState(state);
         window.addEventListener('beforeunload', saveSnapshot);
         return () => {
             window.removeEventListener('beforeunload', saveSnapshot);
@@ -43,6 +48,8 @@ export function CustomDataGrid<R extends GridValidRowModel = any>(props: CustomD
     }
 
     return (
-        <DataGridPremium<R> sx={sx} apiRef={apiRef}  {...dataGridProps} initialState={initialState}/>
+        <DataGridPremium<R> sx={sx} apiRef={apiRef}
+                            {...dataGridProps}
+                            initialState={initialState}/>
     )
 }
