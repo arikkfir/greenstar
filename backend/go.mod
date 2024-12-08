@@ -1,6 +1,6 @@
 module github.com/arikkfir/greenstar/backend
 
-go 1.22.3
+go 1.23.4
 
 require (
 	cloud.google.com/go/storage v1.48.0
