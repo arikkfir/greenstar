@@ -94,9 +94,9 @@ func (e *Action) Run(ctx context.Context) error {
 	// Wait for either one of the HTTP servers to prematurely exit, or an OS interrupt signal
 	select {
 	case name := <-stop:
-		slog.Default().ErrorContext(ctx, "One of the HTTP servers failed", "server", name)
+		slog.ErrorContext(ctx, "One of the HTTP servers failed", "server", name)
 	case <-ctx.Done():
-		slog.Default().ErrorContext(ctx, "Interrupt signal received")
+		slog.ErrorContext(ctx, "Interrupt signal received")
 	}
 
 	// Gracefully shutdown all HTTP servers
@@ -113,7 +113,7 @@ func (e *Action) Run(ctx context.Context) error {
 }
 
 func (e *Action) startHTTPServer(ctx context.Context, stopChan chan string, errChan chan error, name string, server *http.Server) {
-	slog.Default().DebugContext(ctx, "Starting HTTP server", "server", name)
+	slog.DebugContext(ctx, "Starting HTTP server", "server", name)
 	if err := server.ListenAndServe(); lang.IgnoreErrorOfType(err, http.ErrServerClosed) != nil {
 		errChan <- fmt.Errorf("%s server failed: %w", name, err)
 		stopChan <- name

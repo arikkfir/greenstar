@@ -55,7 +55,7 @@ func (m *exchangeRatesManagerImpl) PopulateHistoricalRates(ctx context.Context, 
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
 
-	slog.Default().InfoContext(ctx, "Populating historical exchange rates", "period", string(period))
+	slog.InfoContext(ctx, "Populating historical exchange rates", "period", string(period))
 
 	client, err := storage.NewClient(ctx)
 	if err != nil {
@@ -105,7 +105,7 @@ func (m *exchangeRatesManagerImpl) PopulateHistoricalRates(ctx context.Context, 
 
 			recordNumber++
 			if recordNumber%1_000_000 == 0 {
-				slog.Default().DebugContext(ctx, "Progressing in reading of historical exchange rates", "records", recordNumber)
+				slog.DebugContext(ctx, "Progressing in reading of historical exchange rates", "records", recordNumber)
 			}
 
 			r, err := newRateRecord(recordNumber, rec)
@@ -163,7 +163,7 @@ func (m *exchangeRatesManagerImpl) PopulateHistoricalRates(ctx context.Context, 
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	slog.Default().DebugContext(ctx, "Populated historical exchange rates", "records", copiedRowsCount)
+	slog.DebugContext(ctx, "Populated historical exchange rates", "records", copiedRowsCount)
 
 	return nil
 }
@@ -187,7 +187,7 @@ func fetchExchangeRatesForCurrency(ctx context.Context, pool *pgxpool.Pool, curr
 		go func(ctx context.Context, pool *pgxpool.Pool, currencyApiKey, currencyCode string, year int) {
 			defer wg.Done()
 			if err := fetchExchangeRatesForCurrencyForYear(ctx, pool, currencyApiKey, currencyCode, currencyCodes, year); err != nil {
-				slog.Default().WarnContext(ctx, "Failed fetching historical exchange rates", "currency", currencyCode, "year", year, "err", err)
+				slog.WarnContext(ctx, "Failed fetching historical exchange rates", "currency", currencyCode, "year", year, "err", err)
 			}
 		}(ctx, pool, currencyApiKey, currencyCode, year)
 	}
@@ -197,7 +197,7 @@ func fetchExchangeRatesForCurrency(ctx context.Context, pool *pgxpool.Pool, curr
 }
 
 func fetchExchangeRatesForCurrencyForYear(ctx context.Context, pool *pgxpool.Pool, currencyApiKey, currencyCode string, currencies []string, year int) error {
-	slog.Default().InfoContext(ctx, "Fetching historical exchange rates", "currency", currencyCode, "year", year, "currencies", currencies)
+	slog.InfoContext(ctx, "Fetching historical exchange rates", "currency", currencyCode, "year", year, "currencies", currencies)
 
 	tx, err := pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {

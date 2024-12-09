@@ -25,7 +25,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) (result error) {
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
 
-	slog.Default().InfoContext(ctx, "Verifying and potentially upgrading database schema")
+	slog.InfoContext(ctx, "Verifying and potentially upgrading database schema")
 
 	sourceDriver, err := iofs.New(fs, "schema")
 	if err != nil {

@@ -27,7 +27,7 @@ func (m *exchangeRatesManagerImpl) UpdateExchangeRatesForToday(ctx context.Conte
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
 
-	slog.Default().DebugContext(ctx, "Updating today's exchange rates")
+	slog.DebugContext(ctx, "Updating today's exchange rates")
 
 	// Fetch currencies
 	rows, err := m.pool.Query(ctx, "SELECT code FROM currencies ORDER BY code")

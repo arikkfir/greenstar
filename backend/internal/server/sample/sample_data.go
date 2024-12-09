@@ -38,7 +38,7 @@ type generator struct {
 }
 
 func Generate(ctx context.Context, descopeClient *client.DescopeClient, accessKey string, pool *pgxpool.Pool, th tenant.Handler, tenantID, tenantDisplayName string, txh transaction.Handler, ah account.Handler) error {
-	slog.Default().InfoContext(ctx, "Generating sample data")
+	slog.InfoContext(ctx, "Generating sample data")
 
 	// Exchange an access key for a token and expose it in a context, simulating the way it's done in real HTTP requests
 	_, token, err := descopeClient.Auth.ExchangeAccessKey(ctx, accessKey, nil)
@@ -82,7 +82,7 @@ func Generate(ctx context.Context, descopeClient *client.DescopeClient, accessKe
 }
 
 func generateTenant(ctx context.Context, th tenant.Handler, tenantID, tenantDisplayName string, txh transaction.Handler, ah account.Handler) error {
-	slog.Default().InfoContext(ctx, "Generating sample tenant")
+	slog.InfoContext(ctx, "Generating sample tenant")
 
 	if _, err := th.Get(ctx, tenant.GetRequest{ID: tenantID}); err != nil {
 		if errors.Is(err, util.ErrNotFound) {
@@ -102,7 +102,7 @@ func generateTenant(ctx context.Context, th tenant.Handler, tenantID, tenantDisp
 }
 
 func generateAccounts(ctx context.Context, ids map[string]string, ah account.Handler, tenantID string) error {
-	slog.Default().InfoContext(ctx, "Generating sample accounts")
+	slog.InfoContext(ctx, "Generating sample accounts")
 	for _, a := range g.Accounts {
 		if err := a.applyAccount(ctx, ids, ah, tenantID, nil); err != nil {
 			return fmt.Errorf("failed applying root account '%s': %w", a.ID, err)
@@ -112,7 +112,7 @@ func generateAccounts(ctx context.Context, ids map[string]string, ah account.Han
 }
 
 func generateTransactions(ctx context.Context, ids map[string]string, th transaction.Handler, tenantID string) error {
-	slog.Default().InfoContext(ctx, "Generating sample transactions")
+	slog.InfoContext(ctx, "Generating sample transactions")
 	for _, a := range g.Accounts {
 		if err := a.applyOutgoingTransactions(ctx, ids, th, tenantID, g.DefaultCurrency); err != nil {
 			return fmt.Errorf("failed applying transactions of root account '%s': %w", a.ID, err)

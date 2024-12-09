@@ -10,7 +10,7 @@ import (
 )
 
 func NewPostgreSQLPool(ctx context.Context) (*pgxpool.Pool, error) {
-	slog.Default().InfoContext(ctx, "Creating Postgres connection pool")
+	slog.InfoContext(ctx, "Creating Postgres connection pool")
 
 	// PostgreSQL (note that standard environment variables are used to configure connection details to Postgres)
 	// See: https://www.postgresql.org/docs/current/libpq-envars.html
