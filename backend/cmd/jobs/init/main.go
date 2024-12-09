@@ -58,7 +58,7 @@ func (e *Action) Run(ctx context.Context) error {
 	defer pgPool.Close()
 
 	// Wait for PostgreSQL to be ready
-	slog.Default().InfoContext(ctx, "Waiting for Postgres connection pool to become available")
+	slog.InfoContext(ctx, "Waiting for Postgres connection pool to become available")
 	pgPingInterval := 3 * time.Second
 	timer := time.NewTimer(2 * time.Minute)
 	defer timer.Stop()
@@ -73,7 +73,7 @@ func (e *Action) Run(ctx context.Context) error {
 			return fmt.Errorf("timed out waiting for Postgres connection pool to become available")
 		case <-ticker.C:
 			if err := pgPool.Ping(ctx); err != nil {
-				slog.Default().InfoContext(ctx, "PostgreSQL not yet available", "err", err)
+				slog.InfoContext(ctx, "PostgreSQL not yet available", "err", err)
 			} else {
 				pgAvailable = true
 			}
@@ -122,7 +122,7 @@ func (e *Action) Run(ctx context.Context) error {
 			return err
 		}
 	} else {
-		slog.Default().WarnContext(ctx, "Sample data generation has been DISABLED")
+		slog.WarnContext(ctx, "Sample data generation has been DISABLED")
 	}
 
 	// Ensure fill-in any missing rates
@@ -145,7 +145,7 @@ func (e *Action) Run(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("failed creating Kubernetes client: %w", err)
 		}
-		slog.Default().InfoContext(ctx, "Un-suspending the exchange-rates cron-job")
+		slog.InfoContext(ctx, "Un-suspending the exchange-rates cron-job")
 		err = wait.PollUntilContextTimeout(ctx, time.Second, 5*time.Minute, true, func(ctx context.Context) (bool, error) {
 			cronJob, err := clientset.BatchV1().CronJobs(e.Namespace).Get(ctx, e.ExchangeRatesCronJobName, metav1.GetOptions{})
 			if err != nil {

@@ -36,7 +36,7 @@ func (m *exchangeRatesManagerImpl) PopulateMissingExchangeRates(ctx context.Cont
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
 
-	slog.Default().InfoContext(ctx, "Searching for missing historical exchange rates based on existing transactions")
+	slog.InfoContext(ctx, "Searching for missing historical exchange rates based on existing transactions")
 
 	rows, err := m.pool.Query(ctx, fetchMissingRatesSQL)
 	if err != nil {
@@ -56,7 +56,7 @@ func (m *exchangeRatesManagerImpl) PopulateMissingExchangeRates(ctx context.Cont
 		return nil
 	}
 
-	slog.Default().DebugContext(ctx, "Found missing exchange rates - obtaining current quotes", "missingCount", len(missingRates))
+	slog.DebugContext(ctx, "Found missing exchange rates - obtaining current quotes", "missingCount", len(missingRates))
 	for _, r := range missingRates {
 		if err := m.fetchExchangeRates(ctx, r); err != nil {
 			return fmt.Errorf("failed processing missing rate '%+v': %w", r, err)

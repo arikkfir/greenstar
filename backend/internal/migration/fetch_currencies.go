@@ -57,7 +57,7 @@ func (m *exchangeRatesManagerImpl) PopulateCurrencies(ctx context.Context) error
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
 
-	slog.Default().InfoContext(ctx, "Updating system currencies")
+	slog.InfoContext(ctx, "Updating system currencies")
 
 	staleCurrencies, err := m.fetchMissingOrStaleCurrencies(ctx)
 	if err != nil {
