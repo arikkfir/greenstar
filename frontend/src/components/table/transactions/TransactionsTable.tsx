@@ -1,39 +1,12 @@
 import {Account} from "../../../client/account.ts";
 import {Transaction, useTransactionsClient} from "../../../client/transaction.ts";
-import {
-    DataGridPremiumProps,
-    GridCallbackDetails,
-    GridColDef,
-    GridColumnVisibilityModel
-} from "@mui/x-data-grid-premium";
+import {DataGridPremiumProps, GridColDef, GridColumnVisibilityModel} from "@mui/x-data-grid-premium";
 import {LocaleContext} from "../../../providers/LocaleProvider.tsx";
 import {useCurrencyFormatter, useDateFormatter} from "../../../hooks/locale.tsx";
 import {useCallback, useContext, useEffect, useMemo, useState} from "react";
-import {AccountsMap, MapAccountsByID} from "../../../client/account-util.ts";
+import {MapAccountsByID} from "../../../client/account-util.ts";
 import {CustomDataGrid} from "../CustomDataGrid.tsx";
-
-function buildGridColumnDefinitions(accountsByID: AccountsMap): GridColDef<Transaction>[] {
-    const currencyFormatter = useCurrencyFormatter()
-    const dateFormatter = useDateFormatter()
-    const accountFormatter = useCallback((id: string) => accountsByID[id]?.displayName || id, [accountsByID])
-    return useMemo(() => ([
-            {field: 'id', headerName: "ID", groupable: false, type: "string"},
-            {field: "sourceAccountId", headerName: "From", type: "string", valueFormatter: accountFormatter},
-            {field: "date", headerName: "Date", type: "dateTime", valueFormatter: dateFormatter},
-            {field: "targetAccountId", headerName: "To", type: "string", valueFormatter: accountFormatter},
-            {
-                field: "convertedAmount",
-                headerName: "Amount",
-                groupable: false,
-                type: "number",
-                valueFormatter: currencyFormatter
-            },
-            {field: "description", headerName: "Description", groupable: false, type: "string"},
-            {field: "referenceId", headerName: "Reference", groupable: false, type: "string"},
-        ]),
-        [currencyFormatter, accountFormatter]
-    );
-}
+import type {GridAutosizeOptions} from "@mui/x-data-grid/hooks/features/columnResize";
 
 export interface TransactionsTableProps extends Omit<DataGridPremiumProps<Transaction>, "columns" | "loading" | "rows"> {
     stateId: string
@@ -56,7 +29,18 @@ export function TransactionsTable(props: TransactionsTableProps) {
         "referenceId": false,
     })
     const accountsByID = useMemo(() => MapAccountsByID(accounts), [accounts]);
-    const columns: GridColDef<Transaction>[] = buildGridColumnDefinitions(accountsByID);
+
+    const currFmt = useCurrencyFormatter()
+    const dateFmt = useDateFormatter()
+    const accFmt = useCallback((id: string) => accountsByID[id]?.displayName || id, [accountsByID])
+    const columns: GridColDef<Transaction>[] = useMemo(() => ([
+        {field: "sourceAccountId", headerName: "From", type: "string", minWidth: 200, flex: 0, valueFormatter: accFmt},
+        {field: "date", headerName: "Date", type: "dateTime", minWidth: 80, flex: 0, groupable: true, valueFormatter: dateFmt},
+        {field: "targetAccountId", headerName: "To", type: "string", minWidth: 200, flex: 0, groupable: true, valueFormatter: accFmt},
+        {field: "convertedAmount", headerName: "Amount", type: "number", minWidth: 120, flex: 0, valueFormatter: currFmt},
+        {field: "description", headerName: "Description", type: "string", flex: 1},
+        {field: "referenceId", headerName: "Reference", type: "string", flex: 0},
+    ]), [accountsByID]);
 
     useEffect(() => {
         if (locale.currency && paginationModel.pageSize > 0) {
@@ -74,7 +58,12 @@ export function TransactionsTable(props: TransactionsTableProps) {
         }
     }, [locale, paginationModel, setLoading, setError, transactionsClient, sourceAccountId, targetAccountId, setTransactions, setRowCount]);
 
-    const autosizeOptions = useMemo(() => ({expand: true}), [])
+    const autosizeOptions: GridAutosizeOptions = useMemo(() => ({
+        columns: ['sourceAccountId', 'date', 'targetAccountId', 'convertedAmount', 'referenceId'],
+        includeHeaders: true,
+        includeOutliers: false,
+        expand: true,
+    }), [])
 
     if (error) {
         return (
@@ -85,7 +74,7 @@ export function TransactionsTable(props: TransactionsTableProps) {
     return (
         <CustomDataGrid<Transaction> stateId={stateId}
                                      columnVisibilityModel={colVisibilityModel}
-                                     onColumnVisibilityModelChange={(model: GridColumnVisibilityModel, _: GridCallbackDetails) => setColVisibilityModel(model)}
+                                     onColumnVisibilityModelChange={(model) => setColVisibilityModel(model)}
                                      columns={columns}
                                      autoPageSize={true}
                                      pagination={true}
