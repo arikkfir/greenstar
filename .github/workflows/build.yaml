@@ -98,7 +98,6 @@ jobs:
           export-env: true
         env:
           APPLY_PATCHES_SH: "op://GreenSTAR/mtg3xwmgngg5jzt6oft53btkci/frontend/apply-patches.sh"
-          DESCOPE_PROJECT_ID: "op://GreenSTAR/Descope/project ID"
           LOCATION_IQ_ACCESS_TOKEN: "op://GreenSTAR/Location IQ/credential"
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
@@ -130,9 +129,7 @@ jobs:
           context: ${{ matrix.images.dir }}
           file: ${{ matrix.images.file }}
           build-args: |
-            VITE_DESCOPE_PROJECT_ID=${{ env.DESCOPE_PROJECT_ID }}
             VITE_LOCATION_IQ_ACCESS_TOKEN=${{ env.LOCATION_IQ_ACCESS_TOKEN }}
-            VITE_SLOW_REQUESTS=F
             VERSION=v0.0.0+${{ github.sha }}
           target: production
           push: true
@@ -212,11 +209,6 @@ jobs:
           export-env: true
         env:
           CURRENCY_API_KEY: "op://GreenSTAR/Currency API/credential"
-          DESCOPE_PROJECT_ID: "op://GreenSTAR/Descope/project ID"
-          DESCOPE_MANAGEMENT_KEY_ID: "op://GreenSTAR/Descope/management key ID"
-          DESCOPE_MANAGEMENT_KEY_TOKEN: "op://GreenSTAR/Descope/management key token"
-          DESCOPE_BACKEND_ACCESS_KEY_ID: "op://GreenSTAR/Descope/access key ID"
-          DESCOPE_BACKEND_ACCESS_KEY_TOKEN: "op://GreenSTAR/Descope/access key token"
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Setup Environment

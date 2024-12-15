@@ -49,9 +49,7 @@ deploy:
             command:
               - yq
               - -e
-              - |
-                .frontend.extraEnv.VITE_DESCOPE_PROJECT_ID = {"value":"{{.DESCOPE_PROJECT_ID}}"} |
-                .frontend.extraEnv.VITE_LOCATION_IQ_ACCESS_TOKEN = {"value":"{{.LOCATION_IQ_ACCESS_TOKEN}}"}
+              - .frontend.extraEnv.VITE_LOCATION_IQ_ACCESS_TOKEN = {"value":"{{.LOCATION_IQ_ACCESS_TOKEN}}"}
               - ./hack/greenstar-values.yaml
     releases:
       - name: '{{default (list "greenstar" (cmd "whoami") | join "-") .HELM_RELEASE_NAME}}'

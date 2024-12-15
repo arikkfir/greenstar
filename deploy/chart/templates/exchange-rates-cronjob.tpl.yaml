@@ -65,8 +65,6 @@ spec:
                 - name: DISABLE_JSON_LOGGING
                   value: "T"
                 {{- end }}
-                - name: GOOGLE_APPLICATION_CREDENTIALS
-                  value: "/etc/gcp-oidc/credential-configuration.json"
                 - name: PGHOST
                   value: {{ printf "%s-%s" $prefix "postgres" | quote }}
                 - name: PGPORT
@@ -104,28 +102,13 @@ spec:
                 requests:
                   cpu: {{ .Values.exchangeRatesCronJob.resources.requests.cpu | default "100m" | quote }}
                   memory: {{ .Values.exchangeRatesCronJob.resources.requests.memory | default "64Mi" | quote }}
-              volumeMounts:
                 {{- if not (empty .Values.exchangeRatesCronJob.volumeMounts) }}
+              volumeMounts:
                 {{- toYaml .Values.exchangeRatesCronJob.volumeMounts | nindent 16 }}
                 {{- end }}
-                - name: token
-                  mountPath: "/var/run/service-account"
-                  readOnly: true
-                - name: gcp-oidc
-                  mountPath: "/etc/gcp-oidc"
-                  readOnly: true
           enableServiceLinks: false
           serviceAccountName: {{ $serviceAccountName | quote }}
-          volumes:
             {{- if not (empty .Values.exchangeRatesCronJob.volumes) }}
+          volumes:
             {{- toYaml .Values.exchangeRatesCronJob.volumes | nindent 12 }}
             {{- end }}
-            - name: token
-              projected:
-                sources:
-                  - serviceAccountToken:
-                      audience: {{ required "GCP OIDC audience is required" .Values.oidc.gcp.audience | quote }}
-                      path: token
-            - name: gcp-oidc
-              configMap:
-                name: gcp-oidc

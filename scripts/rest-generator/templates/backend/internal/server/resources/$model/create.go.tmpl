@@ -6,7 +6,6 @@ package {{ .model.Name | toSnake }}
 
 import (
 	"encoding/json"
-	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/shopspring/decimal"
@@ -72,7 +71,7 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	{{- if gt (len .model.Create.Permissions) 0 }}
-	authToken := auth.GetToken(ctx)
+	authToken := middleware.GetToken(ctx)
 
 	{{- range .model.Create.Permissions }}
 	if !authToken.IsPermittedGlobally("{{ . }}") {

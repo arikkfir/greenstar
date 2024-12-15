@@ -5,14 +5,12 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/account"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/tenant"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/transaction"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/arikkfir/greenstar/backend/internal/util/db"
-	"github.com/descope/go-sdk/descope/client"
 	pgxorig "github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"gopkg.in/yaml.v3"
@@ -38,16 +36,9 @@ type generator struct {
 	Accounts        []accountWithChildren `yaml:"accounts"`
 }
 
-func Generate(ctx context.Context, descopeClient *client.DescopeClient, accessKey string, pool *pgxpool.Pool, th tenant.Handler, tenantID, tenantDisplayName string, txh transaction.Handler, ah account.Handler) error {
+func Generate(ctx context.Context, pool *pgxpool.Pool, th tenant.Handler, tenantID, tenantDisplayName string, txh transaction.Handler, ah account.Handler) error {
 	slog.InfoContext(ctx, "Generating sample data")
 	ctx = middleware.WithTenantID(ctx, tenantID)
-
-	// Exchange an access key for a token and expose it in a context, simulating the way it's done in real HTTP requests
-	_, token, err := descopeClient.Auth.ExchangeAccessKey(ctx, accessKey, nil)
-	if err != nil {
-		return fmt.Errorf("failed exchanging access key: %w", err)
-	}
-	ctx = auth.NewContextWithToken(ctx, &auth.Token{Token: *token, ID: token.ID})
 
 	// Start a transaction & expose it in a context, simulating the way it's done in real HTTP requests
 	txOptions := pgxorig.TxOptions{

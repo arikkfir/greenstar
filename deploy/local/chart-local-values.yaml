@@ -82,6 +82,14 @@ initJob:
       value: "otlp"
     OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
       value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
+  volumes:
+    - name: rates
+      hostPath:
+        path: /var/greenstar/rates
+        type: Directory
+  volumeMounts:
+    - name: rates
+      mountPath: /var/greenstar/rates
 
 postgres:
   backendPassword: "local"

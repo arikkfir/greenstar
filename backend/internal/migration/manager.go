@@ -7,21 +7,9 @@ import (
 	"time"
 )
 
-// TODO: add a background process that uploads current rates table to the remote bucket, so next historical rates download is "fuller"
-
-type HistoricalExchangeRatesPeriod string
-
-const (
-	Full   HistoricalExchangeRatesPeriod = "full"
-	Latest HistoricalExchangeRatesPeriod = "latest"
-
-	historicalExchangeRatesBucketName    = "arikkfir-greenstar"
-	historicalExchangeRatesTarObjectName = "rates.csv"
-)
-
 type ExchangeRatesManager interface {
 	PopulateCurrencies(ctx context.Context) error
-	PopulateHistoricalRates(context.Context, HistoricalExchangeRatesPeriod) error
+	PopulateHistoricalRates(context.Context) error
 	PopulateMissingExchangeRates(context.Context) error
 }
 

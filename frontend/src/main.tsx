@@ -2,7 +2,6 @@ import { StrictMode, useMemo } from "react"
 import { createRoot } from "react-dom/client"
 import "./index.css"
 import { App } from "./App.tsx"
-import { AuthProvider } from "@descope/react-sdk"
 import { BrowserRouter } from "react-router"
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material"
 import { LocaleProvider } from "./providers/LocaleProvider.tsx"
@@ -39,13 +38,11 @@ function WithTheme({ children }: any) {
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <LocaleProvider>
-            <AuthProvider sessionTokenViaCookie={false} projectId={import.meta.env.VITE_DESCOPE_PROJECT_ID}>
-                <BrowserRouter>
-                    <WithTheme>
-                        <App />
-                    </WithTheme>
-                </BrowserRouter>
-            </AuthProvider>
+            <BrowserRouter>
+                <WithTheme>
+                    <App />
+                </WithTheme>
+            </BrowserRouter>
         </LocaleProvider>
     </StrictMode>,
 )

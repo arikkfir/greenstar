@@ -5,18 +5,13 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/arikkfir/greenstar/backend/internal/util/db"
 	strings2 "github.com/arikkfir/greenstar/backend/internal/util/strings"
-	"github.com/descope/go-sdk/descope"
-	"github.com/descope/go-sdk/descope/client"
 	"github.com/google/uuid"
 	"github.com/iancoleman/strcase"
 	"github.com/jackc/pgx/v5"
 	"github.com/pganalyze/pg_query_go/v5"
-	"log/slog"
-	"slices"
 	"strings"
 )
 
@@ -43,9 +38,7 @@ var (
 	deleteAllSQL string
 )
 
-type HandlerImpl struct {
-	Descope *client.DescopeClient
-}
+type HandlerImpl struct{}
 
 func (h *HandlerImpl) List(ctx context.Context, req ListRequest) (*ListResponse, error) {
 	tx := db.TxFromContext(ctx)
@@ -73,13 +66,7 @@ func (h *HandlerImpl) List(ctx context.Context, req ListRequest) (*ListResponse,
 			res.Items = append(res.Items, t)
 		}
 	}
-
-	token := auth.GetToken(ctx)
-	permittedTenants := slices.DeleteFunc(res.Items, func(t Tenant) bool {
-		return !token.IsPermittedForTenant(t.ID, "tenants:read")
-	})
-	res.Items = permittedTenants
-	res.TotalCount = uint(len(permittedTenants))
+	res.TotalCount = uint(len(res.Items))
 
 	return &res, nil
 }
@@ -181,13 +168,6 @@ func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateRes
 		return nil, fmt.Errorf("failed inserting row: unexpected number of rows affected (%d)", rowsAffected)
 	}
 
-	if err := h.Descope.Management.Tenant().Update(ctx, req.ID, &descope.TenantRequest{Name: req.DisplayName}); err != nil {
-		slog.ErrorContext(ctx, "Failed updating Descope tenant - trying to create it", "err", err, "id", req.ID, "name", req.DisplayName)
-		if err := h.Descope.Management.Tenant().CreateWithID(ctx, req.ID, &descope.TenantRequest{Name: req.DisplayName}); err != nil {
-			return nil, fmt.Errorf("failed creating Descope tenant: %w", err)
-		}
-	}
-
 	getResp, err := h.Get(ctx, GetRequest{ID: req.ID})
 	if err != nil {
 		return nil, fmt.Errorf("failed fetching saved row: %w", err)
@@ -227,10 +207,6 @@ func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchRespon
 		}
 		args = append(args, *req.DisplayName)
 		util.AddSetClause(q.Stmts[0].Stmt.GetUpdateStmt(), "display_name", len(args))
-
-		if err := h.Descope.Management.Tenant().Update(ctx, req.ID, &descope.TenantRequest{Name: *req.DisplayName}); err != nil {
-			return nil, fmt.Errorf("failed updating Descope tenant: %w", err)
-		}
 	}
 
 	if result, err := tx.Exec(ctx, util.GetSQL(q), args...); err != nil {
@@ -264,10 +240,6 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 		return nil, fmt.Errorf("failed updating row: more than one row was affected (%d)", rowsAffected)
 	}
 
-	if err := h.Descope.Management.Tenant().Update(ctx, req.ID, &descope.TenantRequest{Name: req.DisplayName}); err != nil {
-		return nil, fmt.Errorf("failed updating Descope tenant: %w", err)
-	}
-
 	getResp, err := h.Get(ctx, GetRequest{ID: req.ID})
 	if err != nil {
 		return nil, fmt.Errorf("failed fetching updated row: %w", err)
@@ -291,10 +263,6 @@ func (h *HandlerImpl) Delete(ctx context.Context, req DeleteRequest) error {
 		return fmt.Errorf("failed updating row: more than one row was affected (%d)", rowsAffected)
 	}
 
-	if err := h.Descope.Management.Tenant().Delete(ctx, req.ID, true); err != nil {
-		return fmt.Errorf("failed deleting Descope tenant: %w", err)
-	}
-
 	return nil
 }
 
@@ -304,17 +272,6 @@ func (h *HandlerImpl) DeleteAll(ctx context.Context, _ DeleteAllRequest) error {
 	_, err := tx.Exec(ctx, deleteAllSQL)
 	if err != nil {
 		return fmt.Errorf("failed deleting rows: %w", err)
-	}
-
-	tenants, err := h.Descope.Management.Tenant().LoadAll(ctx)
-	if err != nil {
-		return fmt.Errorf("failed loading Descope tenants: %w", err)
-	}
-
-	for _, tenant := range tenants {
-		if err := h.Descope.Management.Tenant().Delete(ctx, tenant.ID, true); err != nil {
-			return fmt.Errorf("failed deleting Descope tenant: %w", err)
-		}
 	}
 
 	return nil

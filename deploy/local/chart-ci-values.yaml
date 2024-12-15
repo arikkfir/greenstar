@@ -37,6 +37,14 @@ initJob:
   extraEnv:
     OTEL_SDK_DISABLED:
       value: "true"
+  volumes:
+    - name: rates
+      hostPath:
+        path: /var/greenstar/rates
+        type: Directory
+  volumeMounts:
+    - name: rates
+      mountPath: /var/greenstar/rates
 
 postgres:
   backendPassword: "local"

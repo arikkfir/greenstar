@@ -7,61 +7,6 @@
       "type": "string",
       "minLength": 1
     },
-    "descope": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "project",
-        "managementKey",
-        "accessKey"
-      ],
-      "properties": {
-        "project": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id"
-          ],
-          "properties": {
-            "id": {
-              "type": "string"
-            }
-          }
-        },
-        "managementKey": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "key"
-          ],
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "key": {
-              "type": "string"
-            }
-          }
-        },
-        "accessKey": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "id",
-            "key"
-          ],
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "key": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
     "currencyAPI": {
       "type": "object",
       "additionalProperties": false,

@@ -107,16 +107,8 @@ spec:
             - name: DISABLE_JSON_LOGGING
               value: "T"
             {{- end }}
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: "/etc/gcp-oidc/credential-configuration.json"
             - name: CURRENCY_API_KEY
               value: {{ .Values.currencyAPI.key | quote }}
-            - name: DESCOPE_PROJECT_ID
-              value: {{ .Values.descope.project.id | quote }}
-            - name: DESCOPE_MANAGEMENT_KEY_TOKEN
-              value: {{ .Values.descope.managementKey.key | quote }}
-            - name: DESCOPE_BACKEND_ACCESS_KEY_TOKEN
-              value: {{ .Values.descope.accessKey.key | quote }}
             - name: EXCHANGE_RATES_CRONJOB_NAME
               value: {{ printf "%s-%s" $prefix "exchange-rates-cronjob" | quote }}
             - name: PGHOST
@@ -158,29 +150,14 @@ spec:
             requests:
               cpu: {{ .Values.initJob.resources.requests.cpu | default "100m" | quote }}
               memory: {{ .Values.initJob.resources.requests.memory | default "128Mi" | quote }}
-          volumeMounts:
             {{- if not (empty .Values.initJob.volumeMounts) }}
+          volumeMounts:
             {{- toYaml .Values.initJob.volumeMounts | nindent 12 }}
             {{- end }}
-            - name: token
-              mountPath: "/var/run/service-account"
-              readOnly: true
-            - name: gcp-oidc
-              mountPath: "/etc/gcp-oidc"
-              readOnly: true
       enableServiceLinks: false
       serviceAccountName: {{ $serviceAccountName | quote }}
-      volumes:
         {{- if not (empty .Values.initJob.volumes) }}
+      volumes:
         {{- toYaml .Values.initJob.volumes | nindent 8 }}
         {{- end }}
-        - name: token
-          projected:
-            sources:
-              - serviceAccountToken:
-                  audience: {{ required "GCP OIDC audience is required" .Values.oidc.gcp.audience | quote }}
-                  path: token
-        - name: gcp-oidc
-          configMap:
-            name: gcp-oidc
 {{- end }}

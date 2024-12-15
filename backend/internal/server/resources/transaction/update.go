@@ -4,7 +4,6 @@ package transaction
 
 import (
 	"encoding/json"
-	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/shopspring/decimal"
@@ -60,7 +59,7 @@ func (s *Server) Update(w http.ResponseWriter, r *http.Request) {
 	if tenantID != "" {
 		l = l.With("tenantID", tenantID)
 	}
-	authToken := auth.GetToken(ctx)
+	authToken := middleware.GetToken(ctx)
 	if !authToken.IsPermittedGlobally("transactions:update") {
 		if tenantID != "" {
 			if !authToken.IsPermittedForTenant(tenantID, "transactions:update") {

@@ -3,7 +3,6 @@
 package tenant
 
 import (
-	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/shopspring/decimal"
@@ -39,7 +38,7 @@ func (s *Server) Get(w http.ResponseWriter, r *http.Request) {
 	if tenantID != "" {
 		l = l.With("tenantID", tenantID)
 	}
-	authToken := auth.GetToken(ctx)
+	authToken := middleware.GetToken(ctx)
 	if !authToken.IsPermittedGlobally("tenants:get") {
 		if tenantID != "" {
 			if !authToken.IsPermittedForTenant(tenantID, "tenants:get") {

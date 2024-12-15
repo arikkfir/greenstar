@@ -22,31 +22,15 @@ tasks:
     cmds:
       - |
         OP_ACCOUNT=${OP_ACCOUNT:-my.1password.com}
-        GCP_PROJECT_ID="${GCP_PROJECT_ID:-$(gcloud config get-value project)}"
-        GCP_PROJECT_NUMBER="${GCP_PROJECT_NUMBER:-$(gcloud projects describe "${GCP_PROJECT_ID}" --format='value(projectNumber)')}"
         CLUSTER_NAME="${CLUSTER_NAME:-greenstar-$(whoami)}"
         HELM_RELEASE_NAME="${HELM_RELEASE_NAME:-greenstar-$(whoami)}"
-        GCP_OIDC_POOL_NAME="${GCP_OIDC_POOL_NAME:-projects/${GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/greenstar}"
-        GCP_OIDC_PROVIDER_NAME="${GCP_OIDC_PROVIDER_NAME:-${GCP_OIDC_POOL_NAME}/providers/${CLUSTER_NAME}}"
         
         cat > .env <<EOF
         CLUSTER_NAME=${CLUSTER_NAME}
         DOMAIN=greenstar.test
-        GCP_PROJECT_ID=${GCP_PROJECT_ID}
-        GCP_PROJECT_NUMBER=${GCP_PROJECT_NUMBER}
-        GCP_OIDC_POOL_NAME=${GCP_OIDC_POOL_NAME}
-        GCP_OIDC_PROVIDER_NAME=${GCP_OIDC_PROVIDER_NAME}
-        GCP_OIDC_AUDIENCE=${GCP_OIDC_AUDIENCE:-https://iam.googleapis.com/${GCP_OIDC_PROVIDER_NAME}}
-        BACKEND_KSA_GCP_PRINCIPAL=${BACKEND_KSA_GCP_PRINCIPAL:-principal://iam.googleapis.com/${GCP_OIDC_POOL_NAME}/subject/system:serviceaccount:greenstar:${HELM_RELEASE_NAME}-backend}
-        INITJOB_KSA_GCP_PRINCIPAL=${INITJOB_KSA_GCP_PRINCIPAL:-principal://iam.googleapis.com/${GCP_OIDC_POOL_NAME}/subject/system:serviceaccount:greenstar:${HELM_RELEASE_NAME}-init-job}
         
         # Secrets
         CURRENCY_API_KEY=${CURRENCY_API_KEY:-$(op read "op://GreenSTAR/Currency API/credential")}
-        DESCOPE_BACKEND_ACCESS_KEY_ID=${DESCOPE_BACKEND_ACCESS_KEY_ID:-$(op read "op://GreenSTAR/Descope/access key ID")}
-        DESCOPE_BACKEND_ACCESS_KEY_TOKEN=${DESCOPE_BACKEND_ACCESS_KEY_TOKEN:-$(op read "op://GreenSTAR/Descope/access key token")}
-        DESCOPE_MANAGEMENT_KEY_ID=${DESCOPE_MANAGEMENT_KEY_ID:-$(op read "op://GreenSTAR/Descope/management key ID")}
-        DESCOPE_MANAGEMENT_KEY_TOKEN=${DESCOPE_MANAGEMENT_KEY_TOKEN:-$(op read "op://GreenSTAR/Descope/management key token")}
-        DESCOPE_PROJECT_ID=${DESCOPE_PROJECT_ID:-$(op read "op://GreenSTAR/Descope/project ID")}
         LOCATION_IQ_ACCESS_TOKEN=${LOCATION_IQ_ACCESS_TOKEN:-$(op read "op://GreenSTAR/Location IQ/credential")}
         
         # Third-party versions

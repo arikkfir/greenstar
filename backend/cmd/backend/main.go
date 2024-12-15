@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server"
 	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/account"
@@ -14,7 +13,6 @@ import (
 	"github.com/arikkfir/greenstar/backend/internal/util/db"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
 	"github.com/arikkfir/greenstar/backend/internal/util/observability"
-	"github.com/descope/go-sdk/descope/client"
 	"log/slog"
 	"net"
 	"net/http"
@@ -41,20 +39,13 @@ type ServerConfig struct {
 }
 
 type Action struct {
-	Descope auth.DescopeConfig
-	Server  ServerConfig
+	Server ServerConfig
 }
 
 func (e *Action) Run(ctx context.Context) error {
 	var err error
 
 	ctx = util.ContextWithLogger(ctx, slog.Default())
-
-	// Descope
-	descopeClient, err := e.Descope.NewSDK(ctx)
-	if err != nil {
-		return fmt.Errorf("failed creating Descope client: %w", err)
-	}
 
 	// PostgreSQL
 	pgPool, err := db.NewPostgreSQLPool(ctx)
@@ -68,15 +59,14 @@ func (e *Action) Run(ctx context.Context) error {
 	accountsHandler := &account.HandlerImpl{}
 	appServer := server.Server{
 		Pool:                pgPool,
-		Descope:             descopeClient,
 		AccountsHandler:     accountsHandler,
-		TenantsHandler:      &tenant.HandlerImpl{Descope: descopeClient},
+		TenantsHandler:      &tenant.HandlerImpl{},
 		TransactionsHandler: &transaction.HandlerImpl{AccountsHandler: accountsHandler},
 	}
 	if err := appServer.Register(mux); err != nil {
 		return err
 	}
-	appHTTPServer := e.newServer(ctx, e.Server.HTTPAccessLogSuccessfulRequests, descopeClient, mux)
+	appHTTPServer := e.newServer(ctx, e.Server.HTTPAccessLogSuccessfulRequests, mux)
 
 	// All HTTP servers to start
 	servers := map[string]*http.Server{
@@ -129,7 +119,7 @@ func (e *Action) newHealthCheckServer() *http.Server {
 	}
 }
 
-func (e *Action) newServer(ctx context.Context, logSuccessfulRequests bool, descopeClient *client.DescopeClient, routes http.Handler) *http.Server {
+func (e *Action) newServer(ctx context.Context, logSuccessfulRequests bool, routes http.Handler) *http.Server {
 
 	// Define global mux
 	mux := http.NewServeMux()
@@ -140,11 +130,11 @@ func (e *Action) newServer(ctx context.Context, logSuccessfulRequests bool, desc
 					middleware.TenantIDMiddleware(
 						middleware.AccessLogMiddleware(logSuccessfulRequests, e.Server.HTTPAccessLogExcludeRemoteAddr, e.Server.HTTPAccessLogExcludedHeaders,
 							middleware.CORSMiddleware(e.Server.HTTPAllowedOrigins, e.Server.HTTPAllowMethods, e.Server.HTTPAllowHeaders, e.Server.HTTPDisableCredentials, e.Server.HTTPExposeHeaders, e.Server.HTTPMaxAge,
-								middleware.TraceMiddleware(auth.WithSDKMiddleware(descopeClient,
-									auth.AuthenticationMiddleware(
+								middleware.TraceMiddleware(
+									middleware.TokenMiddleware(
 										routes,
 									),
-								)),
+								),
 							),
 						),
 					),
@@ -178,9 +168,6 @@ personal expenses, income and how to balance them.
 
 This is the backend server for the GreenSTAR application.`,
 		&Action{
-			Descope: auth.DescopeConfig{
-				DescopeLogLevel: "none",
-			},
 			Server: ServerConfig{
 				ServerPort:       8080,
 				HealthPort:       9000,
