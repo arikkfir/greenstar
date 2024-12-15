@@ -10,7 +10,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@descope/react-sdk": "^2.3.3",
+        "@descope/react-sdk": "^2.3.4",
         "@emotion/react": "^11.13.5",
         "@emotion/styled": "^11.13.5",
         "@fontsource/roboto": "^5.1.0",
