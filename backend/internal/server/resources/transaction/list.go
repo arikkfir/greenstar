@@ -5,55 +5,49 @@ package transaction
 import (
 	"errors"
 	"fmt"
+	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
+	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/arikkfir/greenstar/backend/internal/auth"
-	"github.com/arikkfir/greenstar/backend/internal/server/util"
-	"github.com/arikkfir/greenstar/backend/internal/util/lang"
-	"github.com/shopspring/decimal"
 )
 
 var (
-	sortableColumns = []string{"id"}
+	_ = decimal.Decimal{}
+	_ = time.Time{}
 )
 
-func init() {
-	sortableColumns = append(sortableColumns, "amount")
-	sortableColumns = append(sortableColumns, "convertedAmount")
-	sortableColumns = append(sortableColumns, "currency")
-	sortableColumns = append(sortableColumns, "date")
-	sortableColumns = append(sortableColumns, "description")
-	sortableColumns = append(sortableColumns, "referenceId")
-}
+var (
+	sortableColumns = []string{"amount", "convertedAmount", "currency", "date", "description", "referenceId"}
+)
 
 type ListRequest struct {
 	properties      []string
-	TenantID        string
 	Offset          *uint            `url:"_offset,omitempty"`
 	Count           *uint            `url:"_count,omitempty"`
 	Sort            []string         `url:"_sort,omitempty"`
-	Currency        *string          `url:"currency,omitempty"`
-	MinDate         *time.Time       `url:"minDate,omitempty"`
-	MaxDate         *time.Time       `url:"maxDate,omitempty"`
-	ReferenceID     *string          `url:"referenceId,omitempty"`
-	MinAmount       *decimal.Decimal `url:"minAmount,omitempty"`
-	MaxAmount       *decimal.Decimal `url:"maxAmount,omitempty"`
 	Description     *string          `url:"description,omitempty"`
+	MaxAmount       *decimal.Decimal `url:"maxAmount,omitempty"`
+	MaxDate         *time.Time       `url:"maxDate,omitempty"`
+	MinAmount       *decimal.Decimal `url:"minAmount,omitempty"`
+	MinDate         *time.Time       `url:"minDate,omitempty"`
+	ReferenceID     *string          `url:"referenceId,omitempty"`
 	SourceAccountID *string          `url:"sourceAccountId,omitempty"`
 	TargetAccountID *string          `url:"targetAccountId,omitempty"`
+	Currency        string           `url:"currency,omitempty"`
 }
 
-func (lr *ListRequest) HasCurrency() bool    { return slices.Contains(lr.properties, "currency") }
-func (lr *ListRequest) HasMinDate() bool     { return slices.Contains(lr.properties, "minDate") }
-func (lr *ListRequest) HasMaxDate() bool     { return slices.Contains(lr.properties, "maxDate") }
-func (lr *ListRequest) HasReferenceID() bool { return slices.Contains(lr.properties, "referenceId") }
-func (lr *ListRequest) HasMinAmount() bool   { return slices.Contains(lr.properties, "minAmount") }
-func (lr *ListRequest) HasMaxAmount() bool   { return slices.Contains(lr.properties, "maxAmount") }
 func (lr *ListRequest) HasDescription() bool { return slices.Contains(lr.properties, "description") }
+func (lr *ListRequest) HasMaxAmount() bool   { return slices.Contains(lr.properties, "maxAmount") }
+func (lr *ListRequest) HasMaxDate() bool     { return slices.Contains(lr.properties, "maxDate") }
+func (lr *ListRequest) HasMinAmount() bool   { return slices.Contains(lr.properties, "minAmount") }
+func (lr *ListRequest) HasMinDate() bool     { return slices.Contains(lr.properties, "minDate") }
+func (lr *ListRequest) HasReferenceID() bool { return slices.Contains(lr.properties, "referenceId") }
 func (lr *ListRequest) HasSourceAccountID() bool {
 	return slices.Contains(lr.properties, "sourceAccountId")
 }
@@ -64,80 +58,6 @@ func (lr *ListRequest) UnmarshalFromRequest(r *http.Request) error {
 	lr.properties = nil
 
 	values := r.Form
-	lr.TenantID = r.PathValue("tenantID")
-	if lr.TenantID == "" {
-		return fmt.Errorf("%w: tenant ID is required", util.ErrBadRequest)
-	}
-	if values.Has("currency") {
-		lr.properties = append(lr.properties, "currency")
-		if rawValue := values.Get("currency"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "currency")
-		} else {
-			sv := lang.PtrOf(rawValue)
-			lr.Currency = sv
-		}
-	}
-	if values.Has("minDate") {
-		lr.properties = append(lr.properties, "minDate")
-		if rawValue := values.Get("minDate"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "minDate")
-		} else {
-			sv := lang.PtrOf(rawValue)
-			if tv, err := time.Parse(time.RFC3339, *sv); err != nil {
-				return err
-			} else {
-				lr.MinDate = lang.PtrOf(tv)
-			}
-		}
-	}
-	if values.Has("maxDate") {
-		lr.properties = append(lr.properties, "maxDate")
-		if rawValue := values.Get("maxDate"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "maxDate")
-		} else {
-			sv := lang.PtrOf(rawValue)
-			if tv, err := time.Parse(time.RFC3339, *sv); err != nil {
-				return err
-			} else {
-				lr.MaxDate = lang.PtrOf(tv)
-			}
-		}
-	}
-	if values.Has("referenceId") {
-		lr.properties = append(lr.properties, "referenceId")
-		if rawValue := values.Get("referenceId"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "referenceId")
-		} else {
-			sv := lang.PtrOf(rawValue)
-			lr.ReferenceID = sv
-		}
-	}
-	if values.Has("minAmount") {
-		lr.properties = append(lr.properties, "minAmount")
-		if rawValue := values.Get("minAmount"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "minAmount")
-		} else {
-			sv := lang.PtrOf(rawValue)
-			if dv, err := decimal.NewFromString(*sv); err != nil {
-				return err
-			} else {
-				lr.MinAmount = lang.PtrOf(dv)
-			}
-		}
-	}
-	if values.Has("maxAmount") {
-		lr.properties = append(lr.properties, "maxAmount")
-		if rawValue := values.Get("maxAmount"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "maxAmount")
-		} else {
-			sv := lang.PtrOf(rawValue)
-			if dv, err := decimal.NewFromString(*sv); err != nil {
-				return err
-			} else {
-				lr.MaxAmount = lang.PtrOf(dv)
-			}
-		}
-	}
 	if values.Has("description") {
 		lr.properties = append(lr.properties, "description")
 		if rawValue := values.Get("description"); rawValue == util.QueryNilValue {
@@ -147,10 +67,71 @@ func (lr *ListRequest) UnmarshalFromRequest(r *http.Request) error {
 			lr.Description = sv
 		}
 	}
+	if values.Has("maxAmount") {
+		lr.properties = append(lr.properties, "maxAmount")
+		if rawValue := values.Get("maxAmount"); rawValue == util.QueryNilValue {
+			lr.MaxAmount = nil
+		} else {
+			sv := lang.PtrOf(rawValue)
+			if dv, err := decimal.NewFromString(*sv); err != nil {
+				return err
+			} else {
+				lr.MaxAmount = lang.PtrOf(dv)
+			}
+		}
+	}
+	if values.Has("maxDate") {
+		lr.properties = append(lr.properties, "maxDate")
+		if rawValue := values.Get("maxDate"); rawValue == util.QueryNilValue {
+			lr.MaxDate = nil
+		} else {
+			sv := lang.PtrOf(rawValue)
+			if tv, err := time.Parse(time.RFC3339, *sv); err != nil {
+				return err
+			} else {
+				lr.MaxDate = lang.PtrOf(tv)
+			}
+		}
+	}
+	if values.Has("minAmount") {
+		lr.properties = append(lr.properties, "minAmount")
+		if rawValue := values.Get("minAmount"); rawValue == util.QueryNilValue {
+			lr.MinAmount = nil
+		} else {
+			sv := lang.PtrOf(rawValue)
+			if dv, err := decimal.NewFromString(*sv); err != nil {
+				return err
+			} else {
+				lr.MinAmount = lang.PtrOf(dv)
+			}
+		}
+	}
+	if values.Has("minDate") {
+		lr.properties = append(lr.properties, "minDate")
+		if rawValue := values.Get("minDate"); rawValue == util.QueryNilValue {
+			lr.MinDate = nil
+		} else {
+			sv := lang.PtrOf(rawValue)
+			if tv, err := time.Parse(time.RFC3339, *sv); err != nil {
+				return err
+			} else {
+				lr.MinDate = lang.PtrOf(tv)
+			}
+		}
+	}
+	if values.Has("referenceId") {
+		lr.properties = append(lr.properties, "referenceId")
+		if rawValue := values.Get("referenceId"); rawValue == util.QueryNilValue {
+			lr.ReferenceID = nil
+		} else {
+			sv := lang.PtrOf(rawValue)
+			lr.ReferenceID = sv
+		}
+	}
 	if values.Has("sourceAccountId") {
 		lr.properties = append(lr.properties, "sourceAccountId")
 		if rawValue := values.Get("sourceAccountId"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "sourceAccountId")
+			lr.SourceAccountID = nil
 		} else {
 			sv := lang.PtrOf(rawValue)
 			lr.SourceAccountID = sv
@@ -159,11 +140,22 @@ func (lr *ListRequest) UnmarshalFromRequest(r *http.Request) error {
 	if values.Has("targetAccountId") {
 		lr.properties = append(lr.properties, "targetAccountId")
 		if rawValue := values.Get("targetAccountId"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "targetAccountId")
+			lr.TargetAccountID = nil
 		} else {
 			sv := lang.PtrOf(rawValue)
 			lr.TargetAccountID = sv
 		}
+	}
+	if values.Has("currency") {
+		lr.properties = append(lr.properties, "currency")
+		if rawValue := values.Get("currency"); rawValue == util.QueryNilValue {
+			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "currency")
+		} else {
+			sv := rawValue
+			lr.Currency = sv
+		}
+	} else {
+		return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "currency")
 	}
 
 	lr.Offset = nil
@@ -221,10 +213,24 @@ func (s *Server) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
-	if !auth.GetToken(ctx).IsPermittedForTenant(r.PathValue("tenantID"), "transactions:read") {
-		util.ServeError(w, r, util.ErrForbidden)
-		l.With("tenantID", r.PathValue("TenantPathVariableName")).WarnContext(ctx, "Access denied", "permission", "transactions:read")
-		return
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("transactions:read") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "transactions:read") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "transactions:read")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "transactions:read")
+			return
+		}
 	}
 
 	if err := r.ParseForm(); err != nil {

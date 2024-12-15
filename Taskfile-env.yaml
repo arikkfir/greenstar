@@ -41,13 +41,13 @@ tasks:
         INITJOB_KSA_GCP_PRINCIPAL=${INITJOB_KSA_GCP_PRINCIPAL:-principal://iam.googleapis.com/${GCP_OIDC_POOL_NAME}/subject/system:serviceaccount:greenstar:${HELM_RELEASE_NAME}-init-job}
         
         # Secrets
-        CURRENCY_API_KEY=${CURRENCY_API_KEY:-$(op read "op://Development/GreenSTAR/currencyapi/api key")}
-        DESCOPE_BACKEND_ACCESS_KEY_ID=${DESCOPE_BACKEND_ACCESS_KEY_ID:-$(op read "op://Development/GreenSTAR/descope/backend access key id")}
-        DESCOPE_BACKEND_ACCESS_KEY_TOKEN=${DESCOPE_BACKEND_ACCESS_KEY_TOKEN:-$(op read "op://Development/GreenSTAR/descope/backend access key token")}
-        DESCOPE_MANAGEMENT_KEY_ID=${DESCOPE_MANAGEMENT_KEY_ID:-$(op read "op://Development/GreenSTAR/descope/management key id")}
-        DESCOPE_MANAGEMENT_KEY_TOKEN=${DESCOPE_MANAGEMENT_KEY_TOKEN:-$(op read "op://Development/GreenSTAR/descope/management key token")}
-        DESCOPE_PROJECT_ID=${DESCOPE_PROJECT_ID:-$(op read "op://Development/GreenSTAR/descope/project_id")}
-        LOCATION_IQ_ACCESS_TOKEN=${LOCATION_IQ_ACCESS_TOKEN:-$(op read "op://Development/GreenSTAR/locationiq/accesstoken")}
+        CURRENCY_API_KEY=${CURRENCY_API_KEY:-$(op read "op://GreenSTAR/Currency API/credential")}
+        DESCOPE_BACKEND_ACCESS_KEY_ID=${DESCOPE_BACKEND_ACCESS_KEY_ID:-$(op read "op://GreenSTAR/Descope/access key ID")}
+        DESCOPE_BACKEND_ACCESS_KEY_TOKEN=${DESCOPE_BACKEND_ACCESS_KEY_TOKEN:-$(op read "op://GreenSTAR/Descope/access key token")}
+        DESCOPE_MANAGEMENT_KEY_ID=${DESCOPE_MANAGEMENT_KEY_ID:-$(op read "op://GreenSTAR/Descope/management key ID")}
+        DESCOPE_MANAGEMENT_KEY_TOKEN=${DESCOPE_MANAGEMENT_KEY_TOKEN:-$(op read "op://GreenSTAR/Descope/management key token")}
+        DESCOPE_PROJECT_ID=${DESCOPE_PROJECT_ID:-$(op read "op://GreenSTAR/Descope/project ID")}
+        LOCATION_IQ_ACCESS_TOKEN=${LOCATION_IQ_ACCESS_TOKEN:-$(op read "op://GreenSTAR/Location IQ/credential")}
         
         # Third-party versions
         HELM_RELEASE_NAME=${HELM_RELEASE_NAME}

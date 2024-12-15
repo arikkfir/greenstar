@@ -235,51 +235,38 @@ tasks:
       - task: setup-gcp-workload-identity-pool-provider
       - task: setup-gateway
 
-  build-rest-client-generator:
+  build-rest-generator:
+    dir: scripts/rest-generator
     cmds:
-      - go build -o bin/generate-rest-client ./scripts/generate-rest/cmd/client/main.go
+      - go mod tidy
+      - go build -o ../../bin/rest-generator *.go
     sources:
-      - scripts/generate-rest/cmd/client/main.go
-      - scripts/generate-rest/internal/*.go
-      - exclude: scripts/generate-rest/internal/generate_server.go
-      - scripts/generate-rest/internal/templates/*.client.*
+      - 'go.*'
+      - '*.go'
+      - '*.yaml'
+      - templates/**/*
     generates:
-      - bin/generate-rest-client
+      - ../../bin/rest-generator
 
-  build-rest-server-generator:
+  generate-rest:
+    deps: [ build-rest-generator ]
     cmds:
-      - go build -o bin/generate-rest-server ./scripts/generate-rest/cmd/server/main.go
-    sources:
-      - scripts/generate-rest/cmd/server/main.go
-      - scripts/generate-rest/internal/*.go
-      - exclude: scripts/generate-rest/internal/generate_client.go
-      - scripts/generate-rest/internal/templates/**
-      - exclude: scripts/generate-rest/internal/templates/*.client.*
-    generates:
-      - bin/generate-rest-server
-
-  generate-rest-clients:
-    deps: [ build-rest-client-generator ]
-    cmds:
-      - ./bin/generate-rest-client --api-file=api.yaml
+      - ./bin/rest-generator -api-file=api.yaml
     sources:
       - ./api.yaml
-      - ./bin/generate-rest-client
+      - ./bin/rest-generator
     generates:
-      - frontend/src/client/*.ts
-      - exclude: frontend/src/client/common.ts
-      - exclude: frontend/src/client/errors.ts
-
-  generate-rest-server:
-    deps: [ build-rest-server-generator ]
-    cmds:
-      - ./bin/generate-rest-server --api-file=api.yaml
-    sources:
-      - ./api.yaml
-      - ./bin/generate-rest-server
-    generates:
-      - backend/internal/server/resources/*/*.go
-      - backend/internal/server/resources/openapi/openapi.yaml
+      - backend/internal/server/server.go
+      - backend/internal/server/resources/*/*.yaml
+      - exclude: backend/internal/server/resources/*/*_impl.go
+      - frontend/src/hooks/create.*.ts
+      - frontend/src/hooks/delete.*.ts
+      - frontend/src/hooks/deleteAll.*.ts
+      - frontend/src/hooks/get.*.ts
+      - frontend/src/hooks/list.*.ts
+      - frontend/src/hooks/patch.*.ts
+      - frontend/src/hooks/update.*.ts
+      - frontend/src/models/*.ts
 
   generate-helm-values:
     deps: [ setup-gcp-workload-identity-pool-provider ]
@@ -305,7 +292,7 @@ tasks:
       - test "$(yq ".oidc.gcp.config" < ./hack/greenstar-values.yaml)" = "$(cat "./hack/gcp-credential-configuration.json")"
 
   deploy:
-    deps: [ generate-rest-server, setup-cluster ]
+    deps: [ generate-rest, setup-cluster ]
     cmds:
       - task: setup-observability
       - task: generate-helm-values
@@ -317,7 +304,7 @@ tasks:
       - skaffold delete
 
   dev:
-    deps: [ generate-rest-server, setup-cluster ]
+    deps: [ generate-rest, setup-cluster ]
     cmds:
       - task: generate-helm-values
       - skaffold dev --tail=false --toot=true
@@ -348,3 +335,39 @@ tasks:
     dir: e2e
     cmds:
       - npx playwright show-report
+
+  download-backend-dependencies:
+    deps: [ toolchain:go ]
+    dir: backend
+    cmds:
+      - go mod tidy
+    status:
+      - go mod tidy -diff
+
+  download-frontend-dependencies:
+    deps: [ toolchain:node ]
+    dir: frontend
+    cmds:
+      - npm install --no-fund
+
+  download-dependencies:
+    deps: [ download-backend-dependencies, download-frontend-dependencies ]
+
+  format-backend-code:
+    deps: [ download-backend-dependencies ]
+    dir: backend
+    cmds:
+      - go fmt ./...
+    status:
+      - ./node_modules/.bin/prettier --check .
+
+  format-frontend-code:
+    deps: [ download-frontend-dependencies ]
+    dir: frontend
+    cmds:
+      - ./node_modules/.bin/prettier --write . | grep -v unchanged
+    status:
+      - ./node_modules/.bin/prettier --list-different .
+
+  format-code:
+    deps: [ format-backend-code, format-frontend-code ]

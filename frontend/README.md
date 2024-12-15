@@ -3,8 +3,8 @@
 This is the GreenSTAR frontend application served to users. It is packaged into a container and runs as a stateless set
 of pods running:
 
-* Production: NGINX serving statically-built React SPA
-* Workstation: Node.js running Vite Server serving SPA directly with live reload
+- Production: NGINX serving statically-built React SPA
+- Workstation: Node.js running Vite Server serving SPA directly with live reload
 
 This setup supports horizontal scale-out if needed.
 
@@ -33,14 +33,14 @@ The important parts of the application in the file-system are the following:
       static assets that are served by an NGINX server (with support for HTML5 routing.)
 - **`nginx.conf`**: Configuration for the NGINX server, when generating production-oriented container image.
 - **`src/`**: The main source directory for application code:
-  - **`main.tsx`**: Entry-point of the application.
-  - **`App.tsx`**: The root component of the application.
-  - **`client/`**: Contains generated REST client code as well as non-generated related code.
-  - **`components/`**: Contains reusable React components.
-  - **`hooks/`**: Contains custom React hooks for reusing logic.
-  - **`pages/`**: Contains page components that represent different routes of the application.
-  - **`providers/`**: Contains reusable React context providers.
-  - **`util/`**: Contains miscellaneous utilities.
+    - **`main.tsx`**: Entry-point of the application.
+    - **`App.tsx`**: The root component of the application.
+    - **`client/`**: Contains generated REST client code as well as non-generated related code.
+    - **`components/`**: Contains reusable React components.
+    - **`hooks/`**: Contains custom React hooks for reusing logic.
+    - **`pages/`**: Contains page components that represent different routes of the application.
+    - **`providers/`**: Contains reusable React context providers.
+    - **`util/`**: Contains miscellaneous utilities.
 
 ### Development Environment
 

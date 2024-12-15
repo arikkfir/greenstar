@@ -4,13 +4,13 @@ package tenant
 
 import (
 	"encoding/json"
+	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
+	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"slices"
 	"time"
-
-	"github.com/arikkfir/greenstar/backend/internal/auth"
-	"github.com/arikkfir/greenstar/backend/internal/server/util"
-	"github.com/shopspring/decimal"
 )
 
 var (
@@ -48,10 +48,24 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
-	if !auth.GetToken(ctx).IsPermittedGlobally("tenants:create") {
-		util.ServeError(w, r, util.ErrForbidden)
-		l.WarnContext(ctx, "Access denied", "permission", "tenants:create")
-		return
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("tenants:create") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "tenants:create") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "tenants:create")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "tenants:create")
+			return
+		}
 	}
 
 	req := CreateRequest{}

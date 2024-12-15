@@ -22,7 +22,7 @@ interface AccountWithChildren extends Account {
 
 test('transactions', async ({page}) => {
     await page.goto('/transactions');
-    const accountsRes = await page.waitForResponse('https://api.greenstar.test/tenants/acme/accounts?currency=ILS');
+    const accountsRes = await page.waitForResponse('https://api.greenstar.test/accounts?currency=ILS');
     const accountsResJSON = await accountsRes.json()
     const totalItems = accountsResJSON.totalCount
     expect(totalItems).toEqual(44)

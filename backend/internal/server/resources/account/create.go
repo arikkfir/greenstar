@@ -4,14 +4,13 @@ package account
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
+	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"slices"
 	"time"
-
-	"github.com/arikkfir/greenstar/backend/internal/auth"
-	"github.com/arikkfir/greenstar/backend/internal/server/util"
-	"github.com/shopspring/decimal"
 )
 
 var (
@@ -20,22 +19,14 @@ var (
 )
 
 type CreateRequest struct {
-	TenantID    string  `json:"-"`
 	DisplayName string  `json:"displayName,omitempty"`
 	Icon        *string `json:"icon,omitempty"`
 	ParentID    *string `json:"parentID,omitempty"`
 	properties  []string
 }
 
-func (lr *CreateRequest) HasBalance() bool  { return slices.Contains(lr.properties, "balance") }
 func (lr *CreateRequest) HasIcon() bool     { return slices.Contains(lr.properties, "icon") }
 func (lr *CreateRequest) HasParentID() bool { return slices.Contains(lr.properties, "parentID") }
-func (lr *CreateRequest) HasTotalIncomingAmount() bool {
-	return slices.Contains(lr.properties, "totalIncomingAmount")
-}
-func (lr *CreateRequest) HasTotalOutgoingAmount() bool {
-	return slices.Contains(lr.properties, "totalOutgoingAmount")
-}
 func (lr *CreateRequest) UnmarshalJSON(data []byte) error {
 	lr.properties = nil
 	var tempMap map[string]json.RawMessage
@@ -59,20 +50,29 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
-	if !auth.GetToken(ctx).IsPermittedForTenant(r.PathValue("tenantID"), "accounts:read") {
-		util.ServeError(w, r, util.ErrForbidden)
-		l.With("tenantID", r.PathValue("TenantPathVariableName")).WarnContext(ctx, "Access denied", "permission", "accounts:read")
-		return
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("accounts:create") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "accounts:create") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "accounts:create")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "accounts:create")
+			return
+		}
 	}
 
 	req := CreateRequest{}
 	if err := util.UnmarshalBody(r, &req); err != nil {
 		util.ServeError(w, r, err)
-		return
-	}
-	req.TenantID = r.PathValue("tenantID")
-	if req.TenantID == "" {
-		util.ServeError(w, r, fmt.Errorf("%w: invalid tenant ID", util.ErrBadRequest))
 		return
 	}
 

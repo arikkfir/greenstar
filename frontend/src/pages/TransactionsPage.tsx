@@ -1,85 +1,76 @@
-import {SyntheticEvent, useCallback, useContext, useEffect, useState} from "react";
-import {Account, useAccountsClient} from "../client/account.ts";
-import {LocaleContext} from "../providers/LocaleProvider.tsx";
-import {Box, Paper} from "@mui/material";
-import {AccountsTree} from "../components/tree/accounts/AccountsTree.tsx";
-import {TransactionsTable} from "../components/table/transactions/TransactionsTable.tsx";
-import {AccountID} from "../client/account-util.ts";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import { LocaleContext } from "../providers/LocaleProvider.tsx"
+import { Box, Paper } from "@mui/material"
+import { AccountsTree } from "../components/tree/accounts/AccountsTree.tsx"
+import { TransactionsTable } from "../components/table/transactions/TransactionsTable.tsx"
+import {
+    AccountID,
+    AccountNode,
+    BuildAccountsTree,
+    FindAccountInTree,
+    MapAccountsByID,
+} from "../models/account-addons.ts"
+import { useListAccounts } from "../hooks/account/list.ts"
 
 export function TransactionsPage() {
     const locale = useContext(LocaleContext)
-    const accountsClient = useAccountsClient()
-    const [error, setError] = useState<Error | undefined>()
-    const [accounts, setAccounts] = useState<Account[]>([])
-    const [selectedAccount, setSelectedAccount] = useState<Account | undefined>()
+    const { request: fetchAccounts, operation: accountsStatus } = useListAccounts()
+    const [selectedAccount, setSelectedAccount] = useState<AccountNode | undefined>()
+    const accountsMap = useMemo(() => MapAccountsByID(accountsStatus.response?.items || []), [accountsStatus])
+    const accountsTree = useMemo(() => BuildAccountsTree(accountsStatus.response?.items || []), [accountsStatus])
 
-    const handleEscape = useCallback((event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
-            setSelectedAccount(undefined);
-        }
-    }, [setSelectedAccount]);
-
-    useEffect(() => {
-        window.addEventListener('keydown', handleEscape);
-        return () => window.removeEventListener('keydown', handleEscape);
-    }, []);
-
-    useEffect(() => {
-        if (locale.currency) {
-            setError(undefined)
-            accountsClient.List({currency: locale.currency})
-                .then(r => {
-                    setAccounts(r.items)
-                    setSelectedAccount(undefined)
-                })
-                .catch(e => setError(e))
-        } else if (locale.error) {
-            setAccounts([])
-            setError(locale.error)
-        } else {
-            setAccounts([])
-            setError(undefined)
-        }
-    }, [locale, setError, accountsClient, setAccounts, setSelectedAccount]);
+    useEffect(() => fetchAccounts({ currency: locale.currency }), [locale])
 
     const handleAccountSelectionChange = useCallback(
-        (_: SyntheticEvent, id: AccountID | null) => setSelectedAccount(accounts.find(a => a.id === id)),
-        [accounts, setSelectedAccount]
+        (_: any, id: AccountID | null) => id && setSelectedAccount(FindAccountInTree(accountsTree, id)),
+        [accountsTree, setSelectedAccount],
     )
 
-    if (error) {
-        return (
-            <p>Error : {error.message}</p>
-        )
+    if (accountsStatus.error) {
+        return <p>Error : {accountsStatus.error.message}</p>
     }
 
     return (
-        <Box sx={{
-            flexGrow: 1, flexShrink: 1,
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'stretch',
-            alignContent: 'stretch',
-            gap: '1rem',
-            p: 2, overflow: "hidden",
-        }}>
-            <Paper sx={{flexGrow: 0, flexShrink: 0, minWidth: '20rem', p: 1, overflow: 'scroll'}}>
-                <AccountsTree accounts={accounts}
-                              selectedAccount={selectedAccount}
-                              onSelectedItemsChange={handleAccountSelectionChange}/>
-            </Paper>
-            <Paper sx={{
-                flexGrow: 1, flexShrink: 1,
-                display: 'flex', flexDirection: 'column',
-                justifyContent: 'center', alignItems: 'stretch', alignContent: 'stretch',
+        <Box
+            sx={{
+                flexGrow: 1,
+                flexShrink: 1,
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "stretch",
+                alignContent: "stretch",
+                gap: "1rem",
+                p: 2,
                 overflow: "hidden",
-            }}>
-                <TransactionsTable sx={{flexGrow: 1, flexShrink: 1}}
-                                   stateId="transactions"
-                                   accounts={accounts}
-                                   sourceAccountId={selectedAccount?.id}
-                                   targetAccountId={selectedAccount?.id}/>
+            }}
+        >
+            <Paper sx={{ flexGrow: 0, flexShrink: 0, minWidth: "20rem", p: 1, overflow: "scroll" }}>
+                <AccountsTree
+                    accounts={accountsTree}
+                    selectedItems={selectedAccount?.id || null}
+                    onSelectedItemsChange={handleAccountSelectionChange}
+                />
+            </Paper>
+            <Paper
+                sx={{
+                    flexGrow: 1,
+                    flexShrink: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "stretch",
+                    alignContent: "stretch",
+                    overflow: "hidden",
+                }}
+            >
+                <TransactionsTable
+                    sx={{ flexGrow: 1, flexShrink: 1 }}
+                    stateId="transactions"
+                    sourceAccountId={selectedAccount?.id}
+                    targetAccountId={selectedAccount?.id}
+                    accounts={accountsMap}
+                />
             </Paper>
         </Box>
     )

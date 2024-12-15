@@ -3,23 +3,13 @@
 package account
 
 import (
-	"net/http"
-
 	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"net/http"
 )
 
-type DeleteAllRequest struct {
-	TenantID string `json:"-"`
-}
-
-func (lr *DeleteAllRequest) UnmarshalFromRequest(r *http.Request) error {
-	lr.TenantID = r.PathValue("tenantID")
-	if lr.TenantID == "" {
-		return util.ErrBadRequest
-	}
-	return nil
-}
+type DeleteAllRequest struct{}
 
 type DeleteAllResponse struct{}
 
@@ -27,17 +17,27 @@ func (s *Server) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
-	if !auth.GetToken(ctx).IsPermittedForTenant(r.PathValue("tenantID"), "accounts:delete") {
-		util.ServeError(w, r, util.ErrForbidden)
-		l.With("tenantID", r.PathValue("TenantPathVariableName")).WarnContext(ctx, "Access denied", "permission", "accounts:delete")
-		return
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("accounts:delete") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "accounts:delete") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "accounts:delete")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "accounts:delete")
+			return
+		}
 	}
 
 	req := DeleteAllRequest{}
-	if err := req.UnmarshalFromRequest(r); err != nil {
-		util.ServeError(w, r, err)
-		return
-	}
 
 	err := s.h.DeleteAll(ctx, req)
 	if err != nil {
