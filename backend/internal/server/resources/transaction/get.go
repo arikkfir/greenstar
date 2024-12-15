@@ -3,23 +3,25 @@
 package transaction
 
 import (
-	"net/http"
-
 	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/shopspring/decimal"
+	"net/http"
+	"time"
+)
+
+var (
+	_ = decimal.Decimal{}
+	_ = time.Time{}
 )
 
 type GetRequest struct {
-	TenantID string  `json:"-"`
 	ID       string  `json:"id"`
 	Currency *string `url:"currency,omitempty"`
 }
 
 func (lr *GetRequest) UnmarshalFromRequest(r *http.Request) error {
-	lr.TenantID = r.PathValue("tenantID")
-	if lr.TenantID == "" {
-		return util.ErrBadRequest
-	}
 	lr.ID = r.PathValue("id")
 	if lr.ID == "" {
 		return util.ErrBadRequest
@@ -33,10 +35,24 @@ func (s *Server) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
-	if !auth.GetToken(ctx).IsPermittedForTenant(r.PathValue("tenantID"), "transactions:read") {
-		util.ServeError(w, r, util.ErrForbidden)
-		l.With("tenantID", r.PathValue("TenantPathVariableName")).WarnContext(ctx, "Access denied", "permission", "transactions:read")
-		return
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("transactions:read") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "transactions:read") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "transactions:read")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "transactions:read")
+			return
+		}
 	}
 
 	req := GetRequest{}

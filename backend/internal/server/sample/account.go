@@ -51,7 +51,6 @@ func (a *accountWithChildren) applyAccount(ctx context.Context, ids map[string]s
 	}
 
 	if acc, err := h.Create(ctx, account.CreateRequest{
-		TenantID:    tenantID,
 		DisplayName: a.DisplayName,
 		Icon:        strings.NilIfEmpty(a.Icon),
 		ParentID:    parentID,
@@ -72,7 +71,7 @@ func (a *accountWithChildren) applyAccount(ctx context.Context, ids map[string]s
 
 func (a *accountWithChildren) applyOutgoingTransactions(ctx context.Context, ids map[string]string, h transaction.Handler, tenantID, defaultCurrency string) error {
 	for _, tx := range a.OutgoingTransactions {
-		if err := tx.apply(ctx, ids, h, tenantID, defaultCurrency, a.ID); err != nil {
+		if err := tx.apply(ctx, ids, h, defaultCurrency, a.ID); err != nil {
 			return fmt.Errorf("failed applying an outgoing transaction of account '%s': %w", a.ID, err)
 		}
 	}

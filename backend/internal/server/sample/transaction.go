@@ -56,7 +56,7 @@ func (t *transactionSpec) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
-func (t *transactionSpec) apply(ctx context.Context, ids map[string]string, h transaction.Handler, tenantID, defaultCurrency, sourceAccountID string) error {
+func (t *transactionSpec) apply(ctx context.Context, ids map[string]string, h transaction.Handler, defaultCurrency, sourceAccountID string) error {
 	sourceAccountUUID := ids[sourceAccountID]
 	if sourceAccountUUID == "" {
 		return fmt.Errorf("could not find UUID for source account ID '%s'", sourceAccountID)
@@ -71,7 +71,6 @@ func (t *transactionSpec) apply(ctx context.Context, ids map[string]string, h tr
 	txAmount := t.Amount
 	txCurrency := cmp.Or(t.Currency, defaultCurrency)
 	if _, err := h.Create(ctx, transaction.CreateRequest{
-		TenantID:        tenantID,
 		Date:            txDate,
 		ReferenceID:     strings.RandomHash(7),
 		Amount:          txAmount,
@@ -82,7 +81,7 @@ func (t *transactionSpec) apply(ctx context.Context, ids map[string]string, h tr
 	}); err != nil {
 		return fmt.Errorf("failed creating transaction: %w", err)
 	}
-	if err := t.Repeat.apply(ctx, ids, h, tenantID, txCurrency, t.Description, sourceAccountID, t.TargetAccountID, txDate, txAmount); err != nil {
+	if err := t.Repeat.apply(ctx, ids, h, txCurrency, t.Description, sourceAccountID, t.TargetAccountID, txDate, txAmount); err != nil {
 		return fmt.Errorf("failed repeating transaction: %w", err)
 	}
 	return nil
@@ -124,7 +123,7 @@ func (r *repeatSpec) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
-func (r *repeatSpec) apply(ctx context.Context, ids map[string]string, h transaction.Handler, tenantID, currency, description, sourceAccountID, targetAccountID string, baseDate time.Time, baseAmount decimal.Decimal) error {
+func (r *repeatSpec) apply(ctx context.Context, ids map[string]string, h transaction.Handler, currency, description, sourceAccountID, targetAccountID string, baseDate time.Time, baseAmount decimal.Decimal) error {
 	sourceAccountUUID := ids[sourceAccountID]
 	if sourceAccountUUID == "" {
 		return fmt.Errorf("could not find UUID for source account ID '%s'", sourceAccountID)
@@ -158,7 +157,6 @@ func (r *repeatSpec) apply(ctx context.Context, ids map[string]string, h transac
 			}
 		}
 		if _, err := h.Create(ctx, transaction.CreateRequest{
-			TenantID:        tenantID,
 			Date:            baseDate,
 			ReferenceID:     strings.RandomHash(7),
 			Amount:          baseAmount,

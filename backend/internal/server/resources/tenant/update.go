@@ -4,10 +4,19 @@ package tenant
 
 import (
 	"encoding/json"
-	"net/http"
-
 	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/shopspring/decimal"
+	"net/http"
+	"slices"
+	"time"
+)
+
+var (
+	_ = decimal.Decimal{}
+	_ = time.Time{}
+	_ = slices.Contains([]int{}, 1)
 )
 
 type UpdateRequest struct {
@@ -39,10 +48,24 @@ func (s *Server) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
-	if !auth.GetToken(ctx).IsPermittedForTenant(r.PathValue("id"), "tenants:update") {
-		util.ServeError(w, r, util.ErrForbidden)
-		l.With("tenantID", r.PathValue("TenantPathVariableName")).WarnContext(ctx, "Access denied", "permission", "tenants:update")
-		return
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("tenants:update") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "tenants:update") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "tenants:update")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "tenants:update")
+			return
+		}
 	}
 
 	req := UpdateRequest{}

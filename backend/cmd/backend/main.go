@@ -137,13 +137,15 @@ func (e *Action) newServer(ctx context.Context, logSuccessfulRequests bool, desc
 		middleware.CommonHeadersMiddleware(
 			middleware.PreventCachingMiddleware(
 				middleware.RequestIDMiddleware(
-					middleware.AccessLogMiddleware(logSuccessfulRequests, e.Server.HTTPAccessLogExcludeRemoteAddr, e.Server.HTTPAccessLogExcludedHeaders,
-						middleware.CORSMiddleware(e.Server.HTTPAllowedOrigins, e.Server.HTTPAllowMethods, e.Server.HTTPAllowHeaders, e.Server.HTTPDisableCredentials, e.Server.HTTPExposeHeaders, e.Server.HTTPMaxAge,
-							middleware.TraceMiddleware(auth.WithSDKMiddleware(descopeClient,
-								auth.AuthenticationMiddleware(
-									routes,
-								),
-							)),
+					middleware.TenantIDMiddleware(
+						middleware.AccessLogMiddleware(logSuccessfulRequests, e.Server.HTTPAccessLogExcludeRemoteAddr, e.Server.HTTPAccessLogExcludedHeaders,
+							middleware.CORSMiddleware(e.Server.HTTPAllowedOrigins, e.Server.HTTPAllowMethods, e.Server.HTTPAllowHeaders, e.Server.HTTPDisableCredentials, e.Server.HTTPExposeHeaders, e.Server.HTTPMaxAge,
+								middleware.TraceMiddleware(auth.WithSDKMiddleware(descopeClient,
+									auth.AuthenticationMiddleware(
+										routes,
+									),
+								)),
+							),
 						),
 					),
 				),
@@ -182,7 +184,7 @@ This is the backend server for the GreenSTAR application.`,
 			Server: ServerConfig{
 				ServerPort:       8080,
 				HealthPort:       9000,
-				HTTPAllowHeaders: []string{"accept", "authorization", "content-type", "x-request-id"},
+				HTTPAllowHeaders: []string{"accept", "authorization", "content-type", "x-request-id", "X-GreenSTAR-Tenant-ID"},
 				HTTPAllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
 				HTTPMaxAge:       defaultMaxAge,
 			},

@@ -4,14 +4,13 @@ package server
 
 import (
 	"errors"
-	"net/http"
-
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/account"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/openapi"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/tenant"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/transaction"
 	"github.com/descope/go-sdk/descope/client"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"net/http"
 )
 
 type Server struct {

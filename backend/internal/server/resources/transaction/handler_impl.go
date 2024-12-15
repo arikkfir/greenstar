@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/arikkfir/greenstar/backend/internal/migration"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/account"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/arikkfir/greenstar/backend/internal/util/db"
@@ -48,10 +49,6 @@ type HandlerImpl struct {
 func (h *HandlerImpl) List(ctx context.Context, req ListRequest) (*ListResponse, error) {
 	tx := db.TxFromContext(ctx)
 
-	if req.Currency == nil {
-		req.Currency = lang.PtrOf(util.DefaultCurrency)
-	}
-
 	res := ListResponse{}
 	res.Items = make([]Transaction, 0)
 
@@ -79,8 +76,8 @@ func (h *HandlerImpl) List(ctx context.Context, req ListRequest) (*ListResponse,
 	return &res, nil
 }
 
-func (h *HandlerImpl) buildListQuery(_ context.Context, req ListRequest) (string, []any, error) {
-	args := []any{nil, nil, req.TenantID, req.Currency}
+func (h *HandlerImpl) buildListQuery(ctx context.Context, req ListRequest) (string, []any, error) {
+	args := []any{nil, nil, middleware.GetTenantID(ctx), req.Currency}
 
 	result, err := pg_query.Parse(listSQL)
 	if err != nil {
@@ -283,13 +280,13 @@ func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateRes
 		return nil, fmt.Errorf("%w: source account is required", util.ErrBadRequest)
 	} else if req.TargetAccountID == "" {
 		return nil, fmt.Errorf("%w: target account is required", util.ErrBadRequest)
-	} else if _, err := h.AccountsHandler.Get(ctx, account.GetRequest{TenantID: req.TenantID, ID: req.SourceAccountID}); err != nil {
+	} else if _, err := h.AccountsHandler.Get(ctx, account.GetRequest{ID: req.SourceAccountID}); err != nil {
 		if errors.Is(err, util.ErrNotFound) {
 			return nil, fmt.Errorf("%w: source account %s not found", util.ErrBadRequest, req.SourceAccountID)
 		} else {
 			return nil, fmt.Errorf("failed fetching source account '%s': %w", req.SourceAccountID, err)
 		}
-	} else if _, err := h.AccountsHandler.Get(ctx, account.GetRequest{TenantID: req.TenantID, ID: req.TargetAccountID}); err != nil {
+	} else if _, err := h.AccountsHandler.Get(ctx, account.GetRequest{ID: req.TargetAccountID}); err != nil {
 		if errors.Is(err, util.ErrNotFound) {
 			return nil, fmt.Errorf("%w: source target %s not found", util.ErrBadRequest, req.TargetAccountID)
 		} else {
@@ -312,7 +309,7 @@ func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateRes
 		return nil, fmt.Errorf("failed inserting row: %w", err)
 	}
 
-	getResp, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: id})
+	getResp, err := h.Get(ctx, GetRequest{ID: id})
 	if err != nil {
 		return nil, fmt.Errorf("failed fetching saved row: %w", err)
 	}
@@ -328,7 +325,7 @@ func (h *HandlerImpl) Get(ctx context.Context, req GetRequest) (*GetResponse, er
 	}
 
 	var res GetResponse
-	if err := tx.QueryRow(ctx, getSQL, req.ID, req.TenantID, req.Currency).Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.Amount, &res.Currency, &res.ConvertedAmount, &res.Date, &res.Description, &res.ReferenceID, &res.SourceAccountID, &res.TargetAccountID); err != nil {
+	if err := tx.QueryRow(ctx, getSQL, req.ID, middleware.GetTenantID(ctx), req.Currency).Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.Amount, &res.Currency, &res.ConvertedAmount, &res.Date, &res.Description, &res.ReferenceID, &res.SourceAccountID, &res.TargetAccountID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, util.ErrNotFound
 		} else {
@@ -384,7 +381,7 @@ func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchRespon
 	if req.HasSourceAccountID() {
 		if *req.SourceAccountID == "" {
 			return nil, fmt.Errorf("%w: source account is required", util.ErrBadRequest)
-		} else if _, err := h.AccountsHandler.Get(ctx, account.GetRequest{TenantID: req.TenantID, ID: *req.SourceAccountID}); err != nil {
+		} else if _, err := h.AccountsHandler.Get(ctx, account.GetRequest{ID: *req.SourceAccountID}); err != nil {
 			if errors.Is(err, util.ErrNotFound) {
 				return nil, fmt.Errorf("%w: source account %s not found", util.ErrBadRequest, *req.SourceAccountID)
 			} else {
@@ -397,7 +394,7 @@ func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchRespon
 	if req.HasTargetAccountID() {
 		if *req.TargetAccountID == "" {
 			return nil, fmt.Errorf("%w: target account is required", util.ErrBadRequest)
-		} else if _, err := h.AccountsHandler.Get(ctx, account.GetRequest{TenantID: req.TenantID, ID: *req.SourceAccountID}); err != nil {
+		} else if _, err := h.AccountsHandler.Get(ctx, account.GetRequest{ID: *req.SourceAccountID}); err != nil {
 			if errors.Is(err, util.ErrNotFound) {
 				return nil, fmt.Errorf("%w: target account %s not found", util.ErrBadRequest, *req.TargetAccountID)
 			} else {
@@ -417,7 +414,7 @@ func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchRespon
 		return nil, fmt.Errorf("failed saving row: unexpected number of rows affected (%d)", rowsAffected)
 	}
 
-	getResp, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: req.ID})
+	getResp, err := h.Get(ctx, GetRequest{ID: req.ID})
 	if err != nil {
 		return nil, fmt.Errorf("failed fetching updated row: %w", err)
 	}
@@ -438,7 +435,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 		return nil, fmt.Errorf("%w: reference ID is required", util.ErrBadRequest)
 	} else if req.SourceAccountID == "" {
 		return nil, fmt.Errorf("%w: source account is required", util.ErrBadRequest)
-	} else if _, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: req.SourceAccountID}); err != nil {
+	} else if _, err := h.Get(ctx, GetRequest{ID: req.SourceAccountID}); err != nil {
 		if errors.Is(err, util.ErrNotFound) {
 			return nil, fmt.Errorf("%w: source account %s not found", util.ErrBadRequest, req.SourceAccountID)
 		} else {
@@ -446,7 +443,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 		}
 	} else if req.TargetAccountID == "" {
 		return nil, fmt.Errorf("%w: target account is required", util.ErrBadRequest)
-	} else if _, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: req.TargetAccountID}); err != nil {
+	} else if _, err := h.Get(ctx, GetRequest{ID: req.TargetAccountID}); err != nil {
 		if errors.Is(err, util.ErrNotFound) {
 			return nil, fmt.Errorf("%w: target target %s not found", util.ErrBadRequest, req.TargetAccountID)
 		} else {
@@ -454,7 +451,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 		}
 	}
 
-	args := []any{req.Amount, req.Currency, req.Date, req.Description, req.ReferenceID, req.SourceAccountID, req.TargetAccountID, req.TenantID, req.ID}
+	args := []any{req.Amount, req.Currency, req.Date, req.Description, req.ReferenceID, req.SourceAccountID, req.TargetAccountID, middleware.GetTenantID(ctx), req.ID}
 	result, err := tx.Exec(ctx, updateSQL, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed updating row: %w", err)
@@ -464,7 +461,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 		return nil, fmt.Errorf("failed updating row: more than one row was affected (%d)", rowsAffected)
 	}
 
-	getResp, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: req.ID})
+	getResp, err := h.Get(ctx, GetRequest{ID: req.ID})
 	if err != nil {
 		return nil, fmt.Errorf("failed fetching updated row: %w", err)
 	}
@@ -475,7 +472,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 func (h *HandlerImpl) Delete(ctx context.Context, req DeleteRequest) error {
 	tx := db.TxFromContext(ctx)
 
-	result, err := tx.Exec(ctx, deleteSQL, req.TenantID, req.ID)
+	result, err := tx.Exec(ctx, deleteSQL, middleware.GetTenantID(ctx), req.ID)
 	if err != nil {
 		return fmt.Errorf("failed deleting row: %w", err)
 	} else if result.RowsAffected() == 0 {
@@ -487,10 +484,10 @@ func (h *HandlerImpl) Delete(ctx context.Context, req DeleteRequest) error {
 	return nil
 }
 
-func (h *HandlerImpl) DeleteAll(ctx context.Context, req DeleteAllRequest) error {
+func (h *HandlerImpl) DeleteAll(ctx context.Context, _ DeleteAllRequest) error {
 	tx := db.TxFromContext(ctx)
 
-	_, err := tx.Exec(ctx, deleteAllSQL, req.TenantID)
+	_, err := tx.Exec(ctx, deleteAllSQL, middleware.GetTenantID(ctx))
 	if err != nil {
 		return fmt.Errorf("failed deleting rows: %w\nSQL: %s", err, deleteAllSQL)
 	}

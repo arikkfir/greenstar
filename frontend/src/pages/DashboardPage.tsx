@@ -1,9 +1,5 @@
-import {Box} from "@mui/material";
+import { Box } from "@mui/material"
 
 export function DashboardPage() {
-    return (
-        <Box>
-            Dashboard
-        </Box>
-    )
+    return <Box>Dashboard</Box>
 }

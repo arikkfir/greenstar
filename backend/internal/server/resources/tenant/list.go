@@ -5,54 +5,58 @@ package tenant
 import (
 	"errors"
 	"fmt"
+	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
+	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"slices"
 	"strconv"
 	"strings"
-
-	"github.com/arikkfir/greenstar/backend/internal/server/util"
-	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"time"
 )
 
 var (
-	sortableColumns = []string{"id"}
+	_ = decimal.Decimal{}
+	_ = time.Time{}
 )
 
-func init() {
-	sortableColumns = append(sortableColumns, "displayName")
-}
+var (
+	sortableColumns = []string{"displayName"}
+)
 
 type ListRequest struct {
 	properties  []string
 	Offset      *uint    `url:"_offset,omitempty"`
 	Count       *uint    `url:"_count,omitempty"`
 	Sort        []string `url:"_sort,omitempty"`
-	ID          *string  `url:"id,omitempty"`
 	DisplayName *string  `url:"displayName,omitempty"`
+	ID          *string  `url:"id,omitempty"`
 }
 
-func (lr *ListRequest) HasID() bool          { return slices.Contains(lr.properties, "id") }
 func (lr *ListRequest) HasDisplayName() bool { return slices.Contains(lr.properties, "displayName") }
+func (lr *ListRequest) HasID() bool          { return slices.Contains(lr.properties, "id") }
 func (lr *ListRequest) UnmarshalFromRequest(r *http.Request) error {
 	lr.properties = nil
 
 	values := r.Form
-	if values.Has("id") {
-		lr.properties = append(lr.properties, "id")
-		if rawValue := values.Get("id"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "id")
-		} else {
-			sv := lang.PtrOf(rawValue)
-			lr.ID = sv
-		}
-	}
 	if values.Has("displayName") {
 		lr.properties = append(lr.properties, "displayName")
 		if rawValue := values.Get("displayName"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "displayName")
+			lr.DisplayName = nil
 		} else {
 			sv := lang.PtrOf(rawValue)
 			lr.DisplayName = sv
+		}
+	}
+	if values.Has("id") {
+		lr.properties = append(lr.properties, "id")
+		if rawValue := values.Get("id"); rawValue == util.QueryNilValue {
+			lr.ID = nil
+		} else {
+			sv := lang.PtrOf(rawValue)
+			lr.ID = sv
 		}
 	}
 
@@ -111,6 +115,25 @@ func (s *Server) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("tenants:list") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "tenants:list") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "tenants:list")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "tenants:list")
+			return
+		}
+	}
 
 	if err := r.ParseForm(); err != nil {
 		util.ServeError(w, r, errors.Join(util.ErrBadRequest, err))

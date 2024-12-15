@@ -30,7 +30,7 @@ import (
 type Action struct {
 	Descope                       auth.DescopeConfig
 	CurrencyAPIKey                string `required:"true" env:"CURRENCY_API_KEY"`
-	DisableSampleDataGeneration            bool   `flag:"true"`
+	DisableSampleDataGeneration   bool   `flag:"true"`
 	Namespace                     string `flag:"true" env:"POD_NAMESPACE"`
 	ExchangeRatesCronJobName      string `flag:"true" env:"EXCHANGE_RATES_CRONJOB_NAME"`
 	HistoricalExchangeRatesPeriod string `flag:"true"`

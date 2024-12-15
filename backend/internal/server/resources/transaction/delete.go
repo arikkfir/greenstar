@@ -3,22 +3,17 @@
 package transaction
 
 import (
-	"net/http"
-
 	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"net/http"
 )
 
 type DeleteRequest struct {
-	TenantID string `json:"-"`
-	ID       string `json:"id"`
+	ID string `json:"id"`
 }
 
 func (lr *DeleteRequest) UnmarshalFromRequest(r *http.Request) error {
-	lr.TenantID = r.PathValue("tenantID")
-	if lr.TenantID == "" {
-		return util.ErrBadRequest
-	}
 	lr.ID = r.PathValue("id")
 	if lr.ID == "" {
 		return util.ErrBadRequest
@@ -32,10 +27,24 @@ func (s *Server) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
-	if !auth.GetToken(ctx).IsPermittedForTenant(r.PathValue("tenantID"), "transactions:delete") {
-		util.ServeError(w, r, util.ErrForbidden)
-		l.With("tenantID", r.PathValue("TenantPathVariableName")).WarnContext(ctx, "Access denied", "permission", "transactions:delete")
-		return
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("transactions:update") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "transactions:update") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "transactions:update")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "transactions:update")
+			return
+		}
 	}
 
 	req := DeleteRequest{}

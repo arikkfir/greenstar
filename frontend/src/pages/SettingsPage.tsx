@@ -1,9 +1,5 @@
-import {Box} from "@mui/material";
+import { Box } from "@mui/material"
 
 export function SettingsPage() {
-    return (
-        <Box>
-            Settings
-        </Box>
-    )
+    return <Box>Settings</Box>
 }

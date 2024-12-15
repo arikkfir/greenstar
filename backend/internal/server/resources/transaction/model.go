@@ -3,21 +3,25 @@
 package transaction
 
 import (
-	"time"
-
 	"github.com/shopspring/decimal"
+	"time"
+)
+
+var (
+	_ = decimal.Decimal{}
+	_ = time.Time{}
 )
 
 type Transaction struct {
-	ID              string          `json:"id"`
-	CreatedAt       time.Time       `json:"createdAt"`
-	UpdatedAt       time.Time       `json:"updatedAt"`
-	Amount          decimal.Decimal `json:"amount"`
-	ConvertedAmount decimal.Decimal `json:"convertedAmount"`
-	Currency        string          `json:"currency"`
-	Date            time.Time       `json:"date"`
-	Description     *string         `json:"description"`
-	ReferenceID     string          `json:"referenceId"`
-	SourceAccountID string          `json:"sourceAccountId"`
-	TargetAccountID string          `json:"targetAccountId"`
+	ID              string           `json:"id"`
+	CreatedAt       time.Time        `json:"createdAt"`
+	UpdatedAt       time.Time        `json:"updatedAt"`
+	Amount          decimal.Decimal  `json:"amount"`
+	ConvertedAmount *decimal.Decimal `json:"convertedAmount"`
+	Currency        string           `json:"currency"`
+	Date            time.Time        `json:"date"`
+	Description     *string          `json:"description"`
+	ReferenceID     string           `json:"referenceId"`
+	SourceAccountID string           `json:"sourceAccountId"`
+	TargetAccountID string           `json:"targetAccountId"`
 }

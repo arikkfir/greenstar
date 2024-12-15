@@ -38,8 +38,8 @@ jobs:
       - run: go test ./...
         working-directory: backend
 
-  verify-format-and-code-generation:
-    name: Backend Code Format
+  verify-code-format:
+    name: Verify code format
     runs-on: ubuntu-22.04
     steps:
 
@@ -58,13 +58,21 @@ jobs:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.x
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Generate
-        run: task generate-rest-clients generate-rest-server
+        run: task generate-rest
 
-      - run: go fmt ./...
-        working-directory: backend
+      - name: Format code
+        run: task format-code
 
-      - run: git status --porcelain
+      - name: Verify
+        run: git diff --compact-summary --exit-code
 
   docker:
     name: Build ${{ matrix.images.name }} image
@@ -89,9 +97,9 @@ jobs:
         with:
           export-env: true
         env:
-          APPLY_PATCHES_SH: op://Development/GreenSTAR/frontend/apply-patches.sh
-          DESCOPE_PROJECT_ID: op://Development/GreenSTAR/descope/project_id
-          LOCATION_IQ_ACCESS_TOKEN: op://Development/GreenSTAR/locationiq/accesstoken
+          APPLY_PATCHES_SH: "op://GreenSTAR/mtg3xwmgngg5jzt6oft53btkci/frontend/apply-patches.sh"
+          DESCOPE_PROJECT_ID: "op://GreenSTAR/Descope/project ID"
+          LOCATION_IQ_ACCESS_TOKEN: "op://GreenSTAR/Location IQ/credential"
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - if: matrix.images.name == 'frontend'
@@ -203,12 +211,12 @@ jobs:
         with:
           export-env: true
         env:
-          CURRENCY_API_KEY: op://Development/GreenSTAR/currencyapi/api key
-          DESCOPE_PROJECT_ID: op://Development/GreenSTAR/descope/project_id
-          DESCOPE_MANAGEMENT_KEY_ID: op://Development/GreenSTAR/descope/management key id
-          DESCOPE_MANAGEMENT_KEY_TOKEN: op://Development/GreenSTAR/descope/management key token
-          DESCOPE_BACKEND_ACCESS_KEY_ID: op://Development/GreenSTAR/descope/backend access key id
-          DESCOPE_BACKEND_ACCESS_KEY_TOKEN: op://Development/GreenSTAR/descope/backend access key token
+          CURRENCY_API_KEY: "op://GreenSTAR/Currency API/credential"
+          DESCOPE_PROJECT_ID: "op://GreenSTAR/Descope/project ID"
+          DESCOPE_MANAGEMENT_KEY_ID: "op://GreenSTAR/Descope/management key ID"
+          DESCOPE_MANAGEMENT_KEY_TOKEN: "op://GreenSTAR/Descope/management key token"
+          DESCOPE_BACKEND_ACCESS_KEY_ID: "op://GreenSTAR/Descope/access key ID"
+          DESCOPE_BACKEND_ACCESS_KEY_TOKEN: "op://GreenSTAR/Descope/access key token"
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Setup Environment

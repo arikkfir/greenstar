@@ -3,11 +3,10 @@
 package tenant
 
 import (
-	"net/http"
-
 	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"net/http"
 )
 
 type Server struct {
@@ -15,24 +14,17 @@ type Server struct {
 	pool *pgxpool.Pool
 }
 
-func (s *Server) makeTransactionalIfNecessary(transactional bool, mode pgx.TxAccessMode, next http.Handler) http.Handler {
-	if transactional {
-		return middleware.PostgresMiddleware(s.pool, mode, next)
-	} else {
-		return next
-	}
-}
-
 func (s *Server) Register(mux *http.ServeMux) {
 	mux.Handle("/tenants", &middleware.Handlers{
-		GET:  s.makeTransactionalIfNecessary(true, pgx.ReadOnly, http.HandlerFunc(s.List)),
-		POST: s.makeTransactionalIfNecessary(true, pgx.ReadWrite, http.HandlerFunc(s.Create)),
+		GET:    middleware.PostgresMiddleware(s.pool, pgx.ReadOnly, http.HandlerFunc(s.List)),
+		POST:   middleware.PostgresMiddleware(s.pool, pgx.ReadWrite, http.HandlerFunc(s.Create)),
+		DELETE: middleware.PostgresMiddleware(s.pool, pgx.ReadWrite, http.HandlerFunc(s.DeleteAll)),
 	})
 	mux.Handle("/tenants/{id}", &middleware.Handlers{
-		GET:    s.makeTransactionalIfNecessary(true, pgx.ReadOnly, http.HandlerFunc(s.Get)),
-		PATCH:  s.makeTransactionalIfNecessary(true, pgx.ReadWrite, http.HandlerFunc(s.Patch)),
-		PUT:    s.makeTransactionalIfNecessary(true, pgx.ReadWrite, http.HandlerFunc(s.Update)),
-		DELETE: s.makeTransactionalIfNecessary(true, pgx.ReadWrite, http.HandlerFunc(s.Delete)),
+		GET:    middleware.PostgresMiddleware(s.pool, pgx.ReadOnly, http.HandlerFunc(s.Get)),
+		PATCH:  middleware.PostgresMiddleware(s.pool, pgx.ReadWrite, http.HandlerFunc(s.Patch)),
+		PUT:    middleware.PostgresMiddleware(s.pool, pgx.ReadWrite, http.HandlerFunc(s.Update)),
+		DELETE: middleware.PostgresMiddleware(s.pool, pgx.ReadWrite, http.HandlerFunc(s.Delete)),
 	})
 }
 

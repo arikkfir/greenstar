@@ -5,61 +5,60 @@ package account
 import (
 	"errors"
 	"fmt"
+	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
+	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"slices"
 	"strconv"
 	"strings"
-
-	"github.com/arikkfir/greenstar/backend/internal/auth"
-	"github.com/arikkfir/greenstar/backend/internal/server/util"
-	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"time"
 )
 
 var (
-	sortableColumns = []string{"id"}
+	_ = decimal.Decimal{}
+	_ = time.Time{}
 )
 
-func init() {
-	sortableColumns = append(sortableColumns, "displayName")
-}
+var (
+	sortableColumns = []string{"displayName"}
+)
 
 type ListRequest struct {
 	properties  []string
-	TenantID    string
 	Offset      *uint    `url:"_offset,omitempty"`
 	Count       *uint    `url:"_count,omitempty"`
 	Sort        []string `url:"_sort,omitempty"`
-	Currency    *string  `url:"currency,omitempty"`
 	DisplayName *string  `url:"displayName,omitempty"`
+	Currency    string   `url:"currency,omitempty"`
 }
 
-func (lr *ListRequest) HasCurrency() bool    { return slices.Contains(lr.properties, "currency") }
 func (lr *ListRequest) HasDisplayName() bool { return slices.Contains(lr.properties, "displayName") }
 func (lr *ListRequest) UnmarshalFromRequest(r *http.Request) error {
 	lr.properties = nil
 
 	values := r.Form
-	lr.TenantID = r.PathValue("tenantID")
-	if lr.TenantID == "" {
-		return fmt.Errorf("%w: tenant ID is required", util.ErrBadRequest)
+	if values.Has("displayName") {
+		lr.properties = append(lr.properties, "displayName")
+		if rawValue := values.Get("displayName"); rawValue == util.QueryNilValue {
+			lr.DisplayName = nil
+		} else {
+			sv := lang.PtrOf(rawValue)
+			lr.DisplayName = sv
+		}
 	}
 	if values.Has("currency") {
 		lr.properties = append(lr.properties, "currency")
 		if rawValue := values.Get("currency"); rawValue == util.QueryNilValue {
 			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "currency")
 		} else {
-			sv := lang.PtrOf(rawValue)
+			sv := rawValue
 			lr.Currency = sv
 		}
-	}
-	if values.Has("displayName") {
-		lr.properties = append(lr.properties, "displayName")
-		if rawValue := values.Get("displayName"); rawValue == util.QueryNilValue {
-			return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "displayName")
-		} else {
-			sv := lang.PtrOf(rawValue)
-			lr.DisplayName = sv
-		}
+	} else {
+		return fmt.Errorf("%w: '%s' is required", util.ErrBadRequest, "currency")
 	}
 
 	lr.Offset = nil
@@ -117,10 +116,24 @@ func (s *Server) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
-	if !auth.GetToken(ctx).IsPermittedForTenant(r.PathValue("tenantID"), "accounts:read") {
-		util.ServeError(w, r, util.ErrForbidden)
-		l.With("tenantID", r.PathValue("TenantPathVariableName")).WarnContext(ctx, "Access denied", "permission", "accounts:read")
-		return
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("accounts:read") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "accounts:read") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "accounts:read")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "accounts:read")
+			return
+		}
 	}
 
 	if err := r.ParseForm(); err != nil {
