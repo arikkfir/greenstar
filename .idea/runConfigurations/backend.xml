@@ -11,6 +11,7 @@
       <ENTRIES>
         <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
         <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH="backend/telepresence.env" />
+        <ENTRY IS_ENABLED="true" PARSER="env" IS_EXECUTABLE="false" PATH="hack/backend.local.env" />
       </ENTRIES>
     </EXTENSION>
     <kind value="FILE" />
