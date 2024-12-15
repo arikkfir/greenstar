@@ -8,14 +8,12 @@ import (
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/openapi"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/tenant"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/transaction"
-	"github.com/descope/go-sdk/descope/client"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"net/http"
 )
 
 type Server struct {
 	Pool                *pgxpool.Pool
-	Descope             *client.DescopeClient
 	AccountsHandler     account.Handler
 	TenantsHandler      tenant.Handler
 	TransactionsHandler transaction.Handler

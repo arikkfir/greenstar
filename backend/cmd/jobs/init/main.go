@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/arikkfir/command"
-	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/migration"
-	"github.com/arikkfir/greenstar/backend/internal/server"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/account"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/tenant"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/transaction"
@@ -28,12 +26,10 @@ import (
 )
 
 type Action struct {
-	Descope                       auth.DescopeConfig
-	CurrencyAPIKey                string `required:"true" env:"CURRENCY_API_KEY"`
-	DisableSampleDataGeneration   bool   `flag:"true"`
-	Namespace                     string `flag:"true" env:"POD_NAMESPACE"`
-	ExchangeRatesCronJobName      string `flag:"true" env:"EXCHANGE_RATES_CRONJOB_NAME"`
-	HistoricalExchangeRatesPeriod string `flag:"true"`
+	CurrencyAPIKey              string `required:"true" env:"CURRENCY_API_KEY"`
+	DisableSampleDataGeneration bool   `flag:"true"`
+	Namespace                   string `flag:"true" env:"POD_NAMESPACE"`
+	ExchangeRatesCronJobName    string `flag:"true" env:"EXCHANGE_RATES_CRONJOB_NAME"`
 }
 
 func (e *Action) Run(ctx context.Context) error {
@@ -44,12 +40,6 @@ func (e *Action) Run(ctx context.Context) error {
 
 	ctx = util.ContextWithLogger(ctx, slog.Default())
 
-	// Descope
-	descopeClient, err := e.Descope.NewSDK(ctx)
-	if err != nil {
-		return fmt.Errorf("failed creating Descope client: %w", err)
-	}
-
 	// PostgreSQL
 	pgPool, err := db.NewPostgreSQLPool(ctx)
 	if err != nil {
@@ -59,28 +49,9 @@ func (e *Action) Run(ctx context.Context) error {
 
 	// Wait for PostgreSQL to be ready
 	slog.InfoContext(ctx, "Waiting for Postgres connection pool to become available")
-	pgPingInterval := 3 * time.Second
-	timer := time.NewTimer(2 * time.Minute)
-	defer timer.Stop()
-	ticker := time.NewTicker(pgPingInterval)
-	defer ticker.Stop()
-	pgAvailable := false
-	for !pgAvailable {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-timer.C:
-			return fmt.Errorf("timed out waiting for Postgres connection pool to become available")
-		case <-ticker.C:
-			if err := pgPool.Ping(ctx); err != nil {
-				slog.InfoContext(ctx, "PostgreSQL not yet available", "err", err)
-			} else {
-				pgAvailable = true
-			}
-		}
+	if err := db.WaitFor(ctx, pgPool); err != nil {
+		return err
 	}
-	timer.Stop()
-	ticker.Stop()
 
 	// Migrate database schema & generate sample data
 	if err := migration.Migrate(ctx, pgPool); err != nil {
@@ -95,30 +66,16 @@ func (e *Action) Run(ctx context.Context) error {
 	}
 
 	// Ensure currencies are populated
-	historicalExchangeRatesPeriod := migration.HistoricalExchangeRatesPeriod(e.HistoricalExchangeRatesPeriod)
-	if err := exchangeRatesManager.PopulateHistoricalRates(ctx, historicalExchangeRatesPeriod); err != nil {
+	if err := exchangeRatesManager.PopulateHistoricalRates(ctx); err != nil {
 		return fmt.Errorf("failed populating historical exchange rates: %w", err)
-	}
-
-	// Create REST server
-	accountsHandler := &account.HandlerImpl{}
-	appServer := server.Server{
-		Pool:                pgPool,
-		Descope:             descopeClient,
-		AccountsHandler:     accountsHandler,
-		TenantsHandler:      &tenant.HandlerImpl{Descope: descopeClient},
-		TransactionsHandler: &transaction.HandlerImpl{AccountsHandler: accountsHandler},
 	}
 
 	// Generate sample data
 	if !e.DisableSampleDataGeneration {
-		th := appServer.TenantsHandler
-		txh := appServer.TransactionsHandler
-		ah := accountsHandler
-		accessKey := e.Descope.DescopeBackendAccessKeyToken
-		tenantID := "acme"
-		tenantDisplayName := "A.C.M.E"
-		if err := sample.Generate(ctx, appServer.Descope, accessKey, pgPool, th, tenantID, tenantDisplayName, txh, ah); err != nil {
+		ah := &account.HandlerImpl{}
+		th := &tenant.HandlerImpl{}
+		txh := &transaction.HandlerImpl{AccountsHandler: ah}
+		if err := sample.Generate(ctx, pgPool, th, "acme", "A.C.M.E", txh, ah); err != nil {
 			return err
 		}
 	} else {
@@ -176,12 +133,7 @@ func main() {
 personal expenses, income and how to balance them.
 
 This is the backend server for the GreenSTAR application.`,
-		&Action{
-			Descope: auth.DescopeConfig{
-				DescopeLogLevel: "none",
-			},
-			HistoricalExchangeRatesPeriod: string(migration.Latest),
-		},
+		&Action{},
 		[]any{
 			&observability.LoggingHook{LogLevel: "info"},
 			&observability.OTelHook{ServiceName: "greenstar-init-job"},

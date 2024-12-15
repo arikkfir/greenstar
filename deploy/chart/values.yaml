@@ -3,16 +3,6 @@ commitSHA: "unknown"
 currencyAPI:
   key: ""
 
-descope:
-  project:
-    id: ""
-  managementKey:
-    id: ""
-    key: ""
-  accessKey:
-    id: ""
-    key: ""
-
 ingress:
   domain: ""
 

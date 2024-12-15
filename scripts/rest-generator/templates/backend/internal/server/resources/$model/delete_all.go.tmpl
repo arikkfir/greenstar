@@ -5,7 +5,6 @@ package {{ .model.Name | toSnake }}
 {{- if .model.Delete }}
 
 import (
-	"github.com/arikkfir/greenstar/backend/internal/auth"
 	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"net/http"
@@ -26,7 +25,7 @@ func (s *Server) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	{{- if gt (len .model.Delete.Permissions) 0 }}
-	authToken := auth.GetToken(ctx)
+	authToken := middleware.GetToken(ctx)
 
 	{{- range .model.Delete.Permissions }}
 	if !authToken.IsPermittedGlobally("{{ . }}") {

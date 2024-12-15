@@ -2,10 +2,10 @@ package migration
 
 import (
 	"archive/tar"
-	"cloud.google.com/go/storage"
 	"compress/bzip2"
 	"context"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/jackc/pgx/v5"
@@ -13,7 +13,14 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"io"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"time"
+)
+
+const (
+	RatesPath                            = "/var/greenstar/rates"
+	historicalExchangeRatesTarObjectName = "rates.csv"
 )
 
 type rateRecord struct {
@@ -24,61 +31,63 @@ type rateRecord struct {
 	Rate               decimal.Decimal
 }
 
-func newRateRecord(lineNumber int, rec []string) (r rateRecord, err error) {
-	r.LineNumber = lineNumber
-	r.Date, err = time.Parse("2006-01-02", rec[0])
-	if err != nil {
-		err = fmt.Errorf("failed to parse date from record %d: %w", lineNumber, err)
-		return
-	}
-
-	r.SourceCurrencyCode = rec[1]
-	r.TargetCurrencyCode = rec[2]
-
-	r.Rate, err = decimal.NewFromString(rec[5])
-	if err != nil {
-		err = fmt.Errorf("failed to parse rate from record %d: %w", lineNumber, err)
-		return
-	}
-
-	return
-}
-
-// PopulateHistoricalRates retrieves and populates historical exchange rates into the database for a given period.
-// It extracts rates data from a compressed file stored in Google Cloud Storage and updates the database records.
-// Parameters:
-//   - ctx: the context to control cancellation and other context-specific options.
-//   - period: the specific period for which historical rates are to be populated.
-//
-// Returns an error if there is an issue with retrieving or populating the rates.
-func (m *exchangeRatesManagerImpl) PopulateHistoricalRates(ctx context.Context, period HistoricalExchangeRatesPeriod) error {
+// PopulateHistoricalRates processes historical exchange rate files located in a predefined directory and updates the database.
+// It verifies the existence of the directory, iterates through the files, and processes each file's data.
+// Returns an error if the directory is inaccessible or a file processing operation fails.
+func (m *exchangeRatesManagerImpl) PopulateHistoricalRates(ctx context.Context) error {
 	ctx, span := observability.Trace(ctx, trace.SpanKindServer)
 	defer span.End()
 
-	slog.InfoContext(ctx, "Populating historical exchange rates", "period", string(period))
-
-	client, err := storage.NewClient(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to create Google Cloud storage client: %w", err)
+	// Verify rates directory exists
+	if info, err := os.Stat(RatesPath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		} else {
+			return fmt.Errorf("failed inspecting rates directory '%s': %w", RatesPath, err)
+		}
+	} else if !info.IsDir() {
+		return fmt.Errorf("expected '%s' to be a directory, but it is not", RatesPath)
 	}
-	defer client.Close()
 
-	// Open the file from the Google Cloud Storage bucket
-	fileReader, err := client.Bucket(historicalExchangeRatesBucketName).Object(fmt.Sprintf("rates-%s.csv.tar.bz2", period)).NewReader(ctx)
+	// List the files in the rates path
+	ratesEntries, err := os.ReadDir(RatesPath)
 	if err != nil {
-		return fmt.Errorf("failed to open bucket file: %w", err)
+		return fmt.Errorf("failed reading rates directory '%s': %w", RatesPath, err)
 	}
-	defer fileReader.Close()
 
-	bz2Reader := bzip2.NewReader(fileReader)
+	// Iterate over the directory entries
+	for _, entry := range ratesEntries {
+		fileName := filepath.Join(RatesPath, entry.Name())
+		if err := m.readHistoricalRatesFromFile(ctx, fileName); err != nil {
+			return fmt.Errorf("failed reading rates file '%s': %w", fileName, err)
+		}
+	}
+
+	return nil
+}
+
+// readHistoricalRatesFromFile reads and processes historical exchange rates from a compressed tar file into the database.
+// It takes a context and file name as input, handles extraction, parsing, and populates the rates table in a transaction.
+// Returns an error if file reading, processing, or database operations fail.
+func (m *exchangeRatesManagerImpl) readHistoricalRatesFromFile(ctx context.Context, fileName string) error {
+	slog.InfoContext(ctx, "Populating historical exchange rates", "file", fileName)
+
+	f, err := os.Open(fileName)
+	if err != nil {
+		return fmt.Errorf("failed opening file '%s': %w", fileName, err)
+	}
+	defer f.Close()
+
+	bz2Reader := bzip2.NewReader(f)
 	tarReader := tar.NewReader(bz2Reader)
+
 	header, err := tarReader.Next()
 	if err == io.EOF {
-		return fmt.Errorf("no tar file entries found")
+		return fmt.Errorf("no tar file entries found in '%s'", fileName)
 	} else if err != nil {
-		return fmt.Errorf("failed to read next tar file entry: %w", err)
+		return fmt.Errorf("failed to read next tar file entry in '%s': %w", fileName, err)
 	} else if header.Typeflag != tar.TypeReg {
-		return fmt.Errorf("unexpected type flag: %v", header.Typeflag)
+		return fmt.Errorf("unexpected type flag encountered in '%s': %v", fileName, header.Typeflag)
 	} else if header.Name != historicalExchangeRatesTarObjectName {
 		return fmt.Errorf("unexpected object name: %s", header.Name)
 	}
@@ -163,9 +172,30 @@ func (m *exchangeRatesManagerImpl) PopulateHistoricalRates(ctx context.Context, 
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	slog.DebugContext(ctx, "Populated historical exchange rates", "records", copiedRowsCount)
-
+	slog.InfoContext(ctx, "Populated historical exchange rates", "file", fileName, "count", copiedRowsCount)
 	return nil
+}
+
+// newRateRecord parses a slice of strings into a rateRecord struct, validating and converting fields.
+// Returns an error on failures.
+func newRateRecord(lineNumber int, rec []string) (r rateRecord, err error) {
+	r.LineNumber = lineNumber
+	r.Date, err = time.Parse("2006-01-02", rec[0])
+	if err != nil {
+		err = fmt.Errorf("failed to parse date from record %d: %w", lineNumber, err)
+		return
+	}
+
+	r.SourceCurrencyCode = rec[1]
+	r.TargetCurrencyCode = rec[2]
+
+	r.Rate, err = decimal.NewFromString(rec[5])
+	if err != nil {
+		err = fmt.Errorf("failed to parse rate from record %d: %w", lineNumber, err)
+		return
+	}
+
+	return
 }
 
 /*

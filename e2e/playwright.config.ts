@@ -2,7 +2,6 @@ import {defineConfig, devices} from '@playwright/test';
 
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import {authFile} from "./util/globals";
 
 dotenv.config({path: path.resolve("../.env")});
 
@@ -41,22 +40,11 @@ export default defineConfig({
     timeout: 1000 * 60 * 5,
     projects: [
         {
-            name: 'Setup',
-            testMatch: /global\.setup\.ts/,
-            teardown: 'Teardown'
-        },
-        {
-            name: 'Teardown',
-            testMatch: /global\.teardown\.ts/,
-        },
-        {
             name: 'Google Chrome',
             use: {
                 ...devices['Desktop Chrome'],
                 channel: 'chrome',
-                storageState: authFile,
             },
-            dependencies: ['Setup']
         },
     ],
 });

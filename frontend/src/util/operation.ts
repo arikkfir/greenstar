@@ -1,4 +1,3 @@
-import { useDescope, useSession } from "@descope/react-sdk"
 import { useTenantID } from "../hooks/tenant.ts"
 import { useCallback, useMemo, useState } from "react"
 import { BadRequestError, InternalError, NotAuthenticatedError } from "./errors.ts"
@@ -29,8 +28,6 @@ export function useOperation<Request, Response>({
     url,
     dateProperties: dateProps = [],
 }: OperationProps<Request, Response>): Hook<Request, Response> {
-    const sdk = useDescope()
-    const { sessionToken } = useSession()
     const tenantID = useTenantID()
     const jsonReviver = useCallback(
         (key: string, value: any) => (dateProps.includes(key) ? new Date(value) : value),
@@ -49,7 +46,6 @@ export function useOperation<Request, Response>({
 
         const headers = {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionToken}`,
             "X-GreenSTAR-Tenant-ID": tenantID,
             "X-Request-ID": crypto.randomUUID(),
         }
@@ -105,7 +101,6 @@ export function useOperation<Request, Response>({
                     setInflight(false)
                     setResponse(initial)
                     setError(e)
-                    return sdk.logout()
                 } else {
                     console.error(`Failed sending request to '${resolvedURL}`, e)
                     setInflight(false)

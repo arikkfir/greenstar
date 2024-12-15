@@ -16,3 +16,6 @@ nodes:
       - containerPort: 30379
         hostPort: 6379
         protocol: TCP
+    extraMounts:
+      - hostPath: ./deploy/rates
+        containerPath: /var/greenstar/rates

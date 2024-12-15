@@ -3,7 +3,6 @@ import { SxProps } from "@mui/system/styleFunctionSx"
 import { Theme as SystemTheme } from "@mui/system/createTheme/createTheme"
 import { ThemeButton } from "./ThemeButton.tsx"
 import { LinkButton } from "../../LinkButton.tsx"
-import { UserButton } from "./UserButton.tsx"
 
 export interface TopBarProperties<Theme extends object = SystemTheme> {
     sx: SxProps<Theme>
@@ -22,7 +21,6 @@ export function TopBar({ sx }: TopBarProperties) {
                     <LinkButton to="/api">API</LinkButton>
                 </Box>
                 <ThemeButton />
-                <UserButton />
             </Toolbar>
         </AppBar>
     )
