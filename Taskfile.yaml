@@ -180,6 +180,148 @@ tasks:
       - kubectl diff --namespace=observability -f deploy/local/kube-prometheus-stack-routes.yaml
       - kubectl diff --namespace=observability -f deploy/local/jaeger-all-in-one.yaml
 
+  setup-cluster:
+    cmds:
+      - task: setup-gcp-workload-identity-pool-provider
+      - task: setup-gateway
+
+  download-backend-dependencies:
+    deps: [ toolchain:go ]
+    dir: backend
+    cmds:
+      - go mod tidy
+    status:
+      - go mod tidy -diff
+
+  download-frontend-dependencies:
+    deps: [ toolchain:node ]
+    dir: frontend
+    cmds:
+      - npm install --no-fund
+
+  download-dependencies:
+    deps: [ download-backend-dependencies, download-frontend-dependencies ]
+
+  format-backend-code:
+    deps: [ download-backend-dependencies ]
+    dir: backend
+    cmds:
+      - go fmt ./...
+    status:
+      - ./node_modules/.bin/prettier --check .
+
+  format-frontend-code:
+    deps: [ download-frontend-dependencies ]
+    dir: frontend
+    cmds:
+      - ./node_modules/.bin/prettier --write . | grep -v unchanged
+    status:
+      - ./node_modules/.bin/prettier --list-different .
+
+  format-code:
+    deps: [ format-backend-code, format-frontend-code ]
+
+  build-rest-generator:
+    dir: scripts/rest-generator
+    cmds:
+      - go mod tidy
+      - go build -o ../../bin/rest-generator *.go
+    sources:
+      - 'go.*'
+      - '*.go'
+      - '*.yaml'
+      - templates/**/*
+    generates:
+      - ../../bin/rest-generator
+
+  generate-rest:
+    deps: [ build-rest-generator ]
+    cmds:
+      - ./bin/rest-generator -api-file=api.yaml
+      - task: format-code
+    sources:
+      - ./api.yaml
+      - ./bin/rest-generator
+    generates:
+      - backend/internal/server/server.go
+      - backend/internal/server/resources/*/*.yaml
+      - exclude: backend/internal/server/resources/*/*_impl.go
+      - frontend/src/hooks/create.*.ts
+      - frontend/src/hooks/delete.*.ts
+      - frontend/src/hooks/deleteAll.*.ts
+      - frontend/src/hooks/get.*.ts
+      - frontend/src/hooks/list.*.ts
+      - frontend/src/hooks/patch.*.ts
+      - frontend/src/hooks/update.*.ts
+      - frontend/src/models/*.ts
+
+  generate-helm-values:
+    deps: [ setup-gcp-workload-identity-pool-provider ]
+    cmds:
+      - touch ./hack/greenstar-values.yaml
+      - yq -i ".currencyAPI.key = \"${CURRENCY_API_KEY}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.project.id = \"${DESCOPE_PROJECT_ID}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.managementKey.id = \"${DESCOPE_MANAGEMENT_KEY_ID}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.managementKey.key = \"${DESCOPE_MANAGEMENT_KEY_TOKEN}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.accessKey.id = \"${DESCOPE_BACKEND_ACCESS_KEY_ID}\"" ./hack/greenstar-values.yaml
+      - yq -i ".descope.accessKey.key = \"${DESCOPE_BACKEND_ACCESS_KEY_TOKEN}\"" ./hack/greenstar-values.yaml
+      - yq -i ".oidc.gcp.audience = \"${GCP_OIDC_AUDIENCE}\"" ./hack/greenstar-values.yaml
+      - yq -i '.oidc.gcp.config = load_str("./hack/gcp-credential-configuration.json")' ./hack/greenstar-values.yaml
+    status:
+      - test -f "./hack/gcp-credential-configuration.json"
+      - test "$(yq ".currencyAPI.key" < ./hack/greenstar-values.yaml)" = "${CURRENCY_API_KEY}"
+      - test "$(yq ".descope.project.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_PROJECT_ID}"
+      - test "$(yq ".descope.managementKey.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_MANAGEMENT_KEY_ID}"
+      - test "$(yq ".descope.managementKey.key" < ./hack/greenstar-values.yaml)" = "${DESCOPE_MANAGEMENT_KEY_TOKEN}"
+      - test "$(yq ".descope.accessKey.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_BACKEND_ACCESS_KEY_ID}"
+      - test "$(yq ".descope.accessKey.key" < ./hack/greenstar-values.yaml)" = "${DESCOPE_BACKEND_ACCESS_KEY_TOKEN}"
+      - test "$(yq ".oidc.gcp.audience" < ./hack/greenstar-values.yaml)" = "${GCP_OIDC_AUDIENCE}"
+      - test "$(yq ".oidc.gcp.config" < ./hack/greenstar-values.yaml)" = "$(cat "./hack/gcp-credential-configuration.json")"
+
+  deploy:
+    deps: [ generate-rest, setup-cluster ]
+    cmds:
+      - task: generate-helm-values
+      - skaffold build -q > hack/skaffold-build.json
+      - skaffold deploy --load-images --build-artifacts hack/skaffold-build.json
+
+  undeploy:
+    cmds:
+      - skaffold delete
+
+  dev:
+    deps: [ generate-rest, setup-cluster ]
+    cmds:
+      - task: generate-helm-values
+      - skaffold dev --tail=false --toot=true
+
+  teardown:
+    deps: [ teardown-cluster, teardown-gcp-workload-identity-pool-provider, teardown-gcp-static-bucket-iam ]
+
+  package-helm-chart:
+    deps: [ toolchain:helm ]
+    cmds:
+      - yq -i ".initJob.image.tag = \"${IMAGES_TAG}\"" deploy/chart/values.yaml
+      - yq -i ".exchangeRatesCronJob.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
+      - yq -i ".backend.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
+      - yq -i ".frontend.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
+      - helm package ./deploy/chart --app-version "${VERSION}" --version "${VERSION}"
+    preconditions:
+      - test -n "${IMAGES_TAG}"
+      - test -n "${VERSION}"
+
+  test:
+    deps: [ toolchain:node ]
+    dir: e2e
+    cmds:
+      - npx playwright test {{.CLI_ARGS}}
+
+  test-report:
+    deps: [ toolchain:node ]
+    dir: e2e
+    cmds:
+      - npx playwright show-report
+
   install-telepresence:
     deps: [ create-cluster ]
     cmds:
@@ -229,145 +371,3 @@ tasks:
       - telepresence leave "${HELM_RELEASE_NAME}-frontend"
     status:
       - telepresence status --output=yaml | yq -e ".user_daemon.intercepts[] | select(.name == \"${HELM_RELEASE_NAME}-frontend\") | [.name] | length == 0"
-
-  setup-cluster:
-    cmds:
-      - task: setup-gcp-workload-identity-pool-provider
-      - task: setup-gateway
-
-  build-rest-generator:
-    dir: scripts/rest-generator
-    cmds:
-      - go mod tidy
-      - go build -o ../../bin/rest-generator *.go
-    sources:
-      - 'go.*'
-      - '*.go'
-      - '*.yaml'
-      - templates/**/*
-    generates:
-      - ../../bin/rest-generator
-
-  generate-rest:
-    deps: [ build-rest-generator ]
-    cmds:
-      - ./bin/rest-generator -api-file=api.yaml
-    sources:
-      - ./api.yaml
-      - ./bin/rest-generator
-    generates:
-      - backend/internal/server/server.go
-      - backend/internal/server/resources/*/*.yaml
-      - exclude: backend/internal/server/resources/*/*_impl.go
-      - frontend/src/hooks/create.*.ts
-      - frontend/src/hooks/delete.*.ts
-      - frontend/src/hooks/deleteAll.*.ts
-      - frontend/src/hooks/get.*.ts
-      - frontend/src/hooks/list.*.ts
-      - frontend/src/hooks/patch.*.ts
-      - frontend/src/hooks/update.*.ts
-      - frontend/src/models/*.ts
-
-  generate-helm-values:
-    deps: [ setup-gcp-workload-identity-pool-provider ]
-    cmds:
-      - touch ./hack/greenstar-values.yaml
-      - yq -i ".currencyAPI.key = \"${CURRENCY_API_KEY}\"" ./hack/greenstar-values.yaml
-      - yq -i ".descope.project.id = \"${DESCOPE_PROJECT_ID}\"" ./hack/greenstar-values.yaml
-      - yq -i ".descope.managementKey.id = \"${DESCOPE_MANAGEMENT_KEY_ID}\"" ./hack/greenstar-values.yaml
-      - yq -i ".descope.managementKey.key = \"${DESCOPE_MANAGEMENT_KEY_TOKEN}\"" ./hack/greenstar-values.yaml
-      - yq -i ".descope.accessKey.id = \"${DESCOPE_BACKEND_ACCESS_KEY_ID}\"" ./hack/greenstar-values.yaml
-      - yq -i ".descope.accessKey.key = \"${DESCOPE_BACKEND_ACCESS_KEY_TOKEN}\"" ./hack/greenstar-values.yaml
-      - yq -i ".oidc.gcp.audience = \"${GCP_OIDC_AUDIENCE}\"" ./hack/greenstar-values.yaml
-      - yq -i '.oidc.gcp.config = load_str("./hack/gcp-credential-configuration.json")' ./hack/greenstar-values.yaml
-    status:
-      - test -f "./hack/gcp-credential-configuration.json"
-      - test "$(yq ".currencyAPI.key" < ./hack/greenstar-values.yaml)" = "${CURRENCY_API_KEY}"
-      - test "$(yq ".descope.project.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_PROJECT_ID}"
-      - test "$(yq ".descope.managementKey.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_MANAGEMENT_KEY_ID}"
-      - test "$(yq ".descope.managementKey.key" < ./hack/greenstar-values.yaml)" = "${DESCOPE_MANAGEMENT_KEY_TOKEN}"
-      - test "$(yq ".descope.accessKey.id" < ./hack/greenstar-values.yaml)" = "${DESCOPE_BACKEND_ACCESS_KEY_ID}"
-      - test "$(yq ".descope.accessKey.key" < ./hack/greenstar-values.yaml)" = "${DESCOPE_BACKEND_ACCESS_KEY_TOKEN}"
-      - test "$(yq ".oidc.gcp.audience" < ./hack/greenstar-values.yaml)" = "${GCP_OIDC_AUDIENCE}"
-      - test "$(yq ".oidc.gcp.config" < ./hack/greenstar-values.yaml)" = "$(cat "./hack/gcp-credential-configuration.json")"
-
-  deploy:
-    deps: [ generate-rest, setup-cluster ]
-    cmds:
-      - task: setup-observability
-      - task: generate-helm-values
-      - skaffold build -q > hack/skaffold-build.json
-      - skaffold deploy --load-images --build-artifacts hack/skaffold-build.json
-
-  undeploy:
-    cmds:
-      - skaffold delete
-
-  dev:
-    deps: [ generate-rest, setup-cluster ]
-    cmds:
-      - task: generate-helm-values
-      - skaffold dev --tail=false --toot=true
-
-  teardown:
-    deps: [ teardown-cluster, teardown-gcp-workload-identity-pool-provider, teardown-gcp-static-bucket-iam ]
-
-  package-helm-chart:
-    deps: [ toolchain:helm ]
-    cmds:
-      - yq -i ".initJob.image.tag = \"${IMAGES_TAG}\"" deploy/chart/values.yaml
-      - yq -i ".exchangeRatesCronJob.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - yq -i ".backend.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - yq -i ".frontend.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - helm package ./deploy/chart --app-version "${VERSION}" --version "${VERSION}"
-    preconditions:
-      - test -n "${IMAGES_TAG}"
-      - test -n "${VERSION}"
-
-  test:
-    deps: [ toolchain:node ]
-    dir: e2e
-    cmds:
-      - npx playwright test {{.CLI_ARGS}}
-
-  test-report:
-    deps: [ toolchain:node ]
-    dir: e2e
-    cmds:
-      - npx playwright show-report
-
-  download-backend-dependencies:
-    deps: [ toolchain:go ]
-    dir: backend
-    cmds:
-      - go mod tidy
-    status:
-      - go mod tidy -diff
-
-  download-frontend-dependencies:
-    deps: [ toolchain:node ]
-    dir: frontend
-    cmds:
-      - npm install --no-fund
-
-  download-dependencies:
-    deps: [ download-backend-dependencies, download-frontend-dependencies ]
-
-  format-backend-code:
-    deps: [ download-backend-dependencies ]
-    dir: backend
-    cmds:
-      - go fmt ./...
-    status:
-      - ./node_modules/.bin/prettier --check .
-
-  format-frontend-code:
-    deps: [ download-frontend-dependencies ]
-    dir: frontend
-    cmds:
-      - ./node_modules/.bin/prettier --write . | grep -v unchanged
-    status:
-      - ./node_modules/.bin/prettier --list-different .
-
-  format-code:
-    deps: [ format-backend-code, format-frontend-code ]
