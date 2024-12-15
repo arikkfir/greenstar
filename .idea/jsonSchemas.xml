@@ -60,6 +60,22 @@
             </SchemaInfo>
           </value>
         </entry>
+        <entry key="api.schema">
+          <value>
+            <SchemaInfo>
+              <option name="generatedName" value="New Schema" />
+              <option name="name" value="api.schema" />
+              <option name="relativePathToSchema" value="scripts/rest-generator/api.schema.yaml" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="api.yaml" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
       </map>
     </state>
   </component>

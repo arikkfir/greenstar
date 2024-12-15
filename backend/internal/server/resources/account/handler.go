@@ -13,7 +13,3 @@ type Handler interface {
 	Delete(context.Context, DeleteRequest) error
 	DeleteAll(context.Context, DeleteAllRequest) error
 }
-
-func NewHandler() Handler {
-	return &HandlerImpl{}
-}

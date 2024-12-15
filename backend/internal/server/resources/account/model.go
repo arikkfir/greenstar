@@ -3,9 +3,13 @@
 package account
 
 import (
-	"time"
-
 	"github.com/shopspring/decimal"
+	"time"
+)
+
+var (
+	_ = decimal.Decimal{}
+	_ = time.Time{}
 )
 
 type Account struct {

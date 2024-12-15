@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/account"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/tenant"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/transaction"
@@ -39,6 +40,7 @@ type generator struct {
 
 func Generate(ctx context.Context, descopeClient *client.DescopeClient, accessKey string, pool *pgxpool.Pool, th tenant.Handler, tenantID, tenantDisplayName string, txh transaction.Handler, ah account.Handler) error {
 	slog.InfoContext(ctx, "Generating sample data")
+	ctx = middleware.WithTenantID(ctx, tenantID)
 
 	// Exchange an access key for a token and expose it in a context, simulating the way it's done in real HTTP requests
 	_, token, err := descopeClient.Auth.ExchangeAccessKey(ctx, accessKey, nil)
@@ -92,9 +94,9 @@ func generateTenant(ctx context.Context, th tenant.Handler, tenantID, tenantDisp
 		} else {
 			return fmt.Errorf("failed looking up tenant '%s': %w", tenantID, err)
 		}
-	} else if err := txh.DeleteAll(ctx, transaction.DeleteAllRequest{TenantID: tenantID}); err != nil {
+	} else if err := txh.DeleteAll(ctx, transaction.DeleteAllRequest{}); err != nil {
 		return fmt.Errorf("failed deleting transactions for tenant '%s': %w", tenantID, err)
-	} else if err := ah.DeleteAll(ctx, account.DeleteAllRequest{TenantID: tenantID}); err != nil {
+	} else if err := ah.DeleteAll(ctx, account.DeleteAllRequest{}); err != nil {
 		return fmt.Errorf("failed deleting accounts for tenant '%s': %w", tenantID, err)
 	}
 

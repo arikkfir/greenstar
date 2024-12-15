@@ -4,14 +4,13 @@ package transaction
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/arikkfir/greenstar/backend/internal/auth"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
+	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"slices"
 	"time"
-
-	"github.com/arikkfir/greenstar/backend/internal/auth"
-	"github.com/arikkfir/greenstar/backend/internal/server/util"
-	"github.com/shopspring/decimal"
 )
 
 var (
@@ -20,7 +19,6 @@ var (
 )
 
 type CreateRequest struct {
-	TenantID        string          `json:"-"`
 	Amount          decimal.Decimal `json:"amount,omitempty"`
 	Currency        string          `json:"currency,omitempty"`
 	Date            time.Time       `json:"date,omitempty"`
@@ -55,20 +53,29 @@ func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	l := util.Logger(ctx)
-	if !auth.GetToken(ctx).IsPermittedForTenant(r.PathValue("tenantID"), "transactions:create") {
-		util.ServeError(w, r, util.ErrForbidden)
-		l.With("tenantID", r.PathValue("TenantPathVariableName")).WarnContext(ctx, "Access denied", "permission", "transactions:create")
-		return
+
+	tenantID := middleware.GetTenantID(ctx)
+	if tenantID != "" {
+		l = l.With("tenantID", tenantID)
+	}
+	authToken := auth.GetToken(ctx)
+	if !authToken.IsPermittedGlobally("transactions:create") {
+		if tenantID != "" {
+			if !authToken.IsPermittedForTenant(tenantID, "transactions:create") {
+				util.ServeError(w, r, util.ErrForbidden)
+				l.WarnContext(ctx, "Access denied", "permission", "transactions:create")
+				return
+			}
+		} else {
+			util.ServeError(w, r, util.ErrForbidden)
+			l.WarnContext(ctx, "Access denied", "permission", "transactions:create")
+			return
+		}
 	}
 
 	req := CreateRequest{}
 	if err := util.UnmarshalBody(r, &req); err != nil {
 		util.ServeError(w, r, err)
-		return
-	}
-	req.TenantID = r.PathValue("tenantID")
-	if req.TenantID == "" {
-		util.ServeError(w, r, fmt.Errorf("%w: invalid tenant ID", util.ErrBadRequest))
 		return
 	}
 

@@ -1,4 +1,4 @@
-let tenantID = "";
+let tenantID = ""
 
 export function useTenantID(): string {
     if (tenantID == "") {
@@ -9,5 +9,5 @@ export function useTenantID(): string {
             tenantID = match[1]
         }
     }
-    return tenantID;
+    return tenantID
 }

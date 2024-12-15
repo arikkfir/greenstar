@@ -13,14 +13,13 @@ tags:
   - name: "Tenant"
   - name: "Transaction"
 paths:
-  "/tenants/{tenantID}/accounts":
-    parameters:
-      - $ref: '#/components/parameters/TenantIDPathParameter'
+  "/accounts":
     get:
+      summary: Fetch list of accounts.
       tags:
         - "Account"
-      summary: Fetch list of accounts.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
         - name: _offset
           in: query
@@ -34,12 +33,12 @@ paths:
             type: integer
             nullable: false
             example: 10
-        - name: currency
+        - name: displayName
           in: query
           schema:
             type: string
             nullable: true
-        - name: displayName
+        - name: currency
           in: query
           schema:
             type: string
@@ -50,6 +49,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -72,10 +73,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     post:
+      summary: Create a new account.
       tags:
         - "Account"
-      summary: Create a new account.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       requestBody:
         required: true
@@ -89,6 +91,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -101,16 +105,15 @@ paths:
           $ref: '#/components/responses/403'
         '500':
           $ref: '#/components/responses/500'
-  "/tenants/{tenantID}/accounts/{id}":
-    parameters:
-      - $ref: '#/components/parameters/TenantIDPathParameter'
-      - $ref: '#/components/parameters/IDPathParameter'
+  "/accounts/{id}":
     get:
+      summary: Fetch account.
       tags:
         - "Account"
-      summary: Fetch account.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
+        - $ref: '#/components/parameters/IDPathParameter'
       responses:
         '200':
           description: Account fetched.
@@ -129,10 +132,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     patch:
+      summary: Patch account.
       tags:
         - "Account"
-      summary: Patch account.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       requestBody:
         required: true
@@ -148,6 +152,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -161,10 +167,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     put:
+      summary: Update account.
       tags:
         - "Account"
-      summary: Update account.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       requestBody:
         required: true
@@ -180,6 +187,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -193,10 +202,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     delete:
+      summary: Delete account.
       tags:
         - "Account"
-      summary: Delete account.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       responses:
         '204':
@@ -204,6 +214,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
         '400':
           $ref: '#/components/responses/400'
         '403':
@@ -211,13 +223,12 @@ paths:
         '500':
           $ref: '#/components/responses/500'
   "/tenants":
-    parameters:
-      - $ref: '#/components/parameters/TenantIDPathParameter'
     get:
+      summary: Fetch list of tenants.
       tags:
         - "Tenant"
-      summary: Fetch list of tenants.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
         - name: _offset
           in: query
@@ -231,12 +242,12 @@ paths:
             type: integer
             nullable: false
             example: 10
-        - name: id
+        - name: displayName
           in: query
           schema:
             type: string
             nullable: true
-        - name: displayName
+        - name: id
           in: query
           schema:
             type: string
@@ -247,6 +258,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -269,10 +282,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     post:
+      summary: Create a new tenant.
       tags:
         - "Tenant"
-      summary: Create a new tenant.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       requestBody:
         required: true
@@ -286,6 +300,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -299,15 +315,14 @@ paths:
         '500':
           $ref: '#/components/responses/500'
   "/tenants/{id}":
-    parameters:
-      - $ref: '#/components/parameters/TenantIDPathParameter'
-      - $ref: '#/components/parameters/IDPathParameter'
     get:
+      summary: Fetch tenant.
       tags:
         - "Tenant"
-      summary: Fetch tenant.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
+        - $ref: '#/components/parameters/IDPathParameter'
       responses:
         '200':
           description: Tenant fetched.
@@ -326,10 +341,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     patch:
+      summary: Patch tenant.
       tags:
         - "Tenant"
-      summary: Patch tenant.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       requestBody:
         required: true
@@ -345,6 +361,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -358,10 +376,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     put:
+      summary: Update tenant.
       tags:
         - "Tenant"
-      summary: Update tenant.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       requestBody:
         required: true
@@ -377,6 +396,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -390,10 +411,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     delete:
+      summary: Delete tenant.
       tags:
         - "Tenant"
-      summary: Delete tenant.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       responses:
         '204':
@@ -401,20 +423,21 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
         '400':
           $ref: '#/components/responses/400'
         '403':
           $ref: '#/components/responses/403'
         '500':
           $ref: '#/components/responses/500'
-  "/tenants/{tenantID}/transactions":
-    parameters:
-      - $ref: '#/components/parameters/TenantIDPathParameter'
+  "/transactions":
     get:
+      summary: Fetch list of transactions.
       tags:
         - "Transaction"
-      summary: Fetch list of transactions.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
         - name: _offset
           in: query
@@ -428,33 +451,10 @@ paths:
             type: integer
             nullable: false
             example: 10
-        - name: currency
+        - name: description
           in: query
           schema:
             type: string
-            nullable: true
-        - name: minDate
-          in: query
-          schema:
-            type: string
-            format: date-time
-            nullable: true
-        - name: maxDate
-          in: query
-          schema:
-            type: string
-            format: date-time
-            nullable: true
-        - name: referenceId
-          in: query
-          schema:
-            type: string
-            nullable: true
-        - name: minAmount
-          in: query
-          schema:
-            type: number
-            format: double
             nullable: true
         - name: maxAmount
           in: query
@@ -462,7 +462,25 @@ paths:
             type: number
             format: double
             nullable: true
-        - name: description
+        - name: maxDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+            nullable: true
+        - name: minAmount
+          in: query
+          schema:
+            type: number
+            format: double
+            nullable: true
+        - name: minDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+            nullable: true
+        - name: referenceId
           in: query
           schema:
             type: string
@@ -477,12 +495,19 @@ paths:
           schema:
             type: string
             nullable: true
+        - name: currency
+          in: query
+          schema:
+            type: string
+            nullable: true
       responses:
         '200':
           description: Transactions fetched.
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -505,10 +530,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     post:
+      summary: Create a new transaction.
       tags:
         - "Transaction"
-      summary: Create a new transaction.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       requestBody:
         required: true
@@ -522,6 +548,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -534,16 +562,15 @@ paths:
           $ref: '#/components/responses/403'
         '500':
           $ref: '#/components/responses/500'
-  "/tenants/{tenantID}/transactions/{id}":
-    parameters:
-      - $ref: '#/components/parameters/TenantIDPathParameter'
-      - $ref: '#/components/parameters/IDPathParameter'
+  "/transactions/{id}":
     get:
+      summary: Fetch transaction.
       tags:
         - "Transaction"
-      summary: Fetch transaction.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
+        - $ref: '#/components/parameters/IDPathParameter'
       responses:
         '200':
           description: Transaction fetched.
@@ -562,10 +589,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     patch:
+      summary: Patch transaction.
       tags:
         - "Transaction"
-      summary: Patch transaction.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       requestBody:
         required: true
@@ -581,6 +609,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -594,10 +624,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     put:
+      summary: Update transaction.
       tags:
         - "Transaction"
-      summary: Update transaction.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       requestBody:
         required: true
@@ -613,6 +644,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
           content:
             application/json:
               schema:
@@ -626,10 +659,11 @@ paths:
         '500':
           $ref: '#/components/responses/500'
     delete:
+      summary: Delete transaction.
       tags:
         - "Transaction"
-      summary: Delete transaction.
       parameters:
+        - $ref: '#/components/parameters/X-GreenSTAR-Tenant-ID'
         - $ref: '#/components/parameters/X-Request-ID'
       responses:
         '204':
@@ -637,6 +671,8 @@ paths:
           headers:
             X-Request-ID:
               $ref: '#/components/headers/X-Request-ID'
+            X-GreenSTAR-Tenant-ID:
+              $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
         '400':
           $ref: '#/components/responses/400'
         '403':
@@ -651,6 +687,11 @@ components:
         format: uuid
         example: 0e9bc950-bb20-4ef3-b18d-e62dbbd202dd
       description: Unique request ID.
+    X-GreenSTAR-Tenant-ID:
+      schema:
+        type: string
+        example: acme
+      description: The ID of the tenant for which the request was sent for.
   parameters:
     X-Request-ID:
       name: X-Request-ID
@@ -660,14 +701,13 @@ components:
         type: string
         format: uuid
         example: 0e9bc950-bb20-4ef3-b18d-e62dbbd202dd
-    TenantIDPathParameter:
-      name: tenantID
-      description: The ID of the tenant context.
-      in: path
-      required: true
+    X-GreenSTAR-Tenant-ID:
+      name: X-GreenSTAR-Tenant-ID
+      description: The ID of the tenant for which the request is sent.
+      in: header
       schema:
         type: string
-        example: acme
+        minLength: 1
     IDPathParameter:
       name: id
       description: The ID of the object.
@@ -682,6 +722,8 @@ components:
       headers:
         X-Request-ID:
           $ref: '#/components/headers/X-Request-ID'
+        X-GreenSTAR-Tenant-ID:
+          $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
       content:
         plain/text:
           schema:
@@ -692,6 +734,8 @@ components:
       headers:
         X-Request-ID:
           $ref: '#/components/headers/X-Request-ID'
+        X-GreenSTAR-Tenant-ID:
+          $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
       content:
         plain/text:
           schema:
@@ -702,6 +746,8 @@ components:
       headers:
         X-Request-ID:
           $ref: '#/components/headers/X-Request-ID'
+        X-GreenSTAR-Tenant-ID:
+          $ref: '#/components/headers/X-GreenSTAR-Tenant-ID'
       content:
         plain/text:
           schema:
@@ -838,7 +884,7 @@ components:
         "convertedAmount":
           type: number
           format: double
-          nullable: false
+          nullable: true
         "currency":
           type: string
           nullable: false

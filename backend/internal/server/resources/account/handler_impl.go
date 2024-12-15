@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/arikkfir/greenstar/backend/internal/util/db"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
@@ -43,10 +44,6 @@ type HandlerImpl struct{}
 func (h *HandlerImpl) List(ctx context.Context, req ListRequest) (*ListResponse, error) {
 	tx := db.TxFromContext(ctx)
 
-	if req.Currency == nil {
-		req.Currency = lang.PtrOf(util.DefaultCurrency)
-	}
-
 	res := ListResponse{}
 	res.Items = make([]Account, 0)
 
@@ -74,8 +71,8 @@ func (h *HandlerImpl) List(ctx context.Context, req ListRequest) (*ListResponse,
 	return &res, nil
 }
 
-func (h *HandlerImpl) buildListQuery(_ context.Context, req ListRequest) (string, []any, error) {
-	args := []any{req.TenantID, *req.Currency}
+func (h *HandlerImpl) buildListQuery(ctx context.Context, req ListRequest) (string, []any, error) {
+	args := []any{middleware.GetTenantID(ctx), req.Currency}
 
 	result, err := pg_query.Parse(listSQL)
 	if err != nil {
@@ -155,7 +152,7 @@ func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateRes
 	}
 
 	if req.ParentID != nil {
-		_, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: *req.ParentID})
+		_, err := h.Get(ctx, GetRequest{ID: *req.ParentID})
 		if err != nil {
 			if errors.Is(err, util.ErrNotFound) {
 				return nil, fmt.Errorf("%w: parent account %s not found", util.ErrBadRequest, *req.ParentID)
@@ -166,12 +163,12 @@ func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateRes
 	}
 
 	var id string
-	args := []any{req.DisplayName, req.Icon, req.ParentID, req.TenantID}
+	args := []any{req.DisplayName, req.Icon, req.ParentID, middleware.GetTenantID(ctx)}
 	if err := tx.QueryRow(ctx, createSQL, args...).Scan(&id); err != nil {
 		return nil, fmt.Errorf("failed inserting row: %w", err)
 	}
 
-	getResp, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: id})
+	getResp, err := h.Get(ctx, GetRequest{ID: id})
 	if err != nil {
 		return nil, fmt.Errorf("failed fetching saved row: %w", err)
 	}
@@ -187,7 +184,7 @@ func (h *HandlerImpl) Get(ctx context.Context, req GetRequest) (*GetResponse, er
 	}
 
 	var res GetResponse
-	if err := tx.QueryRow(ctx, getSQL, req.TenantID, req.ID, *req.Currency).Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.DisplayName, &res.Icon, &res.ParentID, &res.TotalIncomingAmount, &res.TotalOutgoingAmount, &res.Balance); err != nil {
+	if err := tx.QueryRow(ctx, getSQL, middleware.GetTenantID(ctx), req.ID, *req.Currency).Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.DisplayName, &res.Icon, &res.ParentID, &res.TotalIncomingAmount, &res.TotalOutgoingAmount, &res.Balance); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, util.ErrNotFound
 		}
@@ -209,7 +206,7 @@ func (h *HandlerImpl) Get(ctx context.Context, req GetRequest) (*GetResponse, er
 func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchResponse, error) {
 	tx := db.TxFromContext(ctx)
 
-	args := []any{req.TenantID, req.ID}
+	args := []any{middleware.GetTenantID(ctx), req.ID}
 
 	q, err := pg_query.Parse(patchSQL)
 	if err != nil {
@@ -231,7 +228,7 @@ func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchRespon
 
 	if req.HasParentID() {
 		if req.ParentID != nil {
-			_, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: *req.ParentID})
+			_, err := h.Get(ctx, GetRequest{ID: *req.ParentID})
 			if err != nil {
 				if errors.Is(err, util.ErrNotFound) {
 					return nil, fmt.Errorf("%w: parent account %s not found", util.ErrBadRequest, *req.ParentID)
@@ -252,7 +249,7 @@ func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchRespon
 		return nil, fmt.Errorf("failed saving row: unexpected number of rows affected (%d)", rowsAffected)
 	}
 
-	getResp, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: req.ID})
+	getResp, err := h.Get(ctx, GetRequest{ID: req.ID})
 	if err != nil {
 		return nil, fmt.Errorf("failed fetching updated row: %w", err)
 	}
@@ -268,7 +265,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 	}
 
 	if req.ParentID != nil {
-		_, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: *req.ParentID})
+		_, err := h.Get(ctx, GetRequest{ID: *req.ParentID})
 		if err != nil {
 			if errors.Is(err, util.ErrNotFound) {
 				return nil, fmt.Errorf("%w: parent account %s not found", util.ErrBadRequest, *req.ParentID)
@@ -278,7 +275,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 		}
 	}
 
-	args := []any{req.TenantID, req.ID, req.DisplayName, req.Icon, req.ParentID}
+	args := []any{middleware.GetTenantID(ctx), req.ID, req.DisplayName, req.Icon, req.ParentID}
 	if result, err := tx.Exec(ctx, updateSQL, args...); err != nil {
 		return nil, fmt.Errorf("failed updating row: %w", err)
 	} else if rowsAffected := result.RowsAffected(); rowsAffected == 0 {
@@ -287,7 +284,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 		return nil, fmt.Errorf("failed updating row: more than one row was affected (%d)", rowsAffected)
 	}
 
-	getResp, err := h.Get(ctx, GetRequest{TenantID: req.TenantID, ID: req.ID})
+	getResp, err := h.Get(ctx, GetRequest{ID: req.ID})
 	if err != nil {
 		return nil, fmt.Errorf("failed fetching updated row: %w", err)
 	}
@@ -298,7 +295,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 func (h *HandlerImpl) Delete(ctx context.Context, req DeleteRequest) error {
 	tx := db.TxFromContext(ctx)
 
-	if result, err := tx.Exec(ctx, deleteSQL, req.TenantID, req.ID); err != nil {
+	if result, err := tx.Exec(ctx, deleteSQL, middleware.GetTenantID(ctx), req.ID); err != nil {
 		return fmt.Errorf("failed deleting row: %w", err)
 	} else if result.RowsAffected() == 0 {
 		return fmt.Errorf("failed deleting row: no rows affected: %w", util.ErrNotFound)
@@ -309,10 +306,10 @@ func (h *HandlerImpl) Delete(ctx context.Context, req DeleteRequest) error {
 	return nil
 }
 
-func (h *HandlerImpl) DeleteAll(ctx context.Context, req DeleteAllRequest) error {
+func (h *HandlerImpl) DeleteAll(ctx context.Context, _ DeleteAllRequest) error {
 	tx := db.TxFromContext(ctx)
 
-	_, err := tx.Exec(ctx, deleteAllSQL, req.TenantID)
+	_, err := tx.Exec(ctx, deleteAllSQL, middleware.GetTenantID(ctx))
 	if err != nil {
 		return fmt.Errorf("failed deleting rows: %w", err)
 	}

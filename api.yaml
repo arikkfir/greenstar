@@ -8,120 +8,86 @@ metadata:
   version: 0.0.0+local
 models:
   Tenant:
-    scope: global
     path: /tenants
     properties:
       DisplayName:
         type: string
-        optional: false
         sortable: true
+        required: true
     create:
-      permissions:
-        - scope: global
-          permission: tenants:create
-      transactional: true
+      permissions: [ tenants:create ]
       allowExplicitID: true
     list:
-      transactional: true
-      filterProperties:
-        - name: ID
+      permissions: [ tenants:list ]
+      filters:
+        ID:
           type: string
-        - DisplayName
+        DisplayName:
+          type: string
     get:
-      permissions:
-        - scope: tenant
-          permission: tenants:read
-          tenantPathVariableName: id
-      transactional: true
+      permissions: [ tenants:get ]
     update:
-      permissions:
-        - scope: tenant
-          permission: tenants:update
-          tenantPathVariableName: id
-      transactional: true
+      permissions: [ tenants:update ]
     delete:
-      permissions:
-        - scope: tenant
-          permission: tenants:delete
-          tenantPathVariableName: id
-      transactional: true
+      permissions: [ tenants:delete ]
   Account:
-    scope: tenant
     path: /accounts
     properties:
       DisplayName:
         type: string
-        optional: false
+        required: true
         sortable: true
       Icon:
         type: string
-        optional: true
       ParentID:
         type: string
-        optional: true
       TotalIncomingAmount:
         type: decimal
-        optional: true
         readOnly: true
       TotalOutgoingAmount:
         type: decimal
-        optional: true
         readOnly: true
       Balance:
         type: decimal
-        optional: true
         readOnly: true
     create:
-      permissions:
-        - scope: tenant
-          permission: accounts:read
-      transactional: true
+      permissions: [ accounts:create ]
     list:
-      permissions:
-        - scope: tenant
-          permission: accounts:read
-      transactional: true
-      filterProperties:
-        - name: Currency
+      permissions: [ accounts:read ]
+      filters:
+        DisplayName:
           type: string
-        - DisplayName
-    get:
-      permissions:
-        - scope: tenant
-          permission: accounts:read
       parameters:
-        - name: Currency
+        Currency:
           type: string
-      transactional: true
+          required: true
+    get:
+      permissions: [ accounts:read ]
+      parameters:
+        Currency:
+          type: string
     update:
-      permissions:
-        - scope: tenant
-          permission: accounts:update
-      transactional: true
+      permissions: [ accounts:update ]
     delete:
-      permissions:
-        - scope: tenant
-          permission: accounts:delete
-      transactional: true
+      permissions: [ accounts:delete ]
   Transaction:
-    scope: tenant
     path: /transactions
     properties:
       Date:
         type: timestamp
-        optional: false
+        required: true
         sortable: true
       ReferenceID:
         type: string
-        optional: false
+        required: true
         sortable: true
       Amount:
         type: decimal
-        optional: false
+        required: true
         sortable: true
       Currency:
         type: string
-        optional: false
+        required: true
         sortable: true
       ConvertedAmount:
         type: decimal
@@ -129,54 +95,44 @@ models:
         readOnly: true
       Description:
         type: string
-        optional: true
         sortable: true
       SourceAccountID:
         type: string
-        optional: false
+        required: true
       TargetAccountID:
         type: string
-        optional: false
+        required: true
     create:
-      permissions:
-        - scope: tenant
-          permission: transactions:create
-      transactional: true
+      permissions: [ transactions:create ]
     list:
-      permissions:
-        - scope: tenant
-          permission: transactions:read
-      transactional: true
-      filterProperties:
-        - name: Currency
-          type: string
-        - name: MinDate
-          type: timestamp
-        - name: MaxDate
-          type: timestamp
-        - ReferenceID
-        - name: MinAmount
-          type: decimal
-        - name: MaxAmount
-          type: decimal
-        - Description
-        - SourceAccountID
-        - TargetAccountID
-    get:
-      permissions:
-        - scope: tenant
-          permission: transactions:read
-      transactional: true
+      permissions: [ transactions:read ]
       parameters:
-        - name: Currency
+        Currency:
+          type: string
+          required: true
+      filters:
+        MinDate:
+          type: timestamp
+        MaxDate:
+          type: timestamp
+        ReferenceID:
+          type: string
+        MinAmount:
+          type: decimal
+        MaxAmount:
+          type: decimal
+        Description:
+          type: string
+        SourceAccountID:
+          type: string
+        TargetAccountID:
+          type: string
+    get:
+      permissions: [ transactions:read ]
+      parameters:
+        Currency:
           type: string
     update:
-      permissions:
-        - scope: tenant
-          permission: transactions:update
-      transactional: true
+      permissions: [ transactions:update ]
     delete:
-      permissions:
-        - scope: tenant
-          permission: transactions:delete
-      transactional: true
+      permissions: [ transactions:update ]
