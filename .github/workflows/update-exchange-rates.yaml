@@ -25,7 +25,7 @@ jobs:
         env:
           CURRENCY_API_KEY: "op://GreenSTAR/Currency API/credential"
           DEPLOY_KEY: "op://Development/Recurring GitHub Jobs Deploy Key/private key?ssh-format=openssh"
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_GITHUB_TOKEN }}
 
       - name: Checkout
         uses: actions/checkout@v4

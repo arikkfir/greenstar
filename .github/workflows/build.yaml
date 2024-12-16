@@ -99,7 +99,7 @@ jobs:
         env:
           APPLY_PATCHES_SH: "op://GreenSTAR/mtg3xwmgngg5jzt6oft53btkci/frontend/apply-patches.sh"
           LOCATION_IQ_ACCESS_TOKEN: "op://GreenSTAR/Location IQ/credential"
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_CI_TOKEN }}
 
       - if: matrix.images.name == 'frontend'
         name: Apply patches
@@ -209,7 +209,7 @@ jobs:
           export-env: true
         env:
           CURRENCY_API_KEY: "op://GreenSTAR/Currency API/credential"
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_CI_TOKEN }}
 
       - name: Setup Environment
         env:
