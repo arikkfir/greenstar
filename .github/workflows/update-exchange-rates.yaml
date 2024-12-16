@@ -16,28 +16,75 @@ jobs:
     runs-on: ubuntu-22.04
     permissions:
       contents: write
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
 
-      - name: Fetch secrets
+      - name: Fetch GreenSTAR secrets
         uses: 1password/load-secrets-action@v2
         with:
           export-env: true
         env:
           CURRENCY_API_KEY: "op://GreenSTAR/Currency API/credential"
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_GREENSTAR }}
+
+      - name: Fetch Development secrets
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
           DEPLOY_KEY: "op://Development/Recurring GitHub Jobs Deploy Key/private key?ssh-format=openssh"
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_GITHUB_TOKEN }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_DEVELOPMENT }}
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ssh-key: ${{ env.DEPLOY_KEY }}
 
-      - name: Download currencies
+      - name: Download currencies CSV
+        env:
+          CSV_STRUCTURE: >-
+            .value.symbol,
+            .value.symbol_native,
+            .value.name,
+            .value.decimal_digits,
+            .value.rounding,
+            .value.code,
+            .value.name_plural,
+            .value.type,
+            (.value.countries | join(","))
         run: |
-          curl -G -o ./deploy/local/currencies.json https://api.currencyapi.com/v3/currencies -H "apikey: ${CURRENCY_API_KEY}"
+          curl -G https://api.currencyapi.com/v3/currencies -H "apikey: ${CURRENCY_API_KEY}" | jq -r ".data | to_entries[] | [${CSV_STRUCTURE}] | @csv" > ./deploy/local/currencies.csv
 
-      - name: Commit & Push changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: './deploy/local/currencies.json'
-          message: "Update exchange rates currencies file"
+      - name: Verify CSV
+        env:
+          PGPASSWORD: postgres
+        run: |
+          CREATE TABLE currencies (
+              code TEXT PRIMARY KEY,
+              symbol TEXT,
+              name TEXT,
+              symbol_native TEXT,
+              decimal_digits INTEGER,
+              rounding INTEGER,
+              name_plural TEXT,
+              countries VARCHAR(2)[]
+          );
+          psql -d postgres -U postgres -c "\copy currencies FROM './deploy/local/currencies.csv' WITH (FORMAT CSV);"
+          psql -d postgres -U postgres -c "SELECT * FROM currencies ORDER BY code"
+
+#      - name: Commit & Push changes
+#        uses: EndBug/add-and-commit@v9
+#        with:
+#          add: './deploy/local/currencies.json'
+#          message: "Update exchange rates currencies file"
