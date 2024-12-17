@@ -68,7 +68,7 @@ jobs:
           RATES_FILE: ./deploy/local/rates.csv
         run: |
           rm -fv "${RATES_FILE}"
-          CURRENCIES=("AED" "AUD" "BRL" "EUR" "GBP" "ILS" "INR" "JPY" "KRW" "LBP" "MAD" "MVR" "MXN" "NOK" "NZD" "PLN" "RON" "SAR" "SCR" "SEK" "SYP" "THB" "TRY" "UAH" "USD" "ZAR" "BTC" "ETH")
+          CURRENCIES=("AED" "AUD" "BRL" "EUR" "GBP" "ILS" "INR" "JPY" "KRW" "LBP" "MAD" "MVR" "MXN" "NOK" "NZD" "PLN" "RON" "SAR" "SCR" "SEK" "THB" "TRY" "UAH" "USD" "ZAR" "BTC" "ETH")
           START_DATE="$(date -d "2 years ago" +"%Y-%m-%d")"
           END_DATE="$(date +"%Y-%m-%d")"
           for c in "${CURRENCIES[@]}"; do
