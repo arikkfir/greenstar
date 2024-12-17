@@ -72,7 +72,7 @@ jobs:
           for c in "${currencies[@]}"; do
             curl "https://api.polygon.io/v2/aggs/ticker/C:${c}USD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
               | jq -r '.results[] | ["${c}", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
-            sleep 13 # 5 req per min, so 12sec interval (13 for luck)
+            sleep 20 # 5 req per min, so 12sec interval (13 for luck)
           done
 
       - name: Commit & Push changes
