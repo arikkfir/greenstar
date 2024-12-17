@@ -68,23 +68,12 @@ jobs:
           RATES_FILE: ./deploy/local/rates.csv
         run: |
           rm -fv "${RATES_FILE}"
-          curl "https://api.polygon.io/v2/aggs/ticker/C:EURUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
-            | jq -r '.results[] | ["EUR", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
-          sleep 10
-          curl "https://api.polygon.io/v2/aggs/ticker/C:ILSUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
-            | jq -r '.results[] | ["ILS", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
-          sleep 10
-          curl "https://api.polygon.io/v2/aggs/ticker/C:RONUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
-            | jq -r '.results[] | ["RON", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
-          sleep 10
-          curl "https://api.polygon.io/v2/aggs/ticker/C:SARUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
-            | jq -r '.results[] | ["SAR", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
-          sleep 10
-          curl "https://api.polygon.io/v2/aggs/ticker/C:THBUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
-            | jq -r '.results[] | ["THB", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
-          sleep 10
-          curl "https://api.polygon.io/v2/aggs/ticker/C:ZARUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
-            | jq -r '.results[] | ["ZAR", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
+          currencies=("AED" "AUD" "BRL" "EUR" "GBP" "ILS" "INR" "JPY" "KRW" "LBP" "MAD" "MVR" "MXN" "NOK" "NZD" "PLN" "RON" "SAR" "SCR" "SEK" "SYP" "THB" "TRY" "UAH" "USD" "ZAR" "BTC" "ETH")
+          for c in "${currencies[@]}"; do
+            curl "https://api.polygon.io/v2/aggs/ticker/C:${c}USD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
+              | jq -r '.results[] | ["${c}", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
+            sleep 13 # 5 req per min, so 12sec interval (13 for luck)
+          done
 
       - name: Commit & Push changes
         uses: EndBug/add-and-commit@v9
