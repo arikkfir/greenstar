@@ -23,7 +23,8 @@ jobs:
         with:
           export-env: true
         env:
-          CURRENCY_API_KEY: "op://GreenSTAR/Currency API/credential"
+          CURRENCY_API_KEY: "op://GreenSTAR/Currency API/api key 1"
+          POLYGON_KEY: "op://GreenSTAR/Polygon/api key"
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_GREENSTAR }}
 
       - name: Fetch Development secrets
@@ -40,12 +41,41 @@ jobs:
           ssh-key: ${{ env.DEPLOY_KEY }}
 
       - name: Download currencies CSV
+        env:
+          CSV_STRUCTURE: >-
+            .value.code,
+            .value.symbol,
+            .value.symbol_native,
+            .value.name,
+            .value.decimal_digits,
+            .value.rounding,
+            .value.name_plural,
+            .value.type,
+            (.value.countries | join(","))
         run: |
-          echo "TS=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
-          curl -G https://api.currencyapi.com/v3/currencies -H "apikey: ${CURRENCY_API_KEY}" | jq -r ".data | to_entries[] | [.value.code, \"$(date +'%Y-%m-%d %H:%M:%S')\", \"$(date +'%Y-%m-%d %H:%M:%S')\", .value.symbol, .value.symbol_native, .value.name, .value.decimal_digits, .value.rounding, .value.name_plural, .value.type, \"{\" + (.value.countries | join(\",\")) + \"}\"] | @csv" > ./deploy/local/currencies.csv
+          curl -G https://api.currencyapi.com/v3/currencies -H "apikey: ${CURRENCY_API_KEY}" \
+            | jq -r ".data | to_entries[] | [${CSV_STRUCTURE}] | @csv" > ./deploy/local/currencies.csv
+
+      - name: Download exchange rates
+        env:
+          RATES_FILE: ./deploy/local/rates.csv
+        run: |
+          rm -fv "${RATES_FILE}"
+          curl "https://api.polygon.io/v2/aggs/ticker/C:EURUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
+            | jq -r '.results[] | ["EUR", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
+          curl "https://api.polygon.io/v2/aggs/ticker/C:ILSUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
+            | jq -r '.results[] | ["ILS", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
+          curl "https://api.polygon.io/v2/aggs/ticker/C:RONUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
+            | jq -r '.results[] | ["RON", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
+          curl "https://api.polygon.io/v2/aggs/ticker/C:SARUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
+            | jq -r '.results[] | ["SAR", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
+          curl "https://api.polygon.io/v2/aggs/ticker/C:THBUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
+            | jq -r '.results[] | ["THB", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
+          curl "https://api.polygon.io/v2/aggs/ticker/C:ZARUSD/range/1/day/$(date -d "2 years ago" +"%Y-%m-%d")/$(date +"%Y-%m-%d")?apiKey=${POLYGON_KEY}" \
+            | jq -r '.results[] | ["ZAR", "USD", (.t / 1000 | strftime("%Y-%m-%d")),.c]|@csv' >> "${RATES_FILE}"
 
       - name: Commit & Push changes
         uses: EndBug/add-and-commit@v9
         with:
-          add: './deploy/local/currencies.csv'
+          add: './deploy/local/*.csv'
           message: "Update exchange rates currencies file"
