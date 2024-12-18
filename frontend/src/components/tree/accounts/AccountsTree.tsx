@@ -16,7 +16,7 @@ import {
 import { useCurrencyFormatter } from "../../../hooks/locale.ts"
 import { DynamicIcon } from "../../DynamicIcon.tsx"
 import { Box } from "@mui/material"
-import { AccountNode } from "../../../models/account-addons.ts"
+import { AccountNode } from "../../../util/account-addons.ts"
 
 export interface AccountTreeItemProps
     extends Omit<UseTreeItem2Parameters, "rootRef">,
@@ -33,7 +33,14 @@ export const AccountTreeItem = forwardRef(function (props: AccountTreeItemProps,
         getGroupTransitionProps,
         publicAPI,
         status,
-    } = useTreeItem2({ id, itemId, children, label, disabled, rootRef: ref })
+    } = useTreeItem2({
+        id,
+        itemId,
+        children,
+        label,
+        disabled,
+        rootRef: ref,
+    })
     const item: AccountNode = publicAPI.getItem(itemId) as AccountNode
     const currencyFormatter = useCurrencyFormatter()
     return (
@@ -44,7 +51,13 @@ export const AccountTreeItem = forwardRef(function (props: AccountTreeItemProps,
                         <TreeItem2Icon status={status} />
                     </TreeItem2IconContainer>
                     <TreeItem2Checkbox {...getCheckboxProps()} data-testid={`checkbox:${item.id}`} />
-                    <Box sx={{ flexGrow: 1, display: "flex", gap: 1 }}>
+                    <Box
+                        sx={{
+                            flexGrow: 1,
+                            display: "flex",
+                            gap: 1,
+                        }}
+                    >
                         <DynamicIcon icon={item.icon || "Work"} data-testid={`icon:${item.id}`} />
                         <TreeItem2Label sx={{ flexGrow: 1 }} {...getLabelProps()} data-testid={`label:${item.id}`} />
                         <Box

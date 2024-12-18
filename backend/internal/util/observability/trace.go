@@ -3,13 +3,15 @@ package observability
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"runtime"
 	"time"
 )
 
 func NamedTrace(ctx context.Context, spanName string, kind trace.SpanKind, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
-	ctxWithSpan, span := Tracer.Start(
+	otel.Tracer("github.com/arikkfir/greenstar/backend")
+	ctxWithSpan, span := otel.Tracer(spanName).Start(
 		ctx,
 		spanName,
 		append(opts, trace.WithSpanKind(kind), trace.WithTimestamp(time.Now()))...,

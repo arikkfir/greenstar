@@ -14,6 +14,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"text/template"
@@ -41,7 +42,7 @@ func init() {
 				if b.Len() > 0 {
 					b.WriteString(", ")
 				}
-				b.WriteString("\"" + strings.ReplaceAll(s, "\"", "\\\"") + "\"")
+				b.WriteString(strconv.Quote(s))
 			}
 			return b.String()
 		},
@@ -164,7 +165,7 @@ func processTemplate(_ context.Context, api API, tmpl *template.Template) error 
 				"templates/",
 			)
 
-			slog.Info("Processing model template", "tmpl", tmplName, "model", modelName, "targetFile", targetFile)
+			slog.Debug("Processing model template", "tmpl", tmplName, "model", modelName, "targetFile", targetFile)
 			data := map[string]any{"api": api, "model": model}
 			if err := writeTemplate(tmpl, data, targetFile); err != nil {
 				return fmt.Errorf("failed to write template '%s': %w", tmplName, err)
@@ -172,7 +173,7 @@ func processTemplate(_ context.Context, api API, tmpl *template.Template) error 
 		}
 	} else {
 		targetFile := strings.TrimPrefix(strings.TrimSuffix(tmplName, ".tmpl"), "templates/")
-		slog.Info("Processing global template", "tmpl", tmplName, "targetFile", targetFile)
+		slog.Debug("Processing global template", "tmpl", tmplName, "targetFile", targetFile)
 		if err := writeTemplate(tmpl, api, targetFile); err != nil {
 			return fmt.Errorf("failed to write template '%s': %w", tmplName, err)
 		}

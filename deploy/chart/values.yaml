@@ -1,55 +1,96 @@
 commitSHA: "unknown"
-
-currencyAPI:
-  key: ""
-
 ingress:
   domain: ""
-
-oidc:
-  gcp:
-    audience: ""
-    config: ""
-
 observability:
   logging:
     level: info
     format: json
-
 backend:
-  extraArgs: [ ]
-  extraEnv: {}
-  image:
-    repository: ghcr.io/arikkfir/greenstar/backend
-    tag: ""
-    pullPolicy: IfNotPresent
-  ingress:
-    enabled: false
-  postgres:
-    connectTimeout: 1
-  rbac:
-    annotations: { }
-  resources:
-    limits:
-      cpu: ""
-      memory: ""
-    requests:
-      cpu: ""
-      memory: ""
-  volumeMounts: [ ]
-  volumes: [ ]
-
+  acme:
+    enabled: true
+    extraArgs: []
+    extraEnv:
+      OTEL_SDK_DISABLED:
+        value: "true"
+      OTEL_LOG_LEVEL:
+        value: info
+    image:
+      repository: ghcr.io/arikkfir/greenstar/backend-acme
+      tag: "abc"
+      pullPolicy: IfNotPresent
+    postgres:
+      connectTimeout: 1
+    rbac:
+      annotations: {}
+    resources:
+      limits:
+        cpu: ""
+        memory: ""
+      requests:
+        cpu: ""
+        memory: ""
+    volumeMounts: []
+  migrate:
+    enabled: true
+    extraArgs: []
+    extraEnv:
+      OTEL_SDK_DISABLED:
+        value: "true"
+      OTEL_LOG_LEVEL:
+        value: info
+    image:
+      repository: ghcr.io/arikkfir/greenstar/backend-migrate
+      tag: "abc"
+      pullPolicy: IfNotPresent
+    postgres:
+      connectTimeout: 1
+    rbac:
+      annotations: {}
+    resources:
+      limits:
+        cpu: ""
+        memory: ""
+      requests:
+        cpu: ""
+        memory: ""
+    volumeMounts: []
+  server:
+    extraArgs: []
+    extraEnv:
+      OTEL_SDK_DISABLED:
+        value: "true"
+      OTEL_LOG_LEVEL:
+        value: info
+    image:
+      repository: ghcr.io/arikkfir/greenstar/backend-server
+      tag: "abc"
+      pullPolicy: IfNotPresent
+    ingress:
+      enabled: false
+    postgres:
+      connectTimeout: 1
+    rbac:
+      annotations: {}
+    resources:
+      limits:
+        cpu: ""
+        memory: ""
+      requests:
+        cpu: ""
+        memory: ""
+    volumeMounts: []
+  volumes: []
 frontend:
-  extraArgs: [ ]
+  extraArgs: []
   extraEnv: {}
   image:
     repository: ghcr.io/arikkfir/greenstar/frontend
-    tag: ""
+    tag: "abc"
     pullPolicy: IfNotPresent
   ingress:
     enabled: false
   rbac:
-    annotations: { }
+    annotations: {}
   resources:
     limits:
       cpu: ""
@@ -57,76 +98,23 @@ frontend:
     requests:
       cpu: ""
       memory: ""
-  volumeMounts: [ ]
-  volumes: [ ]
+  volumeMounts: []
+  volumes: []
   livenessProbe: true
   readinessProbe: true
   startupProbe: true
-
-initJob:
-  enabled: true
-  extraArgs: [ ]
-  extraEnv: {}
-  image:
-    repository: ghcr.io/arikkfir/greenstar/init-job
-    tag: ""
-    pullPolicy: IfNotPresent
-  postgres:
-    connectTimeout: 1
-  rbac:
-    annotations: { }
-  resources:
-    limits:
-      cpu: ""
-      memory: ""
-    requests:
-      cpu: ""
-      memory: ""
-  volumeMounts: [ ]
-  volumes: [ ]
-
-exchangeRatesCronJob:
-  extraArgs: [ ]
-  extraEnv: {}
-  image:
-    repository: ghcr.io/arikkfir/greenstar/exchange-rates-job
-    tag: ""
-    pullPolicy: IfNotPresent
-  postgres:
-    connectTimeout: 1
-  rbac:
-    annotations: { }
-  resources:
-    limits:
-      cpu: ""
-      memory: ""
-    requests:
-      cpu: ""
-      memory: ""
-  volumeMounts: [ ]
-  volumes: [ ]
-
 postgres:
   # Set backend user's password (defaults to random alphanumeric passwords)
   # NOTE: this is NOT updated on helm upgrade! to change, manually login to Postgres and update
   backendPassword: ""
-
-  extraArgs: [ ]
+  extraArgs: []
   extraEnv: {}
-  extraUsers: { }
-
-  # Set init job's password (defaults to random alphanumeric passwords)
-  # NOTE: this is NOT updated on helm upgrade! to change, manually login to Postgres and update
-  initJobPassword: ""
-
-  # Set postgres user's password (defaults to random alphanumeric passwords)
-  # NOTE: this is NOT updated on helm upgrade! to change, manually login to Postgres and update
-  initPassword: ""
-
+  extraUsers: {}
   ingress:
     enabled: false
   rbac:
-    annotations: { }
+    annotations: {}
+  initPassword: ""
   resources:
     limits:
       cpu: ""
@@ -134,3 +122,5 @@ postgres:
     requests:
       cpu: ""
       memory: ""
+  volumes: []
+  volumeMounts: []

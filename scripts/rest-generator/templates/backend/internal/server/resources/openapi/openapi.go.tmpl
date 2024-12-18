@@ -6,6 +6,8 @@ import (
 	"embed"
 	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
+	"github.com/arikkfir/greenstar/backend/internal/util/tenant"
 	"net/http"
 )
 
@@ -21,9 +23,9 @@ func NewServer() *Server {
 func (s *Server) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	l := util.Logger(ctx)
+	l := observability.GetLogger(ctx)
 
-	tenantID := middleware.GetTenantID(ctx)
+	tenantID := tenant.GetTenantID(ctx)
 	if tenantID != "" {
 		l = l.With("tenantID", tenantID)
 	}

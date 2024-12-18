@@ -1,0 +1,313 @@
+{{- $prefix := include "greenstar.prefix" . -}}
+{{- $componentName := "backend" -}}
+{{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
+{{- $serviceName := printf "%s-%s" $prefix $componentName -}}
+{{- /*------------------------------------------------------------------------------------------------------------*/ -}}
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  {{- if not (empty .Values.backend.server.rbac.annotations) }}
+  annotations:
+    {{ range $name, $value := .Values.backend.server.rbac.annotations -}}
+    {{ $name }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceName | quote }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    {{- include "greenstar.versionAgnosticLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix $componentName | quote }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "greenstar.versionAgnosticLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $componentName | quote }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+      labels:
+        {{- include "greenstar.commonLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $componentName | quote }}
+    spec:
+      initContainers: {{- if and (not .Values.backend.migrate.enabled) (not .Values.backend.acme.enabled) }}[]{{- end }}
+        {{- if .Values.backend.migrate.enabled }}
+        - image: {{ .Values.backend.migrate.image.repository }}:{{ .Values.backend.migrate.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.backend.migrate.image.pullPolicy }}
+          {{- if not (empty .Values.backend.migrate.extraArgs) }}
+          args:
+            {{- toYaml .Values.backend.migrate.extraArgs | nindent 12 }}
+          {{- end }}
+          env:
+            - name: LOG_LEVEL
+              value: {{ .Values.observability.logging.level | default "info" | quote }}
+            {{- if eq .Values.observability.logging.format "text" }}
+            - name: DISABLE_JSON_LOGGING
+              value: "T"
+            {{- end }}
+            - name: PGHOST
+              value: {{ printf "%s-%s" $prefix "postgres" | quote }}
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: "greenstar"
+            - name: PGUSER
+              value: "greenstar_backend"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-%s" $prefix "postgres" | quote }}
+                  key: backend-pwd
+                  optional: false
+            - name: PGAPPNAME
+              value: {{ printf "%s-%s" $prefix $componentName | quote }}
+            - name: PGCONNECT_TIMEOUT
+              value: {{ .Values.backend.migrate.postgres.connectTimeout | quote }}
+            - name: PGSSLMODE
+              value: "disable"
+            {{- range $key, $value := .Values.backend.migrate.extraEnv }}
+            - name: {{ $key | quote }}
+              {{ toYaml $value | nindent 14 }}
+            {{- end }}
+          name: migration
+          resources:
+            limits:
+              cpu: {{ .Values.backend.migrate.resources.limits.cpu | default "500m" | quote }}
+              memory: {{ .Values.backend.migrate.resources.limits.memory | default "64Mi" | quote }}
+            requests:
+              cpu: {{ .Values.backend.migrate.resources.requests.cpu | default "100m" | quote }}
+              memory: {{ .Values.backend.migrate.resources.requests.memory | default "64Mi" | quote }}
+          {{- if not (empty .Values.backend.migrate.volumeMounts) }}
+          volumeMounts:
+            {{- toYaml .Values.backend.migrate.volumeMounts | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.backend.acme.enabled }}
+        - image: {{ .Values.backend.acme.image.repository }}:{{ .Values.backend.acme.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.backend.acme.image.pullPolicy }}
+          {{- if not (empty .Values.backend.acme.extraArgs) }}
+          args:
+            {{- toYaml .Values.backend.acme.extraArgs | nindent 12 }}
+          {{- end }}
+          env:
+            - name: LOG_LEVEL
+              value: {{ .Values.observability.logging.level | default "info" | quote }}
+            {{- if eq .Values.observability.logging.format "text" }}
+            - name: DISABLE_JSON_LOGGING
+              value: "T"
+            {{- end }}
+            - name: PGHOST
+              value: {{ printf "%s-%s" $prefix "postgres" | quote }}
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: "greenstar"
+            - name: PGUSER
+              value: "greenstar_backend"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-%s" $prefix "postgres" | quote }}
+                  key: backend-pwd
+                  optional: false
+            - name: PGAPPNAME
+              value: {{ printf "%s-%s" $prefix $componentName | quote }}
+            - name: PGCONNECT_TIMEOUT
+              value: {{ .Values.backend.acme.postgres.connectTimeout | quote }}
+            - name: PGSSLMODE
+              value: "disable"
+            {{- range $key, $value := .Values.backend.acme.extraEnv }}
+            - name: {{ $key | quote }}
+              {{ toYaml $value | nindent 14 }}
+            {{- end }}
+          name: acme
+          resources:
+            limits:
+              cpu: {{ .Values.backend.acme.resources.limits.cpu | default "500m" | quote }}
+              memory: {{ .Values.backend.acme.resources.limits.memory | default "64Mi" | quote }}
+            requests:
+              cpu: {{ .Values.backend.acme.resources.requests.cpu | default "100m" | quote }}
+              memory: {{ .Values.backend.acme.resources.requests.memory | default "64Mi" | quote }}
+          {{- if not (empty .Values.backend.acme.volumeMounts) }}
+          volumeMounts:
+            {{- toYaml .Values.backend.acme.volumeMounts | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      containers:
+        - image: {{ .Values.backend.server.image.repository }}:{{ .Values.backend.server.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.backend.server.image.pullPolicy }}
+          {{- if not (empty .Values.backend.server.extraArgs) }}
+          args:
+            {{- toYaml .Values.backend.server.extraArgs | nindent 12 }}
+          {{- end }}
+          env:
+            - name: LOG_LEVEL
+              value: {{ .Values.observability.logging.level | default "info" | quote }}
+            {{- if eq .Values.observability.logging.format "text" }}
+            - name: DISABLE_JSON_LOGGING
+              value: "T"
+            {{- end }}
+            - name: HEALTH_PORT
+              value: "9000"
+            - name: PGHOST
+              value: {{ printf "%s-%s" $prefix "postgres" | quote }}
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: "greenstar"
+            - name: PGUSER
+              value: "greenstar_backend"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-%s" $prefix "postgres" | quote }}
+                  key: backend-pwd
+                  optional: false
+            - name: PGAPPNAME
+              value: {{ printf "%s-%s" $prefix $componentName | quote }}
+            - name: PGCONNECT_TIMEOUT
+              value: {{ .Values.backend.server.postgres.connectTimeout | quote }}
+            - name: PGSSLMODE
+              value: "disable"
+            - name: HTTP_ALLOWED_ORIGINS
+              value: "https://signup.{{ .Values.ingress.domain }},https://app.{{ .Values.ingress.domain }},https://*.app.{{ .Values.ingress.domain }}"
+            {{- range $key, $value := .Values.backend.server.extraEnv }}
+            - name: {{ $key | quote }}
+              {{ toYaml $value | nindent 14 }}
+            {{- end }}
+          name: server
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 8000
+              name: metrics
+            - containerPort: 9000
+              name: health
+          resources:
+            limits:
+              cpu: {{ .Values.backend.server.resources.limits.cpu | default "500m" | quote }}
+              memory: {{ .Values.backend.server.resources.limits.memory | default "64Mi" | quote }}
+            requests:
+              cpu: {{ .Values.backend.server.resources.requests.cpu | default "100m" | quote }}
+              memory: {{ .Values.backend.server.resources.requests.memory | default "64Mi" | quote }}
+          livenessProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            failureThreshold: 3
+            periodSeconds: 5
+            terminationGracePeriodSeconds: 30
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            failureThreshold: 3
+            periodSeconds: 1
+            timeoutSeconds: 1
+          startupProbe:
+            httpGet:
+              port: health
+              path: /healthz
+            initialDelaySeconds: 1
+            periodSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 1
+            terminationGracePeriodSeconds: 60
+          {{- if not (empty .Values.backend.server.volumeMounts) }}
+          volumeMounts:
+            {{- toYaml .Values.backend.server.volumeMounts | nindent 12 }}
+          {{- end }}
+      enableServiceLinks: false
+      serviceAccountName: {{ $serviceAccountName | quote }}
+      {{- if not (empty .Values.backend.volumes) }}
+      volumes:
+        {{- toYaml .Values.backend.volumes | nindent 8 }}
+      {{- end }}
+{{- if .Values.backend.server.ingress.enabled }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix "backend-http" | quote }}
+spec:
+  parentRefs:
+    - name: {{ .Values.backend.server.ingress.parentRef.name }}
+      namespace: {{ .Values.backend.server.ingress.parentRef.namespace }}
+      sectionName: {{ .Values.backend.server.ingress.parentRef.httpSectionName }}
+      kind: {{ .Values.backend.server.ingress.parentRef.kind }}
+  hostnames:
+    - {{ printf "api.%s" .Values.ingress.domain | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix "backend-https" | quote }}
+spec:
+  parentRefs:
+    - name: {{ .Values.backend.server.ingress.parentRef.name }}
+      namespace: {{ .Values.backend.server.ingress.parentRef.namespace }}
+      sectionName: {{ .Values.backend.server.ingress.parentRef.httpsSectionName }}
+      kind: {{ .Values.backend.server.ingress.parentRef.kind }}
+  hostnames:
+    - {{ printf "api.%s" .Values.ingress.domain | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ $serviceName | quote }}
+          namespace: {{ .Release.Namespace | quote }}
+          port: 80
+          kind: Service
+{{- end }}

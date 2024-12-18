@@ -13,11 +13,11 @@ this project you agree to abide by its terms.
 ### TL;DR:
 
 ```shell
-$ brew install go-task              # Ensure you have the "task" CLI
-$ task -t Taskfile-env.yaml         # Generate a ".env" file
-$ task setup-domain-dns             # Setup your local DNS to resolve *.greenstar.test to 127.0.0.1
-$ task setup-cluster                # Create a local `kind` cluster with HTTP server & observability
-$ task setup-observability          # Deploy observability tools such as Jaeger, Prometheus and Grafana
+$ brew install go-task      # Ensure you have the "task" CLI
+$ task env                  # Generate a local ".env" file
+$ task setup-domain-dns     # Setup your local DNS to resolve *.greenstar.test to 127.0.0.1
+$ task setup-cluster        # Create a local `kind` cluster with HTTP server & observability
+$ task setup-observability  # Deploy observability tools such as Jaeger, Prometheus and Grafana
 ```
 
 > [!IMPORTANT]

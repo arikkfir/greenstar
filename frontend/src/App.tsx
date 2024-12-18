@@ -1,6 +1,4 @@
 import { Box, useTheme } from "@mui/material"
-import { SpinnerBlock } from "./components/SpinnerBlock.tsx"
-import { LocaleContext } from "./providers/LocaleProvider.tsx"
 import { Outlet, Route, Routes } from "react-router"
 import { DashboardPage } from "./pages/DashboardPage.tsx"
 import { TransactionsPage } from "./pages/TransactionsPage.tsx"
@@ -8,15 +6,8 @@ import { APIPlaygroundPage } from "./pages/APIPlayground.tsx"
 import { SettingsPage } from "./pages/SettingsPage.tsx"
 import { TopBar } from "./components/layout/topbar/TopBar.tsx"
 import { Footer } from "./components/layout/Footer.tsx"
-import { useContext } from "react"
 
 export function App() {
-    const locale = useContext(LocaleContext)
-
-    if (!locale.resolved) {
-        return <SpinnerBlock open={true} />
-    }
-
     return (
         <Routes>
             <Route element={<RootLayout />}>
@@ -47,7 +38,12 @@ export function RootLayout() {
                 gap: 0,
             }}
         >
-            <TopBar sx={{ flexGrow: 0, flexShrink: 0 }} />
+            <TopBar
+                sx={{
+                    flexGrow: 0,
+                    flexShrink: 0,
+                }}
+            />
             <Box
                 component="main"
                 sx={{
@@ -63,7 +59,12 @@ export function RootLayout() {
             >
                 <Outlet />
             </Box>
-            <Footer sx={{ flxGrow: 0, flexShrink: 0 }} />
+            <Footer
+                sx={{
+                    flxGrow: 0,
+                    flexShrink: 0,
+                }}
+            />
         </Box>
     )
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="local@postgres.greenstar.test:5432" uuid="ab6ab156-ff28-4d58-b356-a072164c3375">
+    <data-source source="LOCAL" name="local@postgres.greenstar.test:5432 (SSL)" uuid="ab6ab156-ff28-4d58-b356-a072164c3375">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>

@@ -7,18 +7,6 @@
       "type": "string",
       "minLength": 1
     },
-    "currencyAPI": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "key"
-      ],
-      "properties": {
-        "key": {
-          "type": "string"
-        }
-      }
-    },
     "ingress": {
       "type": "object",
       "additionalProperties": false,
@@ -28,31 +16,6 @@
       "properties": {
         "domain": {
           "type": "string"
-        }
-      }
-    },
-    "oidc": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "gcp"
-      ],
-      "properties": {
-        "gcp": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "audience",
-            "config"
-          ],
-          "properties": {
-            "audience": {
-              "type": "string"
-            },
-            "config": {
-              "type": "string"
-            }
-          }
         }
       }
     },
@@ -92,96 +55,99 @@
         }
       }
     },
-    "initJob": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "extraArgs": {
-          "$ref": "#/$defs/extraArgs"
-        },
-        "extraEnv": {
-          "$ref": "#/$defs/extraEnv"
-        },
-        "image": {
-          "$ref": "#/$defs/image"
-        },
-        "postgres": {
-          "$ref": "#/$defs/postgresConfiguration"
-        },
-        "rbac": {
-          "$ref": "#/$defs/rbacConfiguration"
-        },
-        "resources": {
-          "$ref": "#/$defs/podResourcesConfiguration"
-        },
-        "volumeMounts": {
-          "$ref": "#/$defs/volumeMountsConfiguration"
-        },
-        "volumes": {
-          "$ref": "#/$defs/volumesConfiguration"
-        }
-      }
-    },
-    "exchangeRatesCronJob": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "extraArgs": {
-          "$ref": "#/$defs/extraArgs"
-        },
-        "extraEnv": {
-          "$ref": "#/$defs/extraEnv"
-        },
-        "image": {
-          "$ref": "#/$defs/image"
-        },
-        "postgres": {
-          "$ref": "#/$defs/postgresConfiguration"
-        },
-        "rbac": {
-          "$ref": "#/$defs/rbacConfiguration"
-        },
-        "resources": {
-          "$ref": "#/$defs/podResourcesConfiguration"
-        },
-        "volumeMounts": {
-          "$ref": "#/$defs/volumeMountsConfiguration"
-        },
-        "volumes": {
-          "$ref": "#/$defs/volumesConfiguration"
-        }
-      }
-    },
     "backend": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "extraArgs": {
-          "$ref": "#/$defs/extraArgs"
+        "acme": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "extraArgs": {
+              "$ref": "#/$defs/extraArgs"
+            },
+            "extraEnv": {
+              "$ref": "#/$defs/extraEnv"
+            },
+            "image": {
+              "$ref": "#/$defs/image"
+            },
+            "postgres": {
+              "$ref": "#/$defs/postgresConfiguration"
+            },
+            "rbac": {
+              "$ref": "#/$defs/rbacConfiguration"
+            },
+            "resources": {
+              "$ref": "#/$defs/podResourcesConfiguration"
+            },
+            "volumeMounts": {
+              "$ref": "#/$defs/volumeMountsConfiguration"
+            }
+          }
         },
-        "extraEnv": {
-          "$ref": "#/$defs/extraEnv"
+        "migrate": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "extraArgs": {
+              "$ref": "#/$defs/extraArgs"
+            },
+            "extraEnv": {
+              "$ref": "#/$defs/extraEnv"
+            },
+            "image": {
+              "$ref": "#/$defs/image"
+            },
+            "postgres": {
+              "$ref": "#/$defs/postgresConfiguration"
+            },
+            "rbac": {
+              "$ref": "#/$defs/rbacConfiguration"
+            },
+            "resources": {
+              "$ref": "#/$defs/podResourcesConfiguration"
+            },
+            "volumeMounts": {
+              "$ref": "#/$defs/volumeMountsConfiguration"
+            }
+          }
         },
-        "image": {
-          "$ref": "#/$defs/image"
-        },
-        "ingress": {
-          "$ref": "#/$defs/podIngressConfiguration"
-        },
-        "postgres": {
-          "$ref": "#/$defs/postgresConfiguration"
-        },
-        "rbac": {
-          "$ref": "#/$defs/rbacConfiguration"
-        },
-        "resources": {
-          "$ref": "#/$defs/podResourcesConfiguration"
-        },
-        "volumeMounts": {
-          "$ref": "#/$defs/volumeMountsConfiguration"
+        "server": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "extraArgs": {
+              "$ref": "#/$defs/extraArgs"
+            },
+            "extraEnv": {
+              "$ref": "#/$defs/extraEnv"
+            },
+            "image": {
+              "$ref": "#/$defs/image"
+            },
+            "ingress": {
+              "$ref": "#/$defs/podIngressConfiguration"
+            },
+            "postgres": {
+              "$ref": "#/$defs/postgresConfiguration"
+            },
+            "rbac": {
+              "$ref": "#/$defs/rbacConfiguration"
+            },
+            "resources": {
+              "$ref": "#/$defs/podResourcesConfiguration"
+            },
+            "volumeMounts": {
+              "$ref": "#/$defs/volumeMountsConfiguration"
+            }
+          }
         },
         "volumes": {
           "$ref": "#/$defs/volumesConfiguration"
@@ -249,9 +215,6 @@
         "ingress": {
           "$ref": "#/$defs/podIngressConfiguration"
         },
-        "initJobPassword": {
-          "type": "string"
-        },
         "initPassword": {
           "type": "string"
         },
@@ -260,6 +223,12 @@
         },
         "resources": {
           "$ref": "#/$defs/podResourcesConfiguration"
+        },
+        "volumeMounts": {
+          "$ref": "#/$defs/volumeMountsConfiguration"
+        },
+        "volumes": {
+          "$ref": "#/$defs/volumesConfiguration"
         }
       }
     }

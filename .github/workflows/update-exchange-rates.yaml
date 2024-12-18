@@ -2,8 +2,6 @@ name: Update Exchange Rates
 
 on:
   push:
-    branches:
-      - 'main'
     paths:
       - '.github/workflows/update-exchange-rates.yaml'
 
@@ -48,33 +46,20 @@ jobs:
           ssh-key: ${{ env.DEPLOY_KEY }}
 
       - name: Download currencies CSV
-        env:
-          CSV_STRUCTURE: >-
-            .value.code,
-            .value.symbol,
-            .value.symbol_native,
-            .value.name,
-            .value.decimal_digits,
-            .value.rounding,
-            .value.name_plural,
-            .value.type,
-            "{" + (.value.countries | join(",")) + "}"
         run: |
           curl -G https://api.currencyapi.com/v3/currencies -H "apikey: ${CURRENCY_API_KEY}" \
-            | jq -r ".data | to_entries[] | [${CSV_STRUCTURE}] | @csv" > ./deploy/local/currencies.csv
+            | jq -r '.data[] | [ .code, .symbol, .symbol_native, .name, .decimal_digits, .rounding, .name_plural, .type, "{" + (.countries | join(",")) + "}" ] | @csv' > ./deploy/local/rates/currencies.csv
 
       - name: Download exchange rates
-        env:
-          RATES_FILE: ./deploy/local/rates.csv
         run: |
-          rm -fv "${RATES_FILE}"
+          rm -fv "./deploy/local/rates/exchange-rates.csv"
           CURRENCIES=("AED" "AUD" "BRL" "EUR" "GBP" "ILS" "INR" "JPY" "KRW" "LBP" "MAD" "MVR" "MXN" "NOK" "NZD" "PLN" "RON" "SAR" "SCR" "SEK" "THB" "TRY" "UAH" "ZAR")
           START_DATE="$(date -d "2 years ago" +"%Y-%m-%d")"
           END_DATE="$(date +"%Y-%m-%d")"
           for c in "${CURRENCIES[@]}"; do
             curl -sSL "https://api.polygon.io/v2/aggs/ticker/C:${c}USD/range/1/day/${START_DATE}/${END_DATE}?apiKey=${POLYGON_KEY}" \
-              | jq -r ".results[] | [\"${c}\", \"USD\", (.t / 1000 | strftime(\"%Y-%m-%d\")),.c,\"false\"]|@csv" >> "${RATES_FILE}"
-            sleep 15
+              | jq -r ".results[] | [ (.t / 1000 | strftime(\"%Y-%m-%d\")), \"${c}\", \"USD\", .c, \"false\" ]|@csv" >> "./deploy/local/rates/exchange-rates.csv"
+            sleep 12
           done
 
       - name: Commit & Push changes

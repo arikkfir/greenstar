@@ -5,8 +5,8 @@ package {{ .model.Name | toSnake }}
 {{- if .model.Get }}
 
 import (
-	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/shopspring/decimal"
 	"net/http"
 	"time"
@@ -37,31 +37,13 @@ type GetResponse {{ .model.Name }}
 func (s *Server) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	l := util.Logger(ctx)
-
-	tenantID := middleware.GetTenantID(ctx)
-	if tenantID != "" {
-		l = l.With("tenantID", tenantID)
-	}
+	l := observability.GetLogger(ctx)
 
 	{{- if gt (len .model.Get.Permissions) 0 }}
-	authToken := middleware.GetToken(ctx)
-
-	{{- range .model.Get.Permissions }}
-	if !authToken.IsPermittedGlobally("{{ . }}") {
-		if tenantID != "" {
-			if !authToken.IsPermittedForTenant(tenantID, "{{ . }}") {
-				util.ServeError(w, r, util.ErrForbidden)
-				l.WarnContext(ctx, "Access denied", "permission", "{{ . }}")
-				return
-			}
-		} else {
-			util.ServeError(w, r, util.ErrForbidden)
-			l.WarnContext(ctx, "Access denied", "permission", "{{ . }}")
-			return
-		}
+	if err := util.VerifyPermissions(ctx, {{ .model.Get.Permissions | strings }}); err != nil {
+		util.ServeError(w, r, err)
+		return
 	}
-	{{- end }}
 	{{- end }}
 
 	req := GetRequest{}

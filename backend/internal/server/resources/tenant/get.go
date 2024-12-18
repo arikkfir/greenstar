@@ -3,8 +3,8 @@
 package tenant
 
 import (
-	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/shopspring/decimal"
 	"net/http"
 	"time"
@@ -32,25 +32,10 @@ type GetResponse Tenant
 func (s *Server) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	l := util.Logger(ctx)
-
-	tenantID := middleware.GetTenantID(ctx)
-	if tenantID != "" {
-		l = l.With("tenantID", tenantID)
-	}
-	authToken := middleware.GetToken(ctx)
-	if !authToken.IsPermittedGlobally("tenants:get") {
-		if tenantID != "" {
-			if !authToken.IsPermittedForTenant(tenantID, "tenants:get") {
-				util.ServeError(w, r, util.ErrForbidden)
-				l.WarnContext(ctx, "Access denied", "permission", "tenants:get")
-				return
-			}
-		} else {
-			util.ServeError(w, r, util.ErrForbidden)
-			l.WarnContext(ctx, "Access denied", "permission", "tenants:get")
-			return
-		}
+	l := observability.GetLogger(ctx)
+	if err := util.VerifyPermissions(ctx, "tenants:get"); err != nil {
+		util.ServeError(w, r, err)
+		return
 	}
 
 	req := GetRequest{}

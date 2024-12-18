@@ -14,9 +14,7 @@ tasks:
     status:
       - brew ls {{.name}}
 
-  1password: { platforms: [ darwin ], cmds: [ { task: brew, vars: { name: 1password-cli } } ] }
   dnsmasq: { platforms: [ darwin ], cmds: [ { task: brew, vars: { name: dnsmasq } } ] }
-  gcloud: { platforms: [ darwin ], cmds: [ { task: brew, vars: { name: google-cloud-sdk } } ] }
   go: { platforms: [ darwin ], cmds: [ { task: brew, vars: { name: go } } ] }
   helm: { platforms: [ darwin ], cmds: [ { task: brew, vars: { name: helm } } ] }
   kind: { platforms: [ darwin ], cmds: [ { task: brew, vars: { name: kind } } ] }
