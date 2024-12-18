@@ -58,7 +58,7 @@ jobs:
             .value.rounding,
             .value.name_plural,
             .value.type,
-            (.value.countries | join(","))
+            "{" + (.value.countries | join(",")) + "}"
         run: |
           curl -G https://api.currencyapi.com/v3/currencies -H "apikey: ${CURRENCY_API_KEY}" \
             | jq -r ".data | to_entries[] | [${CSV_STRUCTURE}] | @csv" > ./deploy/local/currencies.csv
