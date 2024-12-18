@@ -9,7 +9,7 @@ import {
     BuildAccountsTree,
     FindAccountInTree,
     MapAccountsByID,
-} from "../models/account-addons.ts"
+} from "../util/account-addons.ts"
 import { useListAccounts } from "../hooks/account/list.ts"
 
 export function TransactionsPage() {
@@ -45,7 +45,15 @@ export function TransactionsPage() {
                 overflow: "hidden",
             }}
         >
-            <Paper sx={{ flexGrow: 0, flexShrink: 0, minWidth: "20rem", p: 1, overflow: "scroll" }}>
+            <Paper
+                sx={{
+                    flexGrow: 0,
+                    flexShrink: 0,
+                    minWidth: "20rem",
+                    p: 1,
+                    overflow: "scroll",
+                }}
+            >
                 <AccountsTree
                     accounts={accountsTree}
                     selectedItems={selectedAccount?.id || null}
@@ -65,7 +73,10 @@ export function TransactionsPage() {
                 }}
             >
                 <TransactionsTable
-                    sx={{ flexGrow: 1, flexShrink: 1 }}
+                    sx={{
+                        flexGrow: 1,
+                        flexShrink: 1,
+                    }}
                     stateId="transactions"
                     sourceAccountId={selectedAccount?.id}
                     targetAccountId={selectedAccount?.id}

@@ -5,7 +5,7 @@ Hi there! We're thrilled that you'd like to contribute to this project. Your hel
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in
 this project you agree to abide by its terms.
 
-## Setup your workstation
+## Set up your development environment
 
 > [!NOTE]
 > Currently, macOS is the only supported development platform. We expect Linux support to come soon.
@@ -13,11 +13,11 @@ this project you agree to abide by its terms.
 ### TL;DR:
 
 ```shell
-$ brew install go-task              # Ensure you have the "task" CLI
-$ task -t Taskfile-env.yaml         # Generate a ".env" file
-$ task setup-domain-dns             # Setup your local DNS to resolve *.greenstar.test to 127.0.0.1
-$ task setup-cluster                # Create a local `kind` cluster with HTTP server & observability
-$ task setup-observability          # Deploy observability tools such as Jaeger, Prometheus and Grafana
+$ brew install go-task      # Ensure you have the "task" CLI
+$ task env                  # Generate a local ".env" file
+$ task setup-domain-dns     # Setup your local DNS to resolve *.greenstar.test to 127.0.0.1
+$ task setup-cluster        # Create a local `kind` cluster with HTTP server & observability
+$ task setup-observability  # Deploy observability tools such as Jaeger, Prometheus and Grafana
 ```
 
 > [!IMPORTANT]

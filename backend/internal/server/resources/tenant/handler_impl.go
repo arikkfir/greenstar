@@ -41,7 +41,7 @@ var (
 type HandlerImpl struct{}
 
 func (h *HandlerImpl) List(ctx context.Context, req ListRequest) (*ListResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	res := ListResponse{}
 	res.Items = make([]Tenant, 0)
@@ -143,7 +143,7 @@ func (h *HandlerImpl) buildCountQuery(ctx context.Context, req ListRequest) (str
 }
 
 func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	if !req.HasID() {
 		if req.ID == "" {
@@ -177,7 +177,7 @@ func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateRes
 }
 
 func (h *HandlerImpl) Get(ctx context.Context, req GetRequest) (*GetResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	var res GetResponse
 	if err := tx.QueryRow(ctx, getSQL, req.ID).Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.DisplayName); err != nil {
@@ -192,7 +192,7 @@ func (h *HandlerImpl) Get(ctx context.Context, req GetRequest) (*GetResponse, er
 }
 
 func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	args := []any{req.ID}
 
@@ -226,7 +226,7 @@ func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchRespon
 }
 
 func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	if req.DisplayName == "" {
 		return nil, fmt.Errorf("%w: display name must not be empty", util.ErrBadRequest)
@@ -249,7 +249,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 }
 
 func (h *HandlerImpl) Delete(ctx context.Context, req DeleteRequest) error {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	if result, err := tx.Exec(ctx, deleteSQL, req.ID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -267,7 +267,7 @@ func (h *HandlerImpl) Delete(ctx context.Context, req DeleteRequest) error {
 }
 
 func (h *HandlerImpl) DeleteAll(ctx context.Context, _ DeleteAllRequest) error {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	_, err := tx.Exec(ctx, deleteAllSQL)
 	if err != nil {

@@ -6,22 +6,32 @@ ingress:
   domain: greenstar.test
 
 backend:
-  extraEnv:
-    OTEL_SDK_DISABLED:
-      value: "true"
-  ingress:
-    enabled: true
-    parentRef:
-      kind: Gateway
-      name: local
-      namespace: ingress
-      httpSectionName: web
-      httpsSectionName: websecure
-
-exchangeRatesCronJob:
-  extraEnv:
-    OTEL_SDK_DISABLED:
-      value: "true"
+  acme:
+    extraEnv:
+      OTEL_SDK_DISABLED:
+        value: "true"
+      OTEL_LOG_LEVEL:
+        value: info
+  migrate:
+    extraEnv:
+      OTEL_SDK_DISABLED:
+        value: "true"
+      OTEL_LOG_LEVEL:
+        value: info
+  server:
+    extraEnv:
+      OTEL_SDK_DISABLED:
+        value: "true"
+      OTEL_LOG_LEVEL:
+        value: info
+    ingress:
+      enabled: true
+      parentRef:
+        kind: Gateway
+        name: local
+        namespace: ingress
+        httpSectionName: web
+        httpsSectionName: websecure
 
 frontend:
   ingress:
@@ -32,19 +42,6 @@ frontend:
       namespace: ingress
       httpSectionName: web
       httpsSectionName: websecure
-
-initJob:
-  extraEnv:
-    OTEL_SDK_DISABLED:
-      value: "true"
-  volumes:
-    - name: rates
-      hostPath:
-        path: /var/greenstar/rates
-        type: Directory
-  volumeMounts:
-    - name: rates
-      mountPath: /var/greenstar/rates
 
 postgres:
   backendPassword: "local"
@@ -60,3 +57,11 @@ postgres:
       name: local
       namespace: ingress
       tlsSectionName: postgres
+  volumeMounts:
+    - name: rates
+      mountPath: /var/greenstar/rates
+  volumes:
+    - name: rates
+      hostPath:
+        path: /var/greenstar/rates
+        type: Directory

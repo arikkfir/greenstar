@@ -3,8 +3,8 @@
 package tenant
 
 import (
-	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"net/http"
 )
 
@@ -15,25 +15,10 @@ type DeleteAllResponse struct{}
 func (s *Server) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	l := util.Logger(ctx)
-
-	tenantID := middleware.GetTenantID(ctx)
-	if tenantID != "" {
-		l = l.With("tenantID", tenantID)
-	}
-	authToken := middleware.GetToken(ctx)
-	if !authToken.IsPermittedGlobally("tenants:delete") {
-		if tenantID != "" {
-			if !authToken.IsPermittedForTenant(tenantID, "tenants:delete") {
-				util.ServeError(w, r, util.ErrForbidden)
-				l.WarnContext(ctx, "Access denied", "permission", "tenants:delete")
-				return
-			}
-		} else {
-			util.ServeError(w, r, util.ErrForbidden)
-			l.WarnContext(ctx, "Access denied", "permission", "tenants:delete")
-			return
-		}
+	l := observability.GetLogger(ctx)
+	if err := util.VerifyPermissions(ctx, "tenants:delete"); err != nil {
+		util.ServeError(w, r, err)
+		return
 	}
 
 	req := DeleteAllRequest{}

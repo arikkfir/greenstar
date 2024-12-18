@@ -12,10 +12,22 @@ export function TopBar({ sx }: TopBarProperties) {
     return (
         <AppBar component="header" position="relative" sx={sx}>
             <Toolbar>
-                <Typography variant="h5" component="div" sx={{ fontWeight: "700", mr: 5 }}>
+                <Typography
+                    variant="h5"
+                    component="div"
+                    sx={{
+                        fontWeight: "700",
+                        mr: 5,
+                    }}
+                >
                     GreenSTAR
                 </Typography>
-                <Box sx={{ display: "flex", flexGrow: 1 }}>
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexGrow: 1,
+                    }}
+                >
                     <LinkButton to="/">Dashboard</LinkButton>
                     <LinkButton to="/transactions">Transactions</LinkButton>
                     <LinkButton to="/api">API</LinkButton>

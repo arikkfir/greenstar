@@ -7,48 +7,89 @@ ingress:
   domain: greenstar.test
 
 backend:
-  extraEnv:
-    OTEL_METRICS_EXPORTER:
-      value: "prometheus"
-    OTEL_LOGS_EXPORTER:
-      value: "none"
-    OTEL_EXPORTER_PROMETHEUS_HOST:
-      value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
-    OTEL_EXPORTER_PROMETHEUS_PORT:
-      value: "8000"
-    OTEL_TRACES_EXPORTER:
-      value: "otlp"
-    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
-      value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
-  ingress:
-    enabled: true
-    parentRef:
-      kind: Gateway
-      name: local
-      namespace: ingress
-      httpSectionName: web
-      httpsSectionName: websecure
-
-exchangeRatesCronJob:
-  extraEnv:
-    OTEL_METRICS_EXPORTER:
-      value: "prometheus"
-    OTEL_LOGS_EXPORTER:
-      value: "none"
-    OTEL_EXPORTER_PROMETHEUS_HOST:
-      value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
-    OTEL_EXPORTER_PROMETHEUS_PORT:
-      value: "8000"
-    OTEL_TRACES_EXPORTER:
-      value: "otlp"
-    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
-      value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
+  acme:
+    extraEnv:
+      OTEL_SDK_DISABLED:
+        value: "true"
+      OTEL_LOG_LEVEL:
+        value: info
+#      OTEL_RESOURCE_ATTRIBUTES:
+#        value: service.name=backend-server,service.version={{ .Chart.AppVersion }}
+#      OTEL_LOGS_EXPORTER:
+#        value: "none"
+#      OTEL_METRICS_EXPORTER:
+#        value: prometheus
+#      OTEL_EXPORTER_PROMETHEUS_HOST:
+#        value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
+#      OTEL_EXPORTER_PROMETHEUS_PORT:
+#        value: "8000"
+#      OTEL_TRACES_EXPORTER:
+#        value: otlp
+#      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
+#        value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
+#      OTEL_TRACES_SAMPLER:
+#        value: always_on
+#      OTEL_PROPAGATORS:
+#        value: tracecontext,baggage
+  migrate:
+    extraEnv:
+      OTEL_SDK_DISABLED:
+        value: "true"
+      OTEL_LOG_LEVEL:
+        value: info
+  #      OTEL_RESOURCE_ATTRIBUTES:
+  #        value: service.name=backend-server,service.version={{ .Chart.AppVersion }}
+  #      OTEL_LOGS_EXPORTER:
+  #        value: "none"
+  #      OTEL_METRICS_EXPORTER:
+  #        value: prometheus
+  #      OTEL_EXPORTER_PROMETHEUS_HOST:
+  #        value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
+  #      OTEL_EXPORTER_PROMETHEUS_PORT:
+  #        value: "8000"
+  #      OTEL_TRACES_EXPORTER:
+  #        value: otlp
+  #      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
+  #        value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
+  #      OTEL_TRACES_SAMPLER:
+  #        value: always_on
+  #      OTEL_PROPAGATORS:
+  #        value: tracecontext,baggage
+  server:
+    extraEnv:
+      OTEL_SDK_DISABLED:
+        value: "true"
+      OTEL_LOG_LEVEL:
+        value: info
+    #      OTEL_RESOURCE_ATTRIBUTES:
+    #        value: service.name=backend-server,service.version={{ .Chart.AppVersion }}
+    #      OTEL_LOGS_EXPORTER:
+    #        value: "none"
+    #      OTEL_METRICS_EXPORTER:
+    #        value: prometheus
+    #      OTEL_EXPORTER_PROMETHEUS_HOST:
+    #        value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
+    #      OTEL_EXPORTER_PROMETHEUS_PORT:
+    #        value: "8000"
+    #      OTEL_TRACES_EXPORTER:
+    #        value: otlp
+    #      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
+    #        value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
+    #      OTEL_TRACES_SAMPLER:
+    #        value: always_on
+    #      OTEL_PROPAGATORS:
+    #        value: tracecontext,baggage
+    ingress:
+      enabled: true
+      parentRef:
+        kind: Gateway
+        name: local
+        namespace: ingress
+        httpSectionName: web
+        httpsSectionName: websecure
 
 frontend:
   extraArgs: [ "--", "--logLevel=info", "--port=3000", "--host=0.0.0.0" ]
-  extraEnv:
-    VITE_SLOW_REQUESTS:
-      value: "F"
   ingress:
     enabled: true
     parentRef:
@@ -68,29 +109,6 @@ frontend:
   livenessProbe: false
   startupProbe: false
 
-initJob:
-  extraEnv:
-    OTEL_METRICS_EXPORTER:
-      value: "prometheus"
-    OTEL_LOGS_EXPORTER:
-      value: "none"
-    OTEL_EXPORTER_PROMETHEUS_HOST:
-      value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
-    OTEL_EXPORTER_PROMETHEUS_PORT:
-      value: "8000"
-    OTEL_TRACES_EXPORTER:
-      value: "otlp"
-    OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
-      value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
-  volumes:
-    - name: rates
-      hostPath:
-        path: /var/greenstar/rates
-        type: Directory
-  volumeMounts:
-    - name: rates
-      mountPath: /var/greenstar/rates
-
 postgres:
   backendPassword: "local"
   extraArgs:
@@ -105,5 +123,11 @@ postgres:
       name: local
       namespace: ingress
       tlsSectionName: postgres
-  initJobPassword: "local"
-  initPassword: "local"
+  volumeMounts:
+    - name: rates
+      mountPath: /var/greenstar/rates
+  volumes:
+    - name: rates
+      hostPath:
+        path: /var/greenstar/rates
+        type: Directory

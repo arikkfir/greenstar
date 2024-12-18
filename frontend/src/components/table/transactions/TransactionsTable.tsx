@@ -5,7 +5,7 @@ import { useCurrencyFormatter, useDateFormatter } from "../../../hooks/locale.ts
 import { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { CustomDataGrid } from "../CustomDataGrid.tsx"
 import type { GridAutosizeOptions } from "@mui/x-data-grid/hooks/features/columnResize"
-import { AccountID, AccountsMap } from "../../../models/account-addons.ts"
+import { AccountID, AccountsMap } from "../../../util/account-addons.ts"
 import { useListTransactions } from "../../../hooks/transaction/list.ts"
 
 const defaultColumnVisibilityModel = {
@@ -53,8 +53,18 @@ function useColumns(accounts: AccountsMap): GridColDef<Transaction>[] {
                 flex: 0,
                 valueFormatter: currFmt,
             },
-            { field: "description", headerName: "Description", type: "string", flex: 1 },
-            { field: "referenceId", headerName: "Reference", type: "string", flex: 0 },
+            {
+                field: "description",
+                headerName: "Description",
+                type: "string",
+                flex: 1,
+            },
+            {
+                field: "referenceId",
+                headerName: "Reference",
+                type: "string",
+                flex: 0,
+            },
         ],
         [accounts, accFmt, dateFmt, currFmt],
     )
@@ -76,7 +86,10 @@ export function TransactionsTable({
     ...dataGridProps
 }: TransactionsTableProps) {
     const locale = useContext(LocaleContext)
-    const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: -1 })
+    const [paginationModel, setPaginationModel] = useState({
+        page: 0,
+        pageSize: -1,
+    })
     const [colVisibilityModel, setColVisibilityModel] =
         useState<GridColumnVisibilityModel>(defaultColumnVisibilityModel)
     const columns: GridColDef<Transaction>[] = useColumns(accounts)
@@ -86,7 +99,13 @@ export function TransactionsTable({
         const offset = paginationModel.page * paginationModel.pageSize
         const count = paginationModel.pageSize
         if (count > 0) {
-            fetchTransactions({ offset, count, sourceAccountId, targetAccountId, currency: locale.currency })
+            fetchTransactions({
+                offset,
+                count,
+                sourceAccountId,
+                targetAccountId,
+                currency: locale.currency,
+            })
         }
     }, [paginationModel, sourceAccountId, targetAccountId, locale])
 

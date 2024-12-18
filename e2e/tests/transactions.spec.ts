@@ -22,7 +22,7 @@ interface AccountWithChildren extends Account {
 
 test('transactions', async ({page}) => {
     await page.goto('/transactions');
-    const accountsRes = await page.waitForResponse('https://api.greenstar.test/accounts?currency=ILS');
+    const accountsRes = await page.waitForResponse('https://api.greenstar.test/accounts?currency=USD');
     const accountsResJSON = await accountsRes.json()
     const totalItems = accountsResJSON.totalCount
     expect(totalItems).toEqual(44)
@@ -46,7 +46,7 @@ test('transactions', async ({page}) => {
     }
 
     // TODO: obtain locale & currency from app somehow
-    const balanceFormatter = new Intl.NumberFormat('he-IL', {style: 'currency', currency: 'ILS', maximumFractionDigits: 0})
+    const balanceFormatter = new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0})
 
     async function processAccount(account: AccountWithChildren) {
         const balanceLocator = page.getByTestId(`balance:${account.id}`)

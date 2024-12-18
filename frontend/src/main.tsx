@@ -10,7 +10,10 @@ function WithTheme({ children }: any) {
     const theme = useMemo(
         () =>
             createTheme({
-                colorSchemes: { dark: true, light: true },
+                colorSchemes: {
+                    dark: true,
+                    light: true,
+                },
                 cssVariables: {
                     colorSchemeSelector: "class",
                 },

@@ -5,7 +5,6 @@
 {{- $secretName := printf "%s-%s" $prefix $componentName -}}
 {{- $pvcName := printf "%s-%s-data" $prefix $componentName -}}
 {{- $initPassword := .Values.postgres.initPassword | default (randAlphaNum 16) -}}
-{{- $initJobPassword := .Values.postgres.initJobPassword | default (randAlphaNum 16) -}}
 {{- $backendPassword := .Values.postgres.backendPassword | default (randAlphaNum 16) -}}
 {{- /*------------------------------------------------------------------------------------------------------------*/ -}}
 
@@ -74,7 +73,6 @@ immutable: false
 stringData:
   init-pwd: {{ $initPassword | quote }}
   backend-pwd: {{ $backendPassword | quote }}
-  init-job-pwd: {{ $initJobPassword | quote }}
   init-users.sh: |-
     #!/bin/bash
     set -e
@@ -83,10 +81,9 @@ stringData:
 
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     	CREATE ROLE greenstar_backend WITH LOGIN ENCRYPTED PASSWORD '{{ $backendPassword }}';
-    	CREATE ROLE greenstar_init_job WITH LOGIN ENCRYPTED PASSWORD '{{ $initJobPassword }}' SUPERUSER;
     	CREATE DATABASE greenstar WITH OWNER=greenstar_backend;
     	GRANT CONNECT, TEMPORARY ON DATABASE greenstar TO greenstar_backend;
-    	GRANT CONNECT, TEMPORARY ON DATABASE greenstar TO greenstar_init_job;
+    	GRANT pg_read_server_files TO greenstar_backend;
         {{ range $user, $pwd := .Values.postgres.extraUsers -}}
         CREATE ROLE {{ $user }} WITH LOGIN ENCRYPTED PASSWORD '{{ $pwd }}' SUPERUSER;
         {{- end }}
@@ -166,6 +163,9 @@ spec:
             timeoutSeconds: 3
             terminationGracePeriodSeconds: 60
           volumeMounts:
+            {{- if not (empty .Values.postgres.volumeMounts) }}
+            {{- toYaml .Values.postgres.volumeMounts | nindent 12 }}
+            {{- end }}
             - name: data
               mountPath: /var/lib/postgresql/data
               readOnly: false
@@ -175,6 +175,9 @@ spec:
       enableServiceLinks: false
       serviceAccountName: {{ $serviceAccountName | quote }}
       volumes:
+        {{- if not (empty .Values.postgres.volumes) }}
+        {{- toYaml .Values.postgres.volumes | nindent 8 }}
+        {{- end }}
         - name: init-scripts
           secret:
             secretName: {{ $secretName | quote }}

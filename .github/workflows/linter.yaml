@@ -1,0 +1,55 @@
+name: Linter
+
+on:
+  push:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+defaults:
+  run:
+    shell: bash -exuo pipefail {0}
+
+jobs:
+
+  verify-code-format:
+    name: Verify code format
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      id-token: none
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.x
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Generate
+        run: task generate-rest
+
+      - name: Format code
+        run: task format-code
+
+      - name: Verify
+        run: git diff --compact-summary --exit-code

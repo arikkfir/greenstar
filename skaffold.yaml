@@ -5,33 +5,33 @@ metadata:
   name: greenstar
 build:
   artifacts:
-    - image: ghcr.io/arikkfir/greenstar/backend
+    - image: ghcr.io/arikkfir/greenstar/backend-acme
       context: backend
       docker:
         buildArgs:
           VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
-        dockerfile: backend/Dockerfile.backend
+        dockerfile: backend/Dockerfile.acme
         target: production
-    - image: ghcr.io/arikkfir/greenstar/init-job
+    - image: ghcr.io/arikkfir/greenstar/backend-migrate
       context: backend
       docker:
         buildArgs:
           VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
-        dockerfile: backend/Dockerfile.initJob
+        dockerfile: backend/Dockerfile.migrate
         target: production
-    - image: ghcr.io/arikkfir/greenstar/exchange-rates-job
+    - image: ghcr.io/arikkfir/greenstar/backend-server
       context: backend
       docker:
         buildArgs:
           VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
-        dockerfile: backend/Dockerfile.exchangeRatesJob
+        dockerfile: backend/Dockerfile.server
         target: production
     - image: ghcr.io/arikkfir/greenstar/frontend
       context: frontend
       docker:
         buildArgs:
           VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
-        dockerfile: frontend/Dockerfile.frontend
+        dockerfile: frontend/Dockerfile
         target: development
       sync:
         manual:
@@ -43,16 +43,8 @@ build:
     concurrency: 1
 deploy:
   helm:
-    hooks:
-      before:
-        - host:
-            command:
-              - yq
-              - -e
-              - .frontend.extraEnv.VITE_LOCATION_IQ_ACCESS_TOKEN = {"value":"{{.LOCATION_IQ_ACCESS_TOKEN}}"}
-              - ./hack/greenstar-values.yaml
     releases:
-      - name: '{{default (list "greenstar" (cmd "whoami") | join "-") .HELM_RELEASE_NAME}}'
+      - name: greenstar
         chartPath: ./deploy/chart
         packaged:
           appVersion: 0.0.0-{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
@@ -65,17 +57,18 @@ deploy:
           - hack/greenstar-values.yaml
         setValueTemplates:
           backend:
-            image:
-              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_backend}}"
-              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_backend}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_backend}}"
-          initJob:
-            image:
-              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_init_job}}"
-              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_init_job}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_init_job}}"
-          exchangeRatesCronJob:
-            image:
-              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_exchange_rates_job}}"
-              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_exchange_rates_job}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_exchange_rates_job}}"
+            acme:
+              image:
+                repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_backend_acme}}"
+                tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_backend_acme}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_backend_acme}}"
+            migrate:
+              image:
+                repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_backend_migrate}}"
+                tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_backend_migrate}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_backend_migrate}}"
+            server:
+              image:
+                repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_backend_server}}"
+                tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_backend_server}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_backend_server}}"
           frontend:
             image:
               repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_frontend}}"

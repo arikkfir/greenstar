@@ -1,9 +1,9 @@
 create table currencies
 (
-    code           varchar(3)   not null primary key,
+    code           varchar(5)   not null primary key,
     created_at     timestamp with time zone default now(),
     updated_at     timestamp with time zone default now(),
-    symbol         varchar(3)   not null,
+    symbol         varchar(5)   not null,
     symbol_native  text         not null,
     name           text         not null,
     decimal_digits int          not null,
@@ -14,6 +14,10 @@ create table currencies
 );
 ALTER TABLE currencies
     OWNER TO greenstar_backend;
+
+COPY currencies (code, symbol, symbol_native, name, decimal_digits, rounding, name_plural, type, country_codes)
+    FROM '/var/greenstar/rates/currencies.csv'
+    WITH CSV;
 
 create table rates
 (
@@ -30,11 +34,18 @@ create table rates
     updated_at           timestamp with time zone default now(),
     rate                 numeric not null,
     mock                 boolean not null         default true,
-    line_number          int,
     primary key (date, source_currency_code, target_currency_code)
 );
 ALTER TABLE rates
     OWNER TO greenstar_backend;
+
+COPY rates (date, source_currency_code, target_currency_code, rate, mock)
+    FROM '/var/greenstar/rates/exchange-rates.csv'
+    WITH CSV;
+
+INSERT INTO rates (date, source_currency_code, target_currency_code, created_at, updated_at, rate, mock)
+SELECT date, target_currency_code, source_currency_code, created_at, updated_at, 1/rate, false
+FROM rates;
 
 create table tenants
 (
