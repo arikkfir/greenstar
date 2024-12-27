@@ -1,6 +1,10 @@
 # greenstar
 
-GreenSTAR is your own personal accountant, ready to serve, and ready to save!
+GreenSTAR is a personal financials management application, meant to be used as your own personal accountant - always there, ready to serve, and ready to save! Our vision for this application is that this will grow into the following mediums:
+
+- Web application providing the full breath of functionality: exploration, reporting, and insights.
+- Mobile application providing quick insights and helpful tips.
+- Financial Assistant backed by an LLM for interacting with your data to derive smart insights from past financial behavior.
 
 ## Status
 
