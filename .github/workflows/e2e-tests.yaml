@@ -185,3 +185,17 @@ jobs:
           name: e2e-test-results
           path: ./e2e/monocart-report/
           include-hidden-files: true
+
+      - name: Create metadata artifact
+        id: metadata
+        if: success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure'
+        run: |
+          echo '{ "pr": { "number": ${{ github.event.number }} } }' > workflow-metadata.json
+          jq < workflow-metadata.json
+
+      - name: Upload metadata artifact
+        uses: actions/upload-artifact@v4
+        if: success() || steps.metadata.outcome == 'success' || steps.metadata.outcome == 'failure'
+        with:
+          name: metadata
+          path: workflow-metadata.json
