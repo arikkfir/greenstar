@@ -16,7 +16,7 @@ jobs:
   publish:
     name: Publish
     runs-on: ubuntu-22.04
-    if: github.event.workflow_run.event == 'pull_request' && (github.event.workflow_run.outcome == 'success' || github.event.workflow_run.outcome == 'failure')
+    if: github.event.workflow_run.event == 'pull_request' && (github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure')
     permissions:
       id-token: write
     steps:
