@@ -9,7 +9,6 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/arikkfir/greenstar)
 ![GitHub forks](https://img.shields.io/github/forks/arikkfir/greenstar)
 
-
 GreenSTAR is a personal financials management application, meant to be used as your own personal accountant - always there, ready to serve, and ready to save! Our vision for this application is that this will grow into the following mediums:
 
 - Web application providing the full breath of functionality: exploration, reporting, and insights.
