@@ -3,8 +3,8 @@
 package account
 
 import (
-	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/shopspring/decimal"
 	"net/http"
 	"time"
@@ -33,25 +33,10 @@ type GetResponse Account
 func (s *Server) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	l := util.Logger(ctx)
-
-	tenantID := middleware.GetTenantID(ctx)
-	if tenantID != "" {
-		l = l.With("tenantID", tenantID)
-	}
-	authToken := middleware.GetToken(ctx)
-	if !authToken.IsPermittedGlobally("accounts:read") {
-		if tenantID != "" {
-			if !authToken.IsPermittedForTenant(tenantID, "accounts:read") {
-				util.ServeError(w, r, util.ErrForbidden)
-				l.WarnContext(ctx, "Access denied", "permission", "accounts:read")
-				return
-			}
-		} else {
-			util.ServeError(w, r, util.ErrForbidden)
-			l.WarnContext(ctx, "Access denied", "permission", "accounts:read")
-			return
-		}
+	l := observability.GetLogger(ctx)
+	if err := util.VerifyPermissions(ctx, "accounts:read"); err != nil {
+		util.ServeError(w, r, err)
+		return
 	}
 
 	req := GetRequest{}

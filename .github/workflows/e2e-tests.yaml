@@ -1,0 +1,187 @@
+name: End to End Tests
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+defaults:
+  run:
+    shell: bash -exuo pipefail {0}
+
+jobs:
+
+  build-images:
+    name: Build ${{ matrix.images.name }} image
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        images:
+          - { dir: backend, file: backend/Dockerfile.migrate, name: backend-migrate, imageName: backend-migrate, target: production }
+          - { dir: backend, file: backend/Dockerfile.acme, name: backend-acme, imageName: backend-acme, target: production }
+          - { dir: backend, file: backend/Dockerfile.server, name: backend-server, imageName: backend-server, target: production }
+          - { dir: frontend, file: frontend/Dockerfile, name: frontend, imageName: frontend, target: production }
+      fail-fast: false
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - if: matrix.images.name == 'frontend'
+        name: Apply patches
+        run: touch frontend/apply-patches.sh
+
+      - uses: docker/setup-buildx-action@v3
+        name: Setup Docker Builder
+        with:
+          install: true
+
+      - uses: docker/build-push-action@v6
+        name: Build image
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.images.name }}
+          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.images.name }}
+          context: ${{ matrix.images.dir }}
+          file: ${{ matrix.images.file }}
+          build-args: |
+            VERSION=v0.0.0+${{ github.sha }}
+          target: production
+          push: false
+          tags: ghcr.io/${{ github.repository }}/${{ matrix.images.imageName }}:${{ github.sha }}
+          outputs: type=docker,dest=/tmp/${{ matrix.images.name }}.tar
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.images.name }}-image
+          path: /tmp/${{ matrix.images.name }}.tar
+
+  build-helm-package:
+    name: Build Helm chart
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.package.outputs.version }}
+    env:
+      IMAGES_TAG: ${{ github.sha }}
+      VERSION: "0.0.0+${{ github.sha }}"
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package Helm chart
+        run: task -v package-helm-chart
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-package
+          path: greenstar-${{ env.VERSION }}.tgz
+
+  run-e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-22.04
+    needs: [ build-images, build-helm-package ]
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download image artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-image'
+          merge-multiple: true
+          path: images
+
+      - name: Download Helm package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: helm-package
+          path: .
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup DNS
+        run: task -v setup-domain-dns
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.x
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Setup dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps
+        working-directory: e2e
+
+      - name: Setup Cluster
+        id: setup-cluster
+        run: task -v setup-cluster
+
+      - name: Load container images
+        run: for f in images/*.tar; do kind load image-archive --name greenstar ${f}; done
+
+      - name: Install Helm package
+        run: helm install greenstar ./greenstar-0.0.0+*.tgz --create-namespace -n greenstar -f deploy/local/chart-ci-values.yaml --wait --wait-for-jobs
+
+      - name: Run tests
+        id: test
+        run: npx playwright test
+        working-directory: e2e
+
+      - name: Export cluster state
+        id: export-cluster-state
+        if: success() || steps.setup-cluster.outcome == 'failure' || steps.setup-cluster.outcome == 'success'
+        run: |
+          kubectl cluster-info dump -o yaml --output-directory=./cluster-state --namespaces=ingress,observability,greenstar
+          kubectl get gateways.gateway.networking.k8s.io -o yaml -A > ./cluster-state/gateways.yaml
+          kubectl get httproutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/httproutes.yaml
+          kubectl get tlsroutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/tlsroutes.yaml
+
+      - name: Upload cluster state artifact
+        uses: actions/upload-artifact@v4
+        if: success() || steps.export-cluster-state.outcome == 'success'
+        with:
+          name: cluster-state
+          path: ./cluster-state
+          include-hidden-files: true
+
+      - name: Teardown
+        run: task teardown
+        if: success() || steps.setup-cluster.outcome == 'success' || steps.setup-cluster.outcome == 'failure'
+
+      - name: Upload test results artifact
+        uses: actions/upload-artifact@v4
+        if: success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure'
+        with:
+          name: e2e-test-results
+          path: ./e2e/monocart-report/
+          include-hidden-files: true

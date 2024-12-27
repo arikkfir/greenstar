@@ -5,12 +5,12 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/arikkfir/greenstar/backend/internal/migration"
-	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/resources/account"
+	util2 "github.com/arikkfir/greenstar/backend/internal/server/resources/util"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/arikkfir/greenstar/backend/internal/util/db"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"github.com/arikkfir/greenstar/backend/internal/util/tenant"
 	"github.com/jackc/pgx/v5"
 	"github.com/pganalyze/pg_query_go/v5"
 	"strings"
@@ -47,7 +47,7 @@ type HandlerImpl struct {
 }
 
 func (h *HandlerImpl) List(ctx context.Context, req ListRequest) (*ListResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	res := ListResponse{}
 	res.Items = make([]Transaction, 0)
@@ -77,7 +77,7 @@ func (h *HandlerImpl) List(ctx context.Context, req ListRequest) (*ListResponse,
 }
 
 func (h *HandlerImpl) buildListQuery(ctx context.Context, req ListRequest) (string, []any, error) {
-	args := []any{nil, nil, middleware.GetTenantID(ctx), req.Currency}
+	args := []any{nil, nil, tenant.GetTenantID(ctx), req.Currency}
 
 	result, err := pg_query.Parse(listSQL)
 	if err != nil {
@@ -266,7 +266,7 @@ func (h *HandlerImpl) buildCountQuery(ctx context.Context, req ListRequest) (str
 }
 
 func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	if req.Amount.IsZero() {
 		return nil, fmt.Errorf("%w: amount is required", util.ErrBadRequest)
@@ -294,13 +294,8 @@ func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateRes
 		}
 	}
 
-	for _, currency := range migration.SupportedCurrencies {
-		if _, err := tx.Exec(ctx, insertMockRatesSQL, req.Date, req.Currency, currency); err != nil {
-			return nil, fmt.Errorf("failed inserting mock rate row: %w", err)
-		}
-		if _, err := tx.Exec(ctx, insertMockRatesSQL, req.Date, currency, req.Currency); err != nil {
-			return nil, fmt.Errorf("failed inserting mock rate row: %w", err)
-		}
+	if _, err := tx.Exec(ctx, insertMockRatesSQL, req.Date, req.Currency); err != nil {
+		return nil, fmt.Errorf("failed inserting mock rate row: %w", err)
 	}
 
 	var id string
@@ -318,14 +313,14 @@ func (h *HandlerImpl) Create(ctx context.Context, req CreateRequest) (*CreateRes
 }
 
 func (h *HandlerImpl) Get(ctx context.Context, req GetRequest) (*GetResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	if req.Currency == nil {
-		req.Currency = lang.PtrOf(util.DefaultCurrency)
+		req.Currency = lang.PtrOf(util2.DefaultCurrency)
 	}
 
 	var res GetResponse
-	if err := tx.QueryRow(ctx, getSQL, req.ID, middleware.GetTenantID(ctx), req.Currency).Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.Amount, &res.Currency, &res.ConvertedAmount, &res.Date, &res.Description, &res.ReferenceID, &res.SourceAccountID, &res.TargetAccountID); err != nil {
+	if err := tx.QueryRow(ctx, getSQL, req.ID, tenant.GetTenantID(ctx), req.Currency).Scan(&res.ID, &res.CreatedAt, &res.UpdatedAt, &res.Amount, &res.Currency, &res.ConvertedAmount, &res.Date, &res.Description, &res.ReferenceID, &res.SourceAccountID, &res.TargetAccountID); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, util.ErrNotFound
 		} else {
@@ -337,7 +332,7 @@ func (h *HandlerImpl) Get(ctx context.Context, req GetRequest) (*GetResponse, er
 }
 
 func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	args := []any{req.ID}
 
@@ -423,7 +418,7 @@ func (h *HandlerImpl) Patch(ctx context.Context, req PatchRequest) (*PatchRespon
 }
 
 func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateResponse, error) {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
 	if req.Amount.IsZero() {
 		return nil, fmt.Errorf("%w: amount is required", util.ErrBadRequest)
@@ -451,7 +446,7 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 		}
 	}
 
-	args := []any{req.Amount, req.Currency, req.Date, req.Description, req.ReferenceID, req.SourceAccountID, req.TargetAccountID, middleware.GetTenantID(ctx), req.ID}
+	args := []any{req.Amount, req.Currency, req.Date, req.Description, req.ReferenceID, req.SourceAccountID, req.TargetAccountID, tenant.GetTenantID(ctx), req.ID}
 	result, err := tx.Exec(ctx, updateSQL, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed updating row: %w", err)
@@ -470,9 +465,9 @@ func (h *HandlerImpl) Update(ctx context.Context, req UpdateRequest) (*UpdateRes
 }
 
 func (h *HandlerImpl) Delete(ctx context.Context, req DeleteRequest) error {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
-	result, err := tx.Exec(ctx, deleteSQL, middleware.GetTenantID(ctx), req.ID)
+	result, err := tx.Exec(ctx, deleteSQL, tenant.GetTenantID(ctx), req.ID)
 	if err != nil {
 		return fmt.Errorf("failed deleting row: %w", err)
 	} else if result.RowsAffected() == 0 {
@@ -485,9 +480,9 @@ func (h *HandlerImpl) Delete(ctx context.Context, req DeleteRequest) error {
 }
 
 func (h *HandlerImpl) DeleteAll(ctx context.Context, _ DeleteAllRequest) error {
-	tx := db.TxFromContext(ctx)
+	tx := db.GetTransaction(ctx)
 
-	_, err := tx.Exec(ctx, deleteAllSQL, middleware.GetTenantID(ctx))
+	_, err := tx.Exec(ctx, deleteAllSQL, tenant.GetTenantID(ctx))
 	if err != nil {
 		return fmt.Errorf("failed deleting rows: %w\nSQL: %s", err, deleteAllSQL)
 	}

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"bytes"
-	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"io"
 	"net/http"
 	"regexp"
@@ -24,7 +24,7 @@ func AccessLogMiddleware(logSuccessfulRequests, excludeRemoteAddr bool, excluded
 		return true
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		l := util.Logger(r.Context())
+		l := observability.GetLogger(r.Context())
 
 		// Add common request data
 		accessLogLogger := l.With(
@@ -65,7 +65,7 @@ func AccessLogMiddleware(logSuccessfulRequests, excludeRemoteAddr bool, excluded
 		origReqBody := r.Body
 		defer func() { r.Body = origReqBody }()
 		r.Body = io.NopCloser(io.TeeReader(r.Body, &requestBody))
-		rr := &responseBodyRecorder{
+		recResp := &responseBodyRecorder{
 			ResponseWriter: w,
 			w:              io.MultiWriter(&responseBody, w),
 			status:         200,
@@ -73,12 +73,12 @@ func AccessLogMiddleware(logSuccessfulRequests, excludeRemoteAddr bool, excluded
 
 		// Invoke & time the next handler
 		start := time.Now()
-		next.ServeHTTP(rr, r)
-		if logSuccessfulRequests || rr.status >= 300 {
+		next.ServeHTTP(recResp, r)
+		if logSuccessfulRequests || recResp.status >= 300 {
 			duration := time.Since(start)
 
 			// Add request & response bodies
-			if rr.status >= 400 {
+			if recResp.status >= 400 {
 				if requestBody.Len() > 1024*4 {
 					requestBody.Truncate(1024 * 4)
 					requestBody.WriteString("...")
@@ -93,7 +93,7 @@ func AccessLogMiddleware(logSuccessfulRequests, excludeRemoteAddr bool, excluded
 
 			// Add invocation result
 			accessLogLogger = accessLogLogger.With("http:process:duration", duration)
-			accessLogLogger = accessLogLogger.With("http:res:status", rr.status)
+			accessLogLogger = accessLogLogger.With("http:res:status", recResp.status)
 			accessLogLogger = accessLogLogger.With("http:res:size", responseBody.Len())
 
 			// Add response headers
@@ -106,9 +106,9 @@ func AccessLogMiddleware(logSuccessfulRequests, excludeRemoteAddr bool, excluded
 
 			// Perform the logging with all the information we've added so far
 			const message = "HTTP Request processed"
-			if rr.status < 400 {
+			if recResp.status < 400 {
 				accessLogLogger.InfoContext(r.Context(), message)
-			} else if rr.status < 500 {
+			} else if recResp.status < 500 {
 				accessLogLogger.WarnContext(r.Context(), message)
 			} else {
 				accessLogLogger.ErrorContext(r.Context(), message)

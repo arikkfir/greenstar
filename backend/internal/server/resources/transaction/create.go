@@ -4,8 +4,8 @@ package transaction
 
 import (
 	"encoding/json"
-	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/shopspring/decimal"
 	"net/http"
 	"slices"
@@ -51,25 +51,10 @@ type CreateResponse Transaction
 func (s *Server) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	l := util.Logger(ctx)
-
-	tenantID := middleware.GetTenantID(ctx)
-	if tenantID != "" {
-		l = l.With("tenantID", tenantID)
-	}
-	authToken := middleware.GetToken(ctx)
-	if !authToken.IsPermittedGlobally("transactions:create") {
-		if tenantID != "" {
-			if !authToken.IsPermittedForTenant(tenantID, "transactions:create") {
-				util.ServeError(w, r, util.ErrForbidden)
-				l.WarnContext(ctx, "Access denied", "permission", "transactions:create")
-				return
-			}
-		} else {
-			util.ServeError(w, r, util.ErrForbidden)
-			l.WarnContext(ctx, "Access denied", "permission", "transactions:create")
-			return
-		}
+	l := observability.GetLogger(ctx)
+	if err := util.VerifyPermissions(ctx, "transactions:create"); err != nil {
+		util.ServeError(w, r, err)
+		return
 	}
 
 	req := CreateRequest{}

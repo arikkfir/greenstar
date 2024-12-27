@@ -15,9 +15,7 @@ includes:
 
 tasks:
 
-  1password: { deps: [ brew:1password ] }
   dnsmasq: { deps: [ brew:dnsmasq ] }
-  gcloud: { deps: [ brew:gcloud ] }
   go: { deps: [ brew:go ] }
   helm: { deps: [ brew:helm ] }
   kind: { deps: [ brew:kind, gha:kind ] }

@@ -1,0 +1,37 @@
+# syntax=docker/dockerfile:1
+
+FROM golang:1.23.4 AS builder
+ARG SKAFFOLD_GO_GCFLAGS=""
+ARG TARGETOS="linux"
+ARG TARGETARCH
+WORKDIR /workspace
+COPY go.mod go.mod
+COPY go.sum go.sum
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod go mod download
+COPY cmd/acme/ cmd/acme/
+COPY internal/sample/ internal/sample/
+COPY internal/server/middleware/ internal/server/middleware/
+COPY internal/server/resources/ internal/server/resources/
+COPY internal/server/util/ internal/server/util/
+COPY internal/util/auth/ internal/util/auth/
+COPY internal/util/db/ internal/util/db/
+COPY internal/util/lang/ internal/util/lang/
+COPY internal/util/observability/ internal/util/observability/
+COPY internal/util/tenant/ internal/util/tenant/
+COPY internal/util/strings/ internal/util/strings/
+COPY internal/util/version/ internal/util/version/
+ARG VERSION=v0.0.0-notset
+RUN --mount=type=cache,target=/root/.cache/go-build --mount=type=cache,target=/go/pkg/mod \
+    GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+    go build \
+      -gcflags="${SKAFFOLD_GO_GCFLAGS}" \
+      -ldflags "-X github.com/arikkfir/greenstar/backend/internal/util/version.Version=${VERSION}" \
+      -o backend-acme \
+      cmd/acme/main.go
+
+FROM gcr.io/distroless/base:nonroot AS production
+WORKDIR /
+COPY --from=builder /workspace/backend-acme /usr/local/bin/
+USER 65532:65532
+ENV GOTRACEBACK=single
+ENTRYPOINT ["/usr/local/bin/backend-acme"]

@@ -1,0 +1,82 @@
+name: Publish End to End Tests Results
+
+on:
+  workflow_run:
+    workflows:
+      - End to End Tests
+    types:
+      - completed
+
+defaults:
+  run:
+    shell: bash -exuo pipefail {0}
+
+jobs:
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-22.04
+    if: github.event.workflow_run.event == 'pull_request' && (github.event.workflow_run.outcome == 'success' || github.event.workflow_run.outcome == 'failure')
+    permissions:
+      id-token: write
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: projects/${{ secrets.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
+
+      - name: Download artifact
+        uses: actions/github-script@v3
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var e2eArtifact = artifacts.data.artifacts.filter(artifact => artifact.name == "e2e-test-results")[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: e2eArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/hack/e2e-test-results.zip', Buffer.from(download.data));
+
+      - run: unzip e2e-test-results.zip
+        working-directory: hack
+
+      - run: ls -la
+      - run: ls -la hack
+
+      - name: Upload artifact
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          process_gcloudignore: 'false'
+          path: ./hack/e2e-report
+          destination: arikkfir-static-website/github/greenstar/${{ github.run_id }}/${{ github.run_attempt }}/
+
+#      - name: 'Comment on PR'
+#        uses: actions/github-script@v3
+#        with:
+#          github-token: ${{ secrets.GITHUB_TOKEN }}
+#          script: |
+#            var fs = require('fs');
+#            var issue_number = Number(fs.readFileSync('./NR'));
+#            await github.issues.createComment({
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              issue_number: issue_number,
+#              body: 'Everything is OK. Thank you for the PR!'
+#            });
+#      - name: Add job summary
+#        run: |
+#          echo "End-to-end test results can be accessed here: https://static.kfirs.com/github/greenstar/${{ github.run_id }}-${{ github.run_attempt }}/e2e-report/" >> $GITHUB_STEP_SUMMARY

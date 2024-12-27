@@ -11,6 +11,8 @@
         <function importPath="fmt" name="Print" />
         <function importPath="io" name="WriteString" />
         <function importPath="os" name="Remove" />
+        <function importPath="fmt" name="Fprintf" />
+        <function importPath="fmt" name="Fprint" />
       </functions>
       <methods>
         <method importPath="hash" receiver="Hash" name="Write" />

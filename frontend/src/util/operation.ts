@@ -15,6 +15,7 @@ export interface Hook<Request, Response> {
 
 export type Method = "POST" | "GET" | "PATCH" | "PUT" | "DELETE"
 export type OperationURL<Request> = string | ((req: Request) => string)
+
 export interface OperationProps<Request, Response> {
     initial: Response
     method: Method
@@ -59,7 +60,11 @@ export function useOperation<Request, Response>({
 
         const body = method == "POST" || method == "PUT" || method == "PATCH" ? JSON.stringify(req) : undefined
 
-        fetch(resolvedURL, { method, headers, body })
+        fetch(resolvedURL, {
+            method,
+            headers,
+            body,
+        })
             .then((response) => {
                 if (response.status >= 500) {
                     throw InternalError

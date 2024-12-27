@@ -5,9 +5,9 @@ package tenant
 import (
 	"errors"
 	"fmt"
-	"github.com/arikkfir/greenstar/backend/internal/server/middleware"
 	"github.com/arikkfir/greenstar/backend/internal/server/util"
 	"github.com/arikkfir/greenstar/backend/internal/util/lang"
+	"github.com/arikkfir/greenstar/backend/internal/util/observability"
 	"github.com/shopspring/decimal"
 	"net/http"
 	"slices"
@@ -113,25 +113,10 @@ type ListResponse struct {
 func (s *Server) List(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	l := util.Logger(ctx)
-
-	tenantID := middleware.GetTenantID(ctx)
-	if tenantID != "" {
-		l = l.With("tenantID", tenantID)
-	}
-	authToken := middleware.GetToken(ctx)
-	if !authToken.IsPermittedGlobally("tenants:list") {
-		if tenantID != "" {
-			if !authToken.IsPermittedForTenant(tenantID, "tenants:list") {
-				util.ServeError(w, r, util.ErrForbidden)
-				l.WarnContext(ctx, "Access denied", "permission", "tenants:list")
-				return
-			}
-		} else {
-			util.ServeError(w, r, util.ErrForbidden)
-			l.WarnContext(ctx, "Access denied", "permission", "tenants:list")
-			return
-		}
+	l := observability.GetLogger(ctx)
+	if err := util.VerifyPermissions(ctx, "tenants:list"); err != nil {
+		util.ServeError(w, r, err)
+		return
 	}
 
 	if err := r.ParseForm(); err != nil {
