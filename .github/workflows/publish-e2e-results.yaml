@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: github.event.workflow_run.event == 'pull_request' && (github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure')
     permissions:
+      actions: read
       id-token: write
     steps:
 
@@ -33,8 +34,9 @@ jobs:
           workload_identity_provider: projects/${{ secrets.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
 
       - name: Download artifact
-        uses: actions/github-script@v3
+        uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             var artifacts = await github.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
@@ -53,9 +55,6 @@ jobs:
 
       - run: unzip e2e-test-results.zip
         working-directory: hack
-
-      - run: ls -la
-      - run: ls -la hack
 
       - name: Upload artifact
         uses: google-github-actions/upload-cloud-storage@v2
