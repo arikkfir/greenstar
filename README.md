@@ -1,4 +1,13 @@
-# greenstar
+# GreenSTAR
+
+[![End-to-End Tests](https://github.com/arikkfir/greenstar/actions/workflows/e2e-tests.yaml/badge.svg)](https://github.com/arikkfir/greenstar/actions/workflows/e2e-tests.yaml)
+[![Linter](https://github.com/arikkfir/greenstar/actions/workflows/linter.yaml/badge.svg)](https://github.com/arikkfir/greenstar/actions/workflows/linter.yaml)
+[![Unit Tests](https://github.com/arikkfir/greenstar/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/arikkfir/greenstar/actions/workflows/unit-tests.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/arikkfir/greenstar/backend)](https://goreportcard.com/report/github.com/arikkfir/greenstar/backend)
+![License](https://img.shields.io/github/license/arikkfir/greenstar)
+![GitHub contributors](https://img.shields.io/github/contributors/arikkfir/greenstar)
+![GitHub Repo stars](https://img.shields.io/github/stars/arikkfir/greenstar)
+![GitHub forks](https://img.shields.io/github/forks/arikkfir/greenstar)
 
 GreenSTAR is a personal financials management application, meant to be used as your own personal accountant - always there, ready to serve, and ready to save! Our vision for this application is that this will grow into the following mediums:
 
