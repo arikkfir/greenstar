@@ -14,15 +14,29 @@ this project you agree to abide by its terms.
 
 ```shell
 $ brew install go-task      # Ensure you have the "task" CLI
-$ task env                  # Generate a local ".env" file
 $ task setup-domain-dns     # Setup your local DNS to resolve *.greenstar.test to 127.0.0.1
 $ task setup-cluster        # Create a local `kind` cluster with HTTP server & observability
 $ task setup-observability  # Deploy observability tools such as Jaeger, Prometheus and Grafana
+$ task dev                  # Starts Skaffold dev loop, that's it! 
 ```
 
 > [!IMPORTANT]
 > The `setup-domain-dns` target invokes `sudo` to set up the local DNS resolving - therefore, you might get some
 > password prompts during invocation. The commands that use `sudo` can be found in the `Taskfile` for review.
+
+Navigate to https://acme.app.greenstar.test (yes it will resolve to your local cluster!) to see the app! Any changes
+you make to the backend or frontend will be reflected and reloaded automatically (backend changes could take a few
+seconds if they require a Docker image rebuild...)
+
+#### Optional
+
+If you want GreenSTAR to detect your geographic location, and infer which currency to use from it - do the following:
+
+1. Create a free account at [Geoapify](https://geoapify.com) and copy your API key
+2. Create a local `.env` file (don't worry, it's ignored by Git) with the following content:
+   ```
+   GEOAPIFY_API_KEY=...............
+   ```
 
 ### Teardown
 
@@ -81,16 +95,21 @@ See details here: https://akrabat.com/syncing-macos-keychain-certificates-with-h
 
 This target sets up a local Kubernetes cluster using `kind`, and installs the following components in it:
 
-- Kubernetes Gateway API CRDs
-- Traefik Ingress Controller & Gateway API implementation
-- Observability stack:
-    - Metrics Server
-    - Kube State Metrics
-    - Node Exporter
-    - Prometheus
-    - Alertmanager
-    - Jaeger Server
-    - Grafana
+- Creates a local `kind` cluster
+- Installs the Kubernetes Gateway API CRDs
+- Installs Traefik as the Ingress Controller & Gateway API implementation
+
+### What does `setup-observability` do?
+
+This task adds observability stack into your local cluster:
+
+- Metrics Server
+- Kube State Metrics
+- Node Exporter
+- Prometheus
+- Alertmanager
+- Jaeger Server
+- Grafana
 
 ## Developing
 
@@ -147,6 +166,39 @@ Here are a few things you can do that will increase the likelihood of your pull 
   your change.
 
 Work in Progress pull requests are also welcome to get feedback early on, or if there is something blocked you.
+
+### Conventions
+
+Please make sure all commit messages are written in accordance with the
+[conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) standard. Here's a brief summary of how they
+should look:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+```
+
+#### Types
+
+- feat: new features or enhancements
+- fix: bug fixes
+- docs: documentation addition or changes
+- tests: additions, removals or changes to tests
+- chore: refactors or general changes that aren't really features or fixes (usually refactors or tweaks with little
+  influence)
+
+#### Scopes
+
+Try to stick to the following scopes, though it's ok if you need to use something outside this list:
+
+- build: Skaffold, Docker, GitHub Actions, Taskfile, Helm, etc. 
+- ide: JetBrains/VSCode files
+- backend: anything related to the backend - you can be more specific if needed
+- frontend: anything related to the frontend - you can be more specific if needed
+
+> [!NOTE]
+> Scopes are optional, but justification is requested when they are missing.
 
 ## Resources
 
