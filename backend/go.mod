@@ -10,7 +10,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgx-shopspring-decimal v0.0.0-20220624020537-1d36b5a1853e
-	github.com/jackc/pgx/v5 v5.7.1
+	github.com/jackc/pgx/v5 v5.7.2
 	github.com/lib/pq v1.10.9
 	github.com/lmittmann/tint v1.0.5
 	github.com/lucasepe/codename v0.2.0
