@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:23.5.0-alpine AS dependencies
+FROM node:23.6.0-alpine AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json apply-patches.sh ./
 RUN npm ci
@@ -8,7 +8,7 @@ RUN apk add --no-cache jq patch && chmod +x apply-patches.sh && ./apply-patches.
 ARG VERSION=v0.0.0-notset
 RUN jq ".version=\"${VERSION}\"" package.json > /tmp/package.json && mv /tmp/package.json package.json
 
-FROM node:23.5.0-alpine AS development
+FROM node:23.6.0-alpine AS development
 WORKDIR /app
 ARG VITE_GEOAPIFY_API_KEY
 ENV NODE_ENV=development
