@@ -1,5 +1,5 @@
 # GreenSTAR
-
+  
 [![End-to-End Tests](https://github.com/arikkfir/greenstar/actions/workflows/e2e-tests.yaml/badge.svg)](https://github.com/arikkfir/greenstar/actions/workflows/e2e-tests.yaml)
 [![Linter](https://github.com/arikkfir/greenstar/actions/workflows/linter.yaml/badge.svg)](https://github.com/arikkfir/greenstar/actions/workflows/linter.yaml)
 [![Unit Tests](https://github.com/arikkfir/greenstar/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/arikkfir/greenstar/actions/workflows/unit-tests.yaml)
