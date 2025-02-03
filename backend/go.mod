@@ -12,7 +12,7 @@ require (
 	github.com/jackc/pgx-shopspring-decimal v0.0.0-20220624020537-1d36b5a1853e
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/lib/pq v1.10.9
-	github.com/lmittmann/tint v1.0.5
+	github.com/lmittmann/tint v1.0.7
 	github.com/lucasepe/codename v0.2.0
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
 	github.com/rs/cors v1.11.1
