@@ -76,7 +76,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Helm
-        uses: azure/setup-helm@v4.2.0
+        uses: azure/setup-helm@v4.3.0
 
       - name: Setup Task
         uses: arduino/setup-task@v2
@@ -127,7 +127,7 @@ jobs:
         run: task -v setup-domain-dns
 
       - name: Setup Helm
-        uses: azure/setup-helm@v4.2.0
+        uses: azure/setup-helm@v4.3.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
