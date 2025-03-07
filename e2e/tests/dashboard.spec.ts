@@ -1,7 +1,9 @@
-import {test} from '@playwright/test';
+import { expect, test } from "@playwright/test"
 
-test('dashboard', async ({page}) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle')
-    await page.locator('main div:has-text("Dashboard")').waitFor({state: "visible"})
-});
+test.describe("dashboard", {}, () => {
+    test("title", async ({ page }) => {
+        await page.goto("/")
+        await page.waitForLoadState("networkidle")
+        await expect(page).toHaveTitle(/GreenSTAR/)
+    })
+})

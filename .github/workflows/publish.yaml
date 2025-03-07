@@ -1,0 +1,143 @@
+name: Publish
+
+on:
+  workflow_run:
+    workflows:
+      - Verify
+    types:
+      - completed
+
+defaults:
+  run:
+    shell: bash -exuo pipefail {0}
+
+concurrency:
+  cancel-in-progress: false
+  group: publish
+
+env:
+  WORKLOAD_IDP: projects/${{ secrets.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
+
+jobs:
+
+  find-pr:
+    name: Find source pull request number
+    runs-on: ubuntu-22.04
+    permissions:
+      actions: read
+    outputs:
+      number: ${{ steps.extract.outputs.pr }}
+    steps:
+
+      - name: Download metadata artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: metadata
+          run-id: ${{github.event.workflow_run.id }}
+
+      - name: Extract PR number
+        id: extract
+        run: echo "pr=$(jq '.pr.number' < workflow-metadata.json)" >> "$GITHUB_OUTPUT"
+
+  upload:
+    name: Publish
+    runs-on: ubuntu-22.04
+    if: github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure'
+    permissions:
+      actions: read
+      id-token: write
+    outputs:
+      failed: ${{ steps.extract-statistics.outputs.failed }}
+      flaky: ${{ steps.extract-statistics.outputs.flaky }}
+      skipped: ${{ steps.extract-statistics.outputs.skipped }}
+      passed: ${{ steps.extract-statistics.outputs.passed }}
+      tests: ${{ steps.extract-statistics.outputs.tests }}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ env.WORKLOAD_IDP }}
+
+      - name: Download artifact
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            var fs = require('fs');
+            if (!fs.existsSync('${{github.workspace}}/hack')) {
+              fs.mkdirSync('${{github.workspace}}/hack', { recursive: true });
+            }
+
+            const owner = context.repo.owner
+            const repo = context.repo.repo
+            const archive_format = "zip"
+
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{github.event.workflow_run.id }},
+            });
+            const artifact_id = artifacts.data.artifacts.filter(artifact => artifact.name == "e2e-test-results")[0].id;
+            
+            const download = await github.rest.actions.downloadArtifact({ owner, repo, artifact_id, archive_format });
+            fs.writeFileSync('${{github.workspace}}/hack/e2e-test-results.zip', Buffer.from(download.data));
+
+      - run: |
+          unzip e2e-test-results.zip
+          rm -f e2e-test-results.zip
+        working-directory: hack
+
+      - name: Upload artifact
+        uses: google-github-actions/upload-cloud-storage@v2
+        with:
+          process_gcloudignore: 'false'
+          path: ./hack/
+          parent: false
+          destination: arikkfir-static-website/github/greenstar/${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }}/
+
+      - name: Extract statistics
+        id: extract-statistics
+        run: |
+          echo "failed=$(jq '.summary.failed.value' < hack/index.json)" >> "$GITHUB_OUTPUT"
+          echo "flaky=$(jq '.summary.flaky.value' < hack/index.json)" >> "$GITHUB_OUTPUT"
+          echo "skipped=$(jq '.summary.skipped.value' < hack/index.json)" >> "$GITHUB_OUTPUT"
+          echo "passed=$(jq '.summary.passed.value' < hack/index.json)" >> "$GITHUB_OUTPUT"
+          echo "tests=$(jq '.summary.tests.value' < hack/index.json)" >> "$GITHUB_OUTPUT"
+
+  post-status-comment:
+    name: Post status comment
+    needs: [find-pr, upload]
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
+    steps:
+
+      - name: Comment on PR
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ needs.find-pr.outputs.number }}
+          body: |
+            ### ${{ needs.upload.outputs.failed == '0' && ':rocket:' || ':bangbang:' }} End-to-end tests ${{ needs.upload.outputs.failed == '0' && 'passed' || 'failed' }}!
+            
+            | Result                         | Count                                    |
+            |--------------------------------|------------------------------------------|
+            | :x: **Failed**                 | [${{ needs.upload.outputs.failed }}][1]  |
+            | :interrobang: **Flaky**        | [${{ needs.upload.outputs.flaky }}][2]   |
+            | :heavy_minus_sign: **Skipped** | [${{ needs.upload.outputs.skipped }}][3] |
+            | :white_check_mark: **Passed**  | [${{ needs.upload.outputs.passed }}][4]  |
+            | **Total**                      | [${{ needs.upload.outputs.tests }}][5]   |
+            
+            [1]: https://static.kfirs.com/github/greenstar/${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }}/index.html#caseType=failed
+            [2]: https://static.kfirs.com/github/greenstar/${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }}/index.html#caseType=flaky
+            [3]: https://static.kfirs.com/github/greenstar/${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }}/index.html#caseType=skipped
+            [4]: https://static.kfirs.com/github/greenstar/${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }}/index.html#caseType=passed
+            [5]: https://static.kfirs.com/github/greenstar/${{ github.event.workflow_run.id }}/${{ github.event.workflow_run.run_attempt }}/index.html

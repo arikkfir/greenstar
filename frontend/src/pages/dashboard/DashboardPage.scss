@@ -1,0 +1,45 @@
+.dashboard-page {
+  display: grid;
+  grid-template:
+      "accounts-tree balance-chart balance-chart" 0.4fr
+      "accounts-tree expenses-chart top-accounts" 0.6fr
+      / 25% 1fr;
+  grid-gap: 1em;
+  padding: 1em;
+
+  .accounts-tree-container {
+    grid-area: accounts-tree;
+    overflow: auto;
+  }
+
+  .balance-chart-container {
+    grid-area: balance-chart;
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    align-items: stretch;
+
+    > .MuiCardContent-root {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: stretch;
+    }
+  }
+
+  .balance-chart-container-message {
+    grid-area: balance-chart;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .expenses-chart-container {
+    grid-area: expenses-chart;
+  }
+
+  .top-accounts-container {
+    grid-area: top-accounts;
+  }
+}

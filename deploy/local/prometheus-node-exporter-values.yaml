@@ -1,0 +1,11 @@
+resources:
+  limits:
+    cpu: 200m
+    memory: 50Mi
+  requests:
+    cpu: 100m
+    memory: 30Mi
+
+extraArgs:
+  - --collector.systemd
+  - --collector.processes

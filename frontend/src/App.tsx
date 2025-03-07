@@ -1,70 +1,119 @@
-import { Box, useTheme } from "@mui/material"
-import { Outlet, Route, Routes } from "react-router"
-import { DashboardPage } from "./pages/DashboardPage.tsx"
-import { TransactionsPage } from "./pages/TransactionsPage.tsx"
-import { APIPlaygroundPage } from "./pages/APIPlayground.tsx"
-import { SettingsPage } from "./pages/SettingsPage.tsx"
-import { TopBar } from "./components/layout/topbar/TopBar.tsx"
-import { Footer } from "./components/layout/Footer.tsx"
+import "@fontsource/roboto/300.css"
+import "@fontsource/roboto/400.css"
+import "@fontsource/roboto/500.css"
+import "@fontsource/roboto/700.css"
+import { createTheme, CssBaseline, ThemeProvider } from "@mui/material"
+import { Layout } from "./Layout.tsx"
+import { forwardRef, useMemo } from "react"
+import { ApolloProvider } from "@apollo/client"
+import {
+    LoadedCurrenciesStateCtx,
+    LoadedLanguagesStateCtx,
+    LoadedSelectedCurrencyStateCtx,
+    LoadedSelectedLanguageStateCtx,
+} from "./contexts/LoadingState.ts"
+import { LoadingStateProvider } from "./providers/LoadingStateProvider.tsx"
+import { green, yellow } from "@mui/material/colors"
+import { Link as WouterLink, LinkProps as WouterLinkProps } from "wouter"
+import { apolloClient } from "./util/ApolloClient.ts"
+import { LinkProps as MuiLinkProps } from "@mui/material/Link"
+import { LocalizationProvider } from "@mui/x-date-pickers-pro"
+import { AdapterLuxon } from "@mui/x-date-pickers-pro/AdapterLuxon"
+
+// Remove "to" and "asChild" properties from Wouter's <Link> component props
+type CustomWouterLinkProps = Omit<Omit<WouterLinkProps, "to">, "asChild"> & { href: string }
+
+// Create a custom component that renders a Wouter <Link> element with all the properties set on the parent element,
+// such as a MUI <Button> or an MUI <Link> component. This component is used below in the MUI theme customization to
+// configure MUI's <Link> and <ButtonBase> to use it instead of the built-in MUI <a> component.
+const LinkBehavior = forwardRef<HTMLAnchorElement, CustomWouterLinkProps>(
+    (props, ref) => {
+        const { href, ...other } = props
+        return <WouterLink ref={ref} href={href} {...other} />
+    },
+)
 
 export function App() {
-    return (
-        <Routes>
-            <Route element={<RootLayout />}>
-                <Route index element={<DashboardPage />} />
-                <Route path="transactions" element={<TransactionsPage />} />
-                <Route path="api" element={<APIPlaygroundPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-            </Route>
-        </Routes>
-    )
-}
+    const theme = useMemo(() => createTheme({
+        colorSchemes: { light: true, dark: false },
+        cssVariables: {
+            colorSchemeSelector: "class",
+        },
+        palette: {
+            primary: {
+                main: green[500],
+                contrastText: "#ffffff",
+            },
+            secondary: {
+                main: yellow[500],
+            },
+        },
+        components: {
+            MuiLink: {
+                defaultProps: {
+                    component: LinkBehavior,
+                } as MuiLinkProps,
+            },
+            MuiButtonBase: {
+                defaultProps: {
+                    LinkComponent: LinkBehavior,
+                },
+            },
+            MuiMenuItem: {
+                styleOverrides: {
+                    root: ({ theme }) => ({
+                        "&.MuiMenuItem-root:hover": {
+                            backgroundColor: theme.palette.primary.main,
+                            color: theme.palette.primary.contrastText,
+                        },
+                    }),
+                },
+            },
+            MuiToggleButton: {
+                styleOverrides: {
+                    root: ({ theme }) => ({
+                        color: theme.palette.primary.contrastText,
+                        borderColor: theme.palette.primary.contrastText,
+                        "&.Mui-selected": {
+                            backgroundColor: "rgba(255, 255, 255, 0.2)",
+                            color: theme.palette.primary.contrastText,
+                            "&:hover": {
+                                backgroundColor: "rgba(255, 255, 255, 0.3)",
+                            },
+                        },
+                        "&:hover": {
+                            backgroundColor: "rgba(255, 255, 255, 0.1)",
+                        },
+                    }),
+                },
+            },
+            MuiToggleButtonGroup: {
+                styleOverrides: {
+                    grouped: {
+                        border: "1px solid",
+                        borderColor: "inherit",
+                    },
+                },
+            },
+        },
+    }), [])
 
-export function RootLayout() {
-    const theme = useTheme()
     return (
-        <Box
-            sx={{
-                backgroundColor: theme.palette.background.default,
-                p: 0,
-                m: 0,
-                width: "100vw",
-                height: "100vh",
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "stretch",
-                alignContent: "stretch",
-                gap: 0,
-            }}
-        >
-            <TopBar
-                sx={{
-                    flexGrow: 0,
-                    flexShrink: 0,
-                }}
-            />
-            <Box
-                component="main"
-                sx={{
-                    flexGrow: 1,
-                    flexShrink: 1,
-                    display: "flex",
-                    overflow: "hidden",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "stretch",
-                    alignContent: "stretch",
-                }}
-            >
-                <Outlet />
-            </Box>
-            <Footer
-                sx={{
-                    flxGrow: 0,
-                    flexShrink: 0,
-                }}
-            />
-        </Box>
+        <ApolloProvider client={apolloClient}>
+            <LocalizationProvider dateAdapter={AdapterLuxon}>
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
+                    <LoadingStateProvider ctx={LoadedLanguagesStateCtx}>
+                        <LoadingStateProvider ctx={LoadedSelectedLanguageStateCtx}>
+                            <LoadingStateProvider ctx={LoadedCurrenciesStateCtx}>
+                                <LoadingStateProvider ctx={LoadedSelectedCurrencyStateCtx}>
+                                    <Layout />
+                                </LoadingStateProvider>
+                            </LoadingStateProvider>
+                        </LoadingStateProvider>
+                    </LoadingStateProvider>
+                </ThemeProvider>
+            </LocalizationProvider>
+        </ApolloProvider>
     )
 }

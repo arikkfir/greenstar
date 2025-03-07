@@ -1,0 +1,44 @@
+#root {
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  display: grid;
+  overflow: hidden;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-columns: 1fr;
+  gap: 1em;
+  background-color: var(--mui-palette-grey-200);
+
+  > nav {
+    margin: 0 1em;
+  }
+
+  > main {
+    margin: 0 1em 0.5em;
+    height: 100%;
+  }
+
+  > footer {
+    box-shadow: 0 -0.2em 0.3em rgba(0, 0, 0, 0.3);
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding: 0.5em;
+
+    p {
+      text-transform: uppercase;
+      font: var(--mui-font-button);
+      font-weight: 700;
+      margin: 0 0.5em;
+
+      a {
+        color: inherit;
+        text-decoration: none;
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}

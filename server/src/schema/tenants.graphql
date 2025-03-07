@@ -1,0 +1,47 @@
+input TenantsSortColumnsInput {
+    col: TenantsSortColumns!
+    direction: SortDirection!
+}
+
+enum TenantsSortColumns {
+    ID
+    DisplayName
+}
+
+type Tenant {
+    id: ID!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    displayName: String!
+    rootAccounts: [Account!]!
+    account(id: ID!): Account
+    accounts(filter: String): [Account!]!
+    accountsBalanceOverTime(
+        accountIDs: [ID!]!
+        currency: String!
+        startDate: DateTime
+        endDate: DateTime
+    ): [AccountBalanceOverTime!]!
+    firstTransactionDate: DateTime
+    lastTransactionDate: DateTime
+    totalTransactions: Int!
+    transactions(
+        since: DateTime
+        until: DateTime
+        involvingAccountID: ID
+        sort: [TransactionsSortColumnsInput!]
+        offset: Int
+        limit: Int
+    ): TransactionsResult!
+    scrapers: [Scraper!]!
+}
+
+extend type Query {
+    tenants(sort: [TenantsSortColumnsInput!]): [Tenant!]!
+    tenant(id: ID!): Tenant
+}
+
+extend type Mutation {
+    createTenant(id: ID!, displayName: String!): Tenant!
+    deleteTenant(id: ID!): Void
+}

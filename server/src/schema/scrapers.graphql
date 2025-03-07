@@ -1,0 +1,61 @@
+type ScraperParameterType {
+    id: ID!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    displayName: String!
+}
+
+type ScraperType {
+    id: ID!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    displayName: String!
+    parameters: [ScraperTypeParameter!]!
+}
+
+type ScraperTypeParameter {
+    id: ID!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    displayName: String!
+    scraperType: ScraperType!
+    parameterType: ScraperParameterType!
+}
+
+type Scraper {
+    id: ID!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    displayName: String!
+    type: ScraperType!
+    parameters: [ScraperParameter!]!
+}
+
+type ScraperParameter {
+    scraper: Scraper!
+    parameter: ScraperTypeParameter!
+    value: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+}
+
+extend type Query {
+    scraperParameterTypes: [ScraperParameterType!]!
+    scraperTypes: [ScraperType!]!
+}
+
+extend type Mutation {
+    createScraper(
+        tenantID: ID!,
+        id: ID,
+        displayName: String!,
+        scraperTypeID: ID!,
+        parameters: [ScraperParameterInput!]!
+    ): Scraper!
+    deleteScraper(tenantID: ID!, scraperTypeID: ID!, id: ID!): Void
+}
+
+input ScraperParameterInput {
+    scraperTypeParameterID: ID!
+    value: String!
+}

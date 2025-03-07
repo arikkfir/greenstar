@@ -1,0 +1,141 @@
+service:
+  enabled: true
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+persistence:
+  enabled: false
+
+initChownData:
+  enabled: true
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+adminUser: admin
+adminPassword: admin
+
+sidecar:
+  resources:
+    limits:
+      cpu: 100m
+      memory: 100Mi
+    requests:
+      cpu: 50m
+      memory: 50Mi
+  dashboards:
+    enabled: true
+    searchNamespace: ALL
+    label: grafana_dashboard
+    labelValue: "1"
+  datasources:
+    enabled: true
+    searchNamespace: ALL
+    label: grafana_dashboard
+    labelValue: "1"
+
+grafana.ini:
+  auth:
+    disable_login_form: true
+  auth.anonymous:
+    enabled: true
+    org_role: Admin
+    org_name: Main Org.
+  auth.basic:
+    enabled: true
+    password_policy: false
+  paths:
+    data: /var/lib/grafana/
+    logs: /var/log/grafana
+    plugins: /var/lib/grafana/plugins
+    provisioning: /etc/grafana/provisioning
+  analytics:
+    check_for_updates: false
+  log:
+    mode: console
+  grafana_net:
+    url: https://grafana.net
+  server:
+    domain: grafana.greenstar.test
+    root_url: https://grafana.greenstar.test
+
+extraObjects:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: grafana-datasource-prometheus
+      namespace: observability
+      labels:
+        grafana_dashboard: "1"
+    data:
+      prometheus.yaml: |-
+        apiVersion: 1
+        datasources:
+          - name: Prometheus
+            type: prometheus
+            url: http://prometheus-server.observability.svc.cluster.local
+            access: proxy
+            isDefault: true
+            uid: prometheus
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      labels:
+        app.kubernetes.io/instance: grafana
+        app.kubernetes.io/name: grafana
+      name: grafana-http
+    spec:
+      hostnames:
+        - grafana.greenstar.test
+      parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: local
+          namespace: ingress
+          sectionName: web
+      rules:
+        - filters:
+            - type: RequestRedirect
+              requestRedirect:
+                scheme: https
+          matches:
+            - path:
+                type: PathPrefix
+                value: /
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      labels:
+        app.kubernetes.io/instance: grafana
+        app.kubernetes.io/name: grafana
+      name: grafana-https
+    spec:
+      hostnames:
+        - grafana.greenstar.test
+      parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: local
+          namespace: ingress
+          sectionName: websecure
+      rules:
+        - backendRefs:
+            - group: ""
+              kind: Service
+              name: grafana
+              port: 80
+              weight: 1
+          matches:
+            - path:
+                type: PathPrefix
+                value: /

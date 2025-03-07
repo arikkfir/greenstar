@@ -1,20 +1,22 @@
 # syntax=docker/dockerfile:1
 
-FROM node:23.5.0-alpine AS dependencies
+FROM node:23-alpine AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json apply-patches.sh ./
 RUN npm ci
-RUN apk add --no-cache jq patch && chmod +x apply-patches.sh && ./apply-patches.sh
-ARG VERSION=v0.0.0-notset
-RUN jq ".version=\"${VERSION}\"" package.json > /tmp/package.json && mv /tmp/package.json package.json
+RUN apk add --no-cache patch ed && chmod +x apply-patches.sh && ./apply-patches.sh && rm -f ./apply-patches.sh
+ARG VERSION=0.0.0-notset
+RUN npm pkg set version="${VERSION}"
 
-FROM node:23.5.0-alpine AS development
+FROM node:23-alpine AS development
 WORKDIR /app
+ARG VITE_GRAPHQL_API_URL="https://api.greenstar.test/graphql"
 ARG VITE_GEOAPIFY_API_KEY
 ENV NODE_ENV=development
 COPY --from=dependencies /app ./
 COPY eslint.config.js ./
 COPY index.html ./
+COPY public ./public/
 COPY src ./src/
 COPY tsconfig.app.json ./
 COPY tsconfig.json ./
@@ -23,6 +25,7 @@ COPY vite.config.ts ./
 ENTRYPOINT ["npm","run","dev"]
 
 FROM development AS builder
+ARG VITE_GRAPHQL_API_URL="https://api.greenstar.finance/graphql"
 ARG VITE_GEOAPIFY_API_KEY
 ENV NODE_ENV=production
 RUN npm run build

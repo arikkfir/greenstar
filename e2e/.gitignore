@@ -1,4 +1,5 @@
 /.auth
+/dist
 /monocart-report/
 /node_modules/
 /playwright/.cache/

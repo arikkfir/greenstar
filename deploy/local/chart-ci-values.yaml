@@ -1,37 +1,23 @@
-observability:
-  logging:
-    level: trace
-
 ingress:
   domain: greenstar.test
 
-backend:
-  acme:
-    extraEnv:
-      OTEL_SDK_DISABLED:
-        value: "true"
-      OTEL_LOG_LEVEL:
-        value: info
-  migrate:
-    extraEnv:
-      OTEL_SDK_DISABLED:
-        value: "true"
-      OTEL_LOG_LEVEL:
-        value: info
-  server:
-    extraEnv:
-      OTEL_SDK_DISABLED:
-        value: "true"
-      OTEL_LOG_LEVEL:
-        value: info
-    ingress:
-      enabled: true
-      parentRef:
-        kind: Gateway
-        name: local
-        namespace: ingress
-        httpSectionName: web
-        httpsSectionName: websecure
+server:
+  ingress:
+    enabled: true
+    parentRef:
+      kind: Gateway
+      name: local
+      namespace: ingress
+      httpSectionName: web
+      httpsSectionName: websecure
+
+ratesjob:
+  schedule: "0 * * * *"
+  extraEnv:
+    START_DATE_DURATION:
+      value: P19M
+    SUPPORTED_CURRENCIES:
+      value: "USD,ILS,EUR"
 
 frontend:
   ingress:
@@ -44,12 +30,9 @@ frontend:
       httpsSectionName: websecure
 
 postgres:
-  backendPassword: "local"
   extraArgs:
     - -c
-    - log_statement=mod
-  extraUsers:
-    local: local
+    - log_statement=all
   ingress:
     enabled: true
     parentRef:
@@ -57,11 +40,3 @@ postgres:
       name: local
       namespace: ingress
       tlsSectionName: postgres
-  volumeMounts:
-    - name: rates
-      mountPath: /var/greenstar/rates
-  volumes:
-    - name: rates
-      hostPath:
-        path: /var/greenstar/rates
-        type: Directory

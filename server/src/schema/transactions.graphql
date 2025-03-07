@@ -1,0 +1,50 @@
+input TransactionsSortColumnsInput {
+    col: TransactionsSortColumns!
+    direction: SortDirection!
+}
+
+enum TransactionsSortColumns {
+    ID
+    CreatedAt
+    UpdatedAt
+    Date
+    ReferenceID
+    Amount
+    Description
+    SourceAccountName
+    TargetAccountName
+}
+
+type Transaction {
+    id: ID!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    date: DateTime!
+    referenceID: String!
+    amount: Float!
+    currency: Currency!
+    description: String!
+    sourceAccount: Account!
+    targetAccount: Account!
+}
+
+type TransactionsResult {
+    rows: [Transaction!]!
+    totalCount: Int!
+}
+
+extend type Mutation {
+    createTransaction(tx: CreateTransaction!): Transaction!
+    deleteTransaction(tenantID: ID!, id: ID!): Void
+}
+
+input CreateTransaction {
+    tenantID: ID!
+    date: DateTime!
+    referenceID: String!
+    amount: Float!
+    currency: String!
+    description: String!
+    sourceAccountID: ID
+    targetAccountID: ID
+}

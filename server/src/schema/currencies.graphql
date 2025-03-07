@@ -1,0 +1,44 @@
+type Currency {
+    code: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    symbol: String!
+    nativeSymbol: String!
+    name: String!
+    namePlural: String!
+    decimalDigits: Int!
+    countries: [String!]!
+}
+
+type CurrencyRate {
+    date: DateTime!
+    sourceCurrency: Currency!
+    targetCurrency: Currency!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    rate: Float!
+}
+
+extend type Query {
+    currencies: [Currency!]!
+    currency(code: String!): Currency
+    currencyRate(
+        date: DateTime!
+        sourceCurrencyCode: String!
+        targetCurrencyCode: String!
+    ): CurrencyRate
+    currencyRates(
+        startDate: DateTime
+        endDate: DateTime
+        sourceCurrencyCode: String
+        targetCurrencyCode: String
+    ): [CurrencyRate!]!
+}
+ extend type Mutation {
+     createCurrencyRate(
+         date: DateTime!
+         sourceCurrencyCode: String!
+         targetCurrencyCode: String!
+         rate: Float!
+     ): CurrencyRate!
+ }

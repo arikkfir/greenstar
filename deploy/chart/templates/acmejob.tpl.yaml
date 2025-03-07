@@ -1,0 +1,108 @@
+{{- $prefix := include "greenstar.prefix" . -}}
+{{- $componentName := "acme" -}}
+{{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
+{{- $configMapName := printf "%s-%s" $prefix $componentName -}}
+{{- $tenantsConfigMapName := printf "%s-%s-tenants" $prefix $componentName -}}
+{{- /*------------------------------------------------------------------------------------------------------------*/ -}}
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  {{- if not (empty .Values.acme.rbac.annotations) }}
+  annotations:
+    {{ range $name, $value := .Values.acme.rbac.annotations -}}
+    {{ $name }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $tenantsConfigMapName | quote }}
+data:
+{{ (.Files.Glob "files/tenants/*.yaml").AsConfig | indent 2 }}
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    "helm.sh/hook": post-install, post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation # TODO: ,hook-succeeded
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix $componentName | quote }}
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "greenstar.commonLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $componentName | quote }}
+    spec:
+      initContainers:
+
+        # Wait for GraphQL server to be available
+        - image: alpine/curl:8.14.1
+          args:
+            - --fail-with-body
+            - --location
+            - --silent
+            - --show-error
+            - --verbose
+            - --header
+            - "apollo-require-preflight: true"
+            - "$(GRAPHQL_API_URL)/graphql?query=%7B__typename%7D"
+          env:
+            - name: GRAPHQL_API_URL
+              value: http://greenstar-server/graphql
+          name: wait-for-graphql-server
+          resources:
+            limits:
+              cpu: "100m"
+              memory: "32Mi"
+            requests:
+              cpu: "100m"
+              memory: "16Mi"
+
+      containers:
+        - env:
+            - name: GRAPHQL_API_URL
+              value: http://greenstar-server/graphql
+            {{- range $key, $value := .Values.acme.extraEnv }}
+            - name: {{ $key | quote }}
+              {{ toYaml $value | nindent 14 }}
+            {{- end }}
+          image: {{ printf "%s:%s" .Values.acme.image.repository (.Values.acme.image.tag | default .Chart.AppVersion) | quote }}
+          name: acme
+          resources:
+            limits:
+              cpu: {{ required "ACME job CPU limit is required" .Values.acme.resources.limits.cpu | quote }}
+              memory: {{ required "ACME job RAM limit is required" .Values.acme.resources.limits.memory | quote }}
+            requests:
+              cpu: {{ required "ACME job CPU request is required" .Values.acme.resources.requests.cpu | quote }}
+              memory: {{ required "ACME job RAM request is required" .Values.acme.resources.requests.memory | quote }}
+          volumeMounts:
+            - name: tenants
+              readOnly: true
+              mountPath: /tenants
+      volumes:
+        - name: tenants
+          configMap:
+            name: {{ $tenantsConfigMapName | quote }}
+            optional: false
+      restartPolicy: OnFailure
+      enableServiceLinks: false
+      serviceAccountName: {{ $serviceAccountName | quote }}

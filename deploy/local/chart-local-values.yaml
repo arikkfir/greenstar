@@ -1,95 +1,32 @@
-observability:
-  logging:
-    level: trace
-    format: text
-
 ingress:
   domain: greenstar.test
 
-backend:
-  acme:
-    extraEnv:
-      OTEL_SDK_DISABLED:
-        value: "true"
-      OTEL_LOG_LEVEL:
-        value: info
-#      OTEL_RESOURCE_ATTRIBUTES:
-#        value: service.name=backend-server,service.version={{ .Chart.AppVersion }}
-#      OTEL_LOGS_EXPORTER:
-#        value: "none"
-#      OTEL_METRICS_EXPORTER:
-#        value: prometheus
-#      OTEL_EXPORTER_PROMETHEUS_HOST:
-#        value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
-#      OTEL_EXPORTER_PROMETHEUS_PORT:
-#        value: "8000"
-#      OTEL_TRACES_EXPORTER:
-#        value: otlp
-#      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
-#        value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
-#      OTEL_TRACES_SAMPLER:
-#        value: always_on
-#      OTEL_PROPAGATORS:
-#        value: tracecontext,baggage
+server:
   migrate:
-    extraEnv:
-      OTEL_SDK_DISABLED:
-        value: "true"
-      OTEL_LOG_LEVEL:
-        value: info
-  #      OTEL_RESOURCE_ATTRIBUTES:
-  #        value: service.name=backend-server,service.version={{ .Chart.AppVersion }}
-  #      OTEL_LOGS_EXPORTER:
-  #        value: "none"
-  #      OTEL_METRICS_EXPORTER:
-  #        value: prometheus
-  #      OTEL_EXPORTER_PROMETHEUS_HOST:
-  #        value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
-  #      OTEL_EXPORTER_PROMETHEUS_PORT:
-  #        value: "8000"
-  #      OTEL_TRACES_EXPORTER:
-  #        value: otlp
-  #      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
-  #        value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
-  #      OTEL_TRACES_SAMPLER:
-  #        value: always_on
-  #      OTEL_PROPAGATORS:
-  #        value: tracecontext,baggage
-  server:
-    extraEnv:
-      OTEL_SDK_DISABLED:
-        value: "true"
-      OTEL_LOG_LEVEL:
-        value: info
-    #      OTEL_RESOURCE_ATTRIBUTES:
-    #        value: service.name=backend-server,service.version={{ .Chart.AppVersion }}
-    #      OTEL_LOGS_EXPORTER:
-    #        value: "none"
-    #      OTEL_METRICS_EXPORTER:
-    #        value: prometheus
-    #      OTEL_EXPORTER_PROMETHEUS_HOST:
-    #        value: "0.0.0.0" # we should modify jobs to PUSH metrics instead of using pull (when OTEL supports it)
-    #      OTEL_EXPORTER_PROMETHEUS_PORT:
-    #        value: "8000"
-    #      OTEL_TRACES_EXPORTER:
-    #        value: otlp
-    #      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
-    #        value: "http://jaeger-all-in-one.observability.svc.cluster.local:4318/v1/traces"
-    #      OTEL_TRACES_SAMPLER:
-    #        value: always_on
-    #      OTEL_PROPAGATORS:
-    #        value: tracecontext,baggage
-    ingress:
-      enabled: true
-      parentRef:
-        kind: Gateway
-        name: local
-        namespace: ingress
-        httpSectionName: web
-        httpsSectionName: websecure
+    postgresPassword: local
+  postgresPassword: local
+  ingress:
+    enabled: true
+    parentRef:
+      kind: Gateway
+      name: local
+      namespace: ingress
+      httpSectionName: web
+      httpsSectionName: websecure
+
+ratesjob:
+  schedule: "0 * * * *"
+  extraEnv:
+    START_DATE_DURATION:
+      value: P19M
+    SUPPORTED_CURRENCIES:
+      value: "USD,ILS,EUR"
 
 frontend:
   extraArgs: [ "--", "--logLevel=info", "--port=3000", "--host=0.0.0.0" ]
+  extraEnv:
+    VITE_GRAPHQL_API_URL:
+      value: https://api.greenstar.test/graphql
   ingress:
     enabled: true
     parentRef:
@@ -103,19 +40,17 @@ frontend:
       cpu: 1000m
       memory: 2Gi
     requests:
-      cpu: 500m
+      cpu: 1000m
       memory: 1Gi
   readinessProbe: false
   livenessProbe: false
   startupProbe: false
 
 postgres:
-  backendPassword: "local"
   extraArgs:
     - -c
-    - log_statement=mod
-  extraUsers:
-    local: local
+    - log_statement=all
+  password: local
   ingress:
     enabled: true
     parentRef:
@@ -123,11 +58,3 @@ postgres:
       name: local
       namespace: ingress
       tlsSectionName: postgres
-  volumeMounts:
-    - name: rates
-      mountPath: /var/greenstar/rates
-  volumes:
-    - name: rates
-      hostPath:
-        path: /var/greenstar/rates
-        type: Directory
