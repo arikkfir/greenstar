@@ -2,6 +2,7 @@ name: Verify
 
 on:
   push:
+    branches: [ main ]
   pull_request:
     types:
       - opened
@@ -86,6 +87,7 @@ jobs:
           context: ${{ matrix.image }}
           build-args: |
             VERSION=0.0.0+${{ github.sha }}
+            VITE_GRAPHQL_API_URL=https://api.greenstar.test/graphql
           target: production
           push: false
           tags: ghcr.io/${{ github.repository }}/${{ matrix.image }}:${{ github.sha }}
@@ -193,10 +195,15 @@ jobs:
           cache: npm
           cache-dependency-path: e2e/package-lock.json
 
-      - name: Setup Tests
-        run: |
-          npm ci
-          npm run deps
+      - name: Setup NPM dependencies
+        env:
+          NPM_CONFIG_FUND: false
+          NPM_CONFIG_AUDIT: false
+        run: npm ci
+        working-directory: e2e
+
+      - name: Setup Playwright dependencies
+        run: npm run deps
         working-directory: e2e
 
       - name: Run tests
@@ -237,7 +244,7 @@ jobs:
         id: metadata
         if: success() || steps.test.outcome == 'success' || steps.test.outcome == 'failure'
         run: |
-          echo '{ "pr": { "number": ${{ github.event.number }} } }' > workflow-metadata.json
+          echo '{ "pr": ${{ github.event.number || 0 }}, "sha": "${{ github.sha }}" }' > workflow-metadata.json
           jq < workflow-metadata.json
 
       - name: Upload metadata artifact
