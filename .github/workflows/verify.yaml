@@ -14,8 +14,12 @@ defaults:
 jobs:
 
   verify-generated-code:
-    name: Verify generated code
+    name: Verify ${{ matrix.module }} generated code
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        module: [ acme, frontend, ratesjob, server ]
+      fail-fast: true
     steps:
 
       - name: Checkout
@@ -34,18 +38,14 @@ jobs:
         with:
           node-version: 23.x
           cache: npm
-          cache-dependency-path: server/package-lock.json
+          cache-dependency-path: ${{ matrix.module }}/package-lock.json
 
       - name: Node Dependencies
-        run: |-
-          for dir in acme e2e frontend ratesjob server; do
-            pushd "${dir}"
-            npm ci
-            popd
-          done
+        run: npm ci
+        working-directory: ${{ matrix.module }}
 
       - name: Generate
-        run: task generate
+        run: task generate-graphql-${{ matrix.module }}
 
       - name: Verify
         run: git diff --compact-summary --exit-code
@@ -130,7 +130,7 @@ jobs:
   test-e2e:
     name: Run End-to-End Tests
     runs-on: ubuntu-22.04
-    needs: [ build-images, build-helm-package ]
+    needs: [ verify-generated-code, build-images, build-helm-package ]
     permissions:
       contents: read
     steps:
