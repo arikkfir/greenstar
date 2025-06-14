@@ -7,11 +7,6 @@ on:
       - opened
       - synchronize
 
-permissions:
-  contents: read
-  packages: write
-  pull-requests: write
-
 defaults:
   run:
     shell: bash -exuo pipefail {0}
@@ -25,6 +20,8 @@ jobs:
       matrix:
         module: [ acme, frontend, ratesjob, server ]
       fail-fast: true
+    permissions:
+      contents: read
     steps:
 
       - name: Checkout
@@ -62,6 +59,8 @@ jobs:
       matrix:
         image: [ acme, frontend, ratesjob, server ]
       fail-fast: true
+    permissions:
+      contents: read
     steps:
 
       - name: Checkout
@@ -105,6 +104,8 @@ jobs:
       version: ${{ steps.package.outputs.version }}
     env:
       VERSION: "0.0.0+${{ github.sha }}"
+    permissions:
+      contents: read
     steps:
 
       - name: Checkout
