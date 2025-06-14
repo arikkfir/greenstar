@@ -30,6 +30,7 @@ tasks:
       - generate-graphql-acme
       - generate-graphql-frontend
       - generate-graphql-ratesjob
+      - generate-graphql-scrapers
       - generate-graphql-server
       - generate-certificates
 
@@ -52,6 +53,13 @@ tasks:
     dir: ratesjob
     cmds:
       - rm -rfv src/graphql
+      - npm run codegen
+
+  generate-graphql-scrapers:
+    deps: [ toolchain:node ]
+    dir: scrapers
+    cmds:
+      - rm -rfv src/generated
       - npm run codegen
 
   generate-graphql-server:
@@ -212,10 +220,13 @@ tasks:
 
   setup-sensitive-environment:
     cmds:
+      - mkdir -pv ./hack
       - touch ./hack/greenstar-values.yaml
-      - yq -i '.frontend.extraEnv.VITE_GEOAPIFY_API_KEY.value = env(GEOAPIFY_API_KEY)' ./hack/greenstar-values.yaml
-      - yq -i '.acme.files = []' ./hack/greenstar-values.yaml
       - |
+        if [[ -n "${GEOAPIFY_API_KEY}" ]]; then
+          yq -i '.frontend.extraEnv.VITE_GEOAPIFY_API_KEY.value = env(GEOAPIFY_API_KEY)' ./hack/greenstar-values.yaml
+        fi
+        yq -i '.acme.files = []' ./hack/greenstar-values.yaml
         for filepath in ./deploy/local/acme/*.yaml; do
           NAME="$(basename "$filepath")" CONTENT="$(cat "$filepath")" yq -i \
             '.acme.files += [{"name": env(NAME), "content": env(CONTENT)}]' \

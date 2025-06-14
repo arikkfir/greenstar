@@ -101,6 +101,7 @@ export type CreateTransaction = {
   date: Scalars['DateTime']['input'];
   description: Scalars['String']['input'];
   referenceID: Scalars['String']['input'];
+  sequence: Scalars['Int']['input'];
   sourceAccountID?: InputMaybe<Scalars['ID']['input']>;
   targetAccountID?: InputMaybe<Scalars['ID']['input']>;
   tenantID: Scalars['ID']['input'];
@@ -133,15 +134,17 @@ export type Mutation = {
   __typename?: 'Mutation';
   createAccount: Account;
   createCurrencyRate: CurrencyRate;
-  createScraper: Scraper;
   createTenant: Tenant;
   createTransaction: Transaction;
-  deleteAccount?: Maybe<Scalars['Void']['output']>;
-  deleteScraper?: Maybe<Scalars['Void']['output']>;
+  deleteAccount: Scalars['Void']['output'];
+  deleteScraper: Scalars['Void']['output'];
   deleteTenant?: Maybe<Scalars['Void']['output']>;
-  deleteTransaction?: Maybe<Scalars['Void']['output']>;
+  deleteTransaction: Scalars['Void']['output'];
   moveAccount: Account;
-  noOp?: Maybe<Scalars['Void']['output']>;
+  noOp: Scalars['Void']['output'];
+  setLastSuccessfulScrapedDate: Scalars['Void']['output'];
+  triggerScraper: ScraperJob;
+  upsertScraper: Scraper;
 };
 
 
@@ -160,15 +163,6 @@ export type MutationCreateCurrencyRateArgs = {
   rate: Scalars['Float']['input'];
   sourceCurrencyCode: Scalars['String']['input'];
   targetCurrencyCode: Scalars['String']['input'];
-};
-
-
-export type MutationCreateScraperArgs = {
-  displayName: Scalars['String']['input'];
-  id?: InputMaybe<Scalars['ID']['input']>;
-  parameters: Array<ScraperParameterInput>;
-  scraperTypeID: Scalars['ID']['input'];
-  tenantID: Scalars['ID']['input'];
 };
 
 
@@ -191,7 +185,6 @@ export type MutationDeleteAccountArgs = {
 
 export type MutationDeleteScraperArgs = {
   id: Scalars['ID']['input'];
-  scraperTypeID: Scalars['ID']['input'];
   tenantID: Scalars['ID']['input'];
 };
 
@@ -213,13 +206,34 @@ export type MutationMoveAccountArgs = {
   tenantID: Scalars['ID']['input'];
 };
 
+
+export type MutationSetLastSuccessfulScrapedDateArgs = {
+  date: Scalars['DateTime']['input'];
+  scraperID: Scalars['ID']['input'];
+  tenantID: Scalars['ID']['input'];
+};
+
+
+export type MutationTriggerScraperArgs = {
+  id: Scalars['ID']['input'];
+  tenantID: Scalars['ID']['input'];
+};
+
+
+export type MutationUpsertScraperArgs = {
+  displayName: Scalars['String']['input'];
+  id?: InputMaybe<Scalars['ID']['input']>;
+  parameters: Array<ScraperParameterInput>;
+  scraperTypeID: Scalars['ID']['input'];
+  tenantID: Scalars['ID']['input'];
+};
+
 export type Query = {
   __typename?: 'Query';
   currencies: Array<Currency>;
   currency?: Maybe<Currency>;
   currencyRate?: Maybe<CurrencyRate>;
   currencyRates: Array<CurrencyRate>;
-  scraperParameterTypes: Array<ScraperParameterType>;
   scraperTypes: Array<ScraperType>;
   tenant?: Maybe<Tenant>;
   tenants: Array<Tenant>;
@@ -261,32 +275,49 @@ export type Scraper = {
   createdAt: Scalars['DateTime']['output'];
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  jobs: Array<ScraperJob>;
+  lastSuccessfulScrapedDate?: Maybe<Scalars['DateTime']['output']>;
   parameters: Array<ScraperParameter>;
   type: ScraperType;
   updatedAt: Scalars['DateTime']['output'];
 };
 
+export type ScraperJob = {
+  __typename?: 'ScraperJob';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  parameters: Array<ScraperParameter>;
+  scraper: Scraper;
+  status: ScraperJobStatus;
+};
+
+export enum ScraperJobStatus {
+  Failed = 'Failed',
+  Pending = 'Pending',
+  Running = 'Running',
+  Successful = 'Successful'
+}
+
 export type ScraperParameter = {
   __typename?: 'ScraperParameter';
-  createdAt: Scalars['DateTime']['output'];
   parameter: ScraperTypeParameter;
-  scraper: Scraper;
-  updatedAt: Scalars['DateTime']['output'];
   value: Scalars['String']['output'];
 };
 
 export type ScraperParameterInput = {
-  scraperTypeParameterID: Scalars['ID']['input'];
+  parameterID: Scalars['ID']['input'];
   value: Scalars['String']['input'];
 };
 
-export type ScraperParameterType = {
-  __typename?: 'ScraperParameterType';
-  createdAt: Scalars['DateTime']['output'];
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  updatedAt: Scalars['DateTime']['output'];
-};
+export enum ScraperParameterType {
+  Account = 'Account',
+  Boolean = 'Boolean',
+  Date = 'Date',
+  Float = 'Float',
+  Integer = 'Integer',
+  Password = 'Password',
+  String = 'String'
+}
 
 export type ScraperType = {
   __typename?: 'ScraperType';
@@ -299,12 +330,9 @@ export type ScraperType = {
 
 export type ScraperTypeParameter = {
   __typename?: 'ScraperTypeParameter';
-  createdAt: Scalars['DateTime']['output'];
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  parameterType: ScraperParameterType;
-  scraperType: ScraperType;
-  updatedAt: Scalars['DateTime']['output'];
+  type: ScraperParameterType;
 };
 
 export enum SortDirection {
@@ -323,6 +351,7 @@ export type Tenant = {
   id: Scalars['ID']['output'];
   lastTransactionDate?: Maybe<Scalars['DateTime']['output']>;
   rootAccounts: Array<Account>;
+  scraper?: Maybe<Scraper>;
   scrapers: Array<Scraper>;
   totalTransactions: Scalars['Int']['output'];
   transactions: TransactionsResult;
@@ -345,6 +374,16 @@ export type TenantAccountsBalanceOverTimeArgs = {
   currency: Scalars['String']['input'];
   endDate?: InputMaybe<Scalars['DateTime']['input']>;
   startDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+
+export type TenantScraperArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type TenantScrapersArgs = {
+  scraperTypeID?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -376,6 +415,7 @@ export type Transaction = {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   referenceID: Scalars['String']['output'];
+  sequence: Scalars['Int']['output'];
   sourceAccount: Account;
   targetAccount: Account;
   updatedAt: Scalars['DateTime']['output'];
@@ -490,9 +530,11 @@ export type ResolversTypes = {
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   Scraper: ResolverTypeWrapper<Scraper>;
+  ScraperJob: ResolverTypeWrapper<ScraperJob>;
+  ScraperJobStatus: ScraperJobStatus;
   ScraperParameter: ResolverTypeWrapper<ScraperParameter>;
   ScraperParameterInput: ScraperParameterInput;
-  ScraperParameterType: ResolverTypeWrapper<ScraperParameterType>;
+  ScraperParameterType: ScraperParameterType;
   ScraperType: ResolverTypeWrapper<ScraperType>;
   ScraperTypeParameter: ResolverTypeWrapper<ScraperTypeParameter>;
   SortDirection: SortDirection;
@@ -523,9 +565,9 @@ export type ResolversParentTypes = {
   Mutation: {};
   Query: {};
   Scraper: Scraper;
+  ScraperJob: ScraperJob;
   ScraperParameter: ScraperParameter;
   ScraperParameterInput: ScraperParameterInput;
-  ScraperParameterType: ScraperParameterType;
   ScraperType: ScraperType;
   ScraperTypeParameter: ScraperTypeParameter;
   String: Scalars['String']['output'];
@@ -598,15 +640,17 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createAccount?: Resolver<ResolversTypes['Account'], ParentType, ContextType, RequireFields<MutationCreateAccountArgs, 'displayName' | 'tenantID'>>;
   createCurrencyRate?: Resolver<ResolversTypes['CurrencyRate'], ParentType, ContextType, RequireFields<MutationCreateCurrencyRateArgs, 'date' | 'rate' | 'sourceCurrencyCode' | 'targetCurrencyCode'>>;
-  createScraper?: Resolver<ResolversTypes['Scraper'], ParentType, ContextType, RequireFields<MutationCreateScraperArgs, 'displayName' | 'parameters' | 'scraperTypeID' | 'tenantID'>>;
   createTenant?: Resolver<ResolversTypes['Tenant'], ParentType, ContextType, RequireFields<MutationCreateTenantArgs, 'displayName' | 'id'>>;
   createTransaction?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType, RequireFields<MutationCreateTransactionArgs, 'tx'>>;
-  deleteAccount?: Resolver<Maybe<ResolversTypes['Void']>, ParentType, ContextType, RequireFields<MutationDeleteAccountArgs, 'id' | 'tenantID'>>;
-  deleteScraper?: Resolver<Maybe<ResolversTypes['Void']>, ParentType, ContextType, RequireFields<MutationDeleteScraperArgs, 'id' | 'scraperTypeID' | 'tenantID'>>;
+  deleteAccount?: Resolver<ResolversTypes['Void'], ParentType, ContextType, RequireFields<MutationDeleteAccountArgs, 'id' | 'tenantID'>>;
+  deleteScraper?: Resolver<ResolversTypes['Void'], ParentType, ContextType, RequireFields<MutationDeleteScraperArgs, 'id' | 'tenantID'>>;
   deleteTenant?: Resolver<Maybe<ResolversTypes['Void']>, ParentType, ContextType, RequireFields<MutationDeleteTenantArgs, 'id'>>;
-  deleteTransaction?: Resolver<Maybe<ResolversTypes['Void']>, ParentType, ContextType, RequireFields<MutationDeleteTransactionArgs, 'id' | 'tenantID'>>;
+  deleteTransaction?: Resolver<ResolversTypes['Void'], ParentType, ContextType, RequireFields<MutationDeleteTransactionArgs, 'id' | 'tenantID'>>;
   moveAccount?: Resolver<ResolversTypes['Account'], ParentType, ContextType, RequireFields<MutationMoveAccountArgs, 'accountID' | 'tenantID'>>;
-  noOp?: Resolver<Maybe<ResolversTypes['Void']>, ParentType, ContextType>;
+  noOp?: Resolver<ResolversTypes['Void'], ParentType, ContextType>;
+  setLastSuccessfulScrapedDate?: Resolver<ResolversTypes['Void'], ParentType, ContextType, RequireFields<MutationSetLastSuccessfulScrapedDateArgs, 'date' | 'scraperID' | 'tenantID'>>;
+  triggerScraper?: Resolver<ResolversTypes['ScraperJob'], ParentType, ContextType, RequireFields<MutationTriggerScraperArgs, 'id' | 'tenantID'>>;
+  upsertScraper?: Resolver<ResolversTypes['Scraper'], ParentType, ContextType, RequireFields<MutationUpsertScraperArgs, 'displayName' | 'parameters' | 'scraperTypeID' | 'tenantID'>>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
@@ -614,7 +658,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   currency?: Resolver<Maybe<ResolversTypes['Currency']>, ParentType, ContextType, RequireFields<QueryCurrencyArgs, 'code'>>;
   currencyRate?: Resolver<Maybe<ResolversTypes['CurrencyRate']>, ParentType, ContextType, RequireFields<QueryCurrencyRateArgs, 'date' | 'sourceCurrencyCode' | 'targetCurrencyCode'>>;
   currencyRates?: Resolver<Array<ResolversTypes['CurrencyRate']>, ParentType, ContextType, Partial<QueryCurrencyRatesArgs>>;
-  scraperParameterTypes?: Resolver<Array<ResolversTypes['ScraperParameterType']>, ParentType, ContextType>;
   scraperTypes?: Resolver<Array<ResolversTypes['ScraperType']>, ParentType, ContextType>;
   tenant?: Resolver<Maybe<ResolversTypes['Tenant']>, ParentType, ContextType, RequireFields<QueryTenantArgs, 'id'>>;
   tenants?: Resolver<Array<ResolversTypes['Tenant']>, ParentType, ContextType, Partial<QueryTenantsArgs>>;
@@ -625,26 +668,26 @@ export type ScraperResolvers<ContextType = any, ParentType extends ResolversPare
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  jobs?: Resolver<Array<ResolversTypes['ScraperJob']>, ParentType, ContextType>;
+  lastSuccessfulScrapedDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   parameters?: Resolver<Array<ResolversTypes['ScraperParameter']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['ScraperType'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ScraperParameterResolvers<ContextType = any, ParentType extends ResolversParentTypes['ScraperParameter'] = ResolversParentTypes['ScraperParameter']> = {
+export type ScraperJobResolvers<ContextType = any, ParentType extends ResolversParentTypes['ScraperJob'] = ResolversParentTypes['ScraperJob']> = {
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  parameter?: Resolver<ResolversTypes['ScraperTypeParameter'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  parameters?: Resolver<Array<ResolversTypes['ScraperParameter']>, ParentType, ContextType>;
   scraper?: Resolver<ResolversTypes['Scraper'], ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  value?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['ScraperJobStatus'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ScraperParameterTypeResolvers<ContextType = any, ParentType extends ResolversParentTypes['ScraperParameterType'] = ResolversParentTypes['ScraperParameterType']> = {
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+export type ScraperParameterResolvers<ContextType = any, ParentType extends ResolversParentTypes['ScraperParameter'] = ResolversParentTypes['ScraperParameter']> = {
+  parameter?: Resolver<ResolversTypes['ScraperTypeParameter'], ParentType, ContextType>;
+  value?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -658,12 +701,9 @@ export type ScraperTypeResolvers<ContextType = any, ParentType extends Resolvers
 };
 
 export type ScraperTypeParameterResolvers<ContextType = any, ParentType extends ResolversParentTypes['ScraperTypeParameter'] = ResolversParentTypes['ScraperTypeParameter']> = {
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  parameterType?: Resolver<ResolversTypes['ScraperParameterType'], ParentType, ContextType>;
-  scraperType?: Resolver<ResolversTypes['ScraperType'], ParentType, ContextType>;
-  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['ScraperParameterType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -677,7 +717,8 @@ export type TenantResolvers<ContextType = any, ParentType extends ResolversParen
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   lastTransactionDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   rootAccounts?: Resolver<Array<ResolversTypes['Account']>, ParentType, ContextType>;
-  scrapers?: Resolver<Array<ResolversTypes['Scraper']>, ParentType, ContextType>;
+  scraper?: Resolver<Maybe<ResolversTypes['Scraper']>, ParentType, ContextType, RequireFields<TenantScraperArgs, 'id'>>;
+  scrapers?: Resolver<Array<ResolversTypes['Scraper']>, ParentType, ContextType, Partial<TenantScrapersArgs>>;
   totalTransactions?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   transactions?: Resolver<ResolversTypes['TransactionsResult'], ParentType, ContextType, Partial<TenantTransactionsArgs>>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -692,6 +733,7 @@ export type TransactionResolvers<ContextType = any, ParentType extends Resolvers
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   referenceID?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  sequence?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   sourceAccount?: Resolver<ResolversTypes['Account'], ParentType, ContextType>;
   targetAccount?: Resolver<ResolversTypes['Account'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -718,8 +760,8 @@ export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Scraper?: ScraperResolvers<ContextType>;
+  ScraperJob?: ScraperJobResolvers<ContextType>;
   ScraperParameter?: ScraperParameterResolvers<ContextType>;
-  ScraperParameterType?: ScraperParameterTypeResolvers<ContextType>;
   ScraperType?: ScraperTypeResolvers<ContextType>;
   ScraperTypeParameter?: ScraperTypeParameterResolvers<ContextType>;
   Tenant?: TenantResolvers<ContextType>;
