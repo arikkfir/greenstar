@@ -1,5 +1,9 @@
 name: "CodeQL Advanced"
 
+# "language": https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning
+# "build-mode": https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/codeql-code-scanning-for-compiled-languages
+# "queries": https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
+
 on:
   push:
     branches: [ "main" ]
@@ -9,8 +13,9 @@ on:
     - cron: '31 21 * * 3'
 
 jobs:
+
   analyze:
-    name: Analyze (${{ matrix.language }})
+    name: Analyze (${{ matrix.language }} in ${{ matrix.module }})
     runs-on: 'ubuntu-latest'
     permissions:
       security-events: write  # required for all workflows
@@ -20,29 +25,51 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # "language": https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning
-        # "build-mode": https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/codeql-code-scanning-for-compiled-languages
-        include:
-          - language: javascript
-            build-mode: none
-          - language: javascript-typescript
-            build-mode: none
+        module: [ acme, frontend, ratesjob, server ]
+        language: [ javascript, javascript-typescript ]
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Setup Go
-        uses: actions/setup-go@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          go-version-file: backend/go.mod
-          cache-dependency-path: backend/go.sum
+          node-version: 23.x
+          cache: npm
+          cache-dependency-path: ${{ matrix.module }}/package-lock.json
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
-          # For more details on CodeQL query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
-          # queries: security-extended,security-and-quality
+          queries: security-and-quality
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:${{matrix.language}}"
+          category: "/language:${{matrix.language}}/module:${{matrix.module}}"
+
+  analyze-actions:
+    name: Analyze GitHub Actions
+    runs-on: 'ubuntu-latest'
+    permissions:
+      security-events: write  # required for all workflows
+      packages: read          # required to fetch internal or private CodeQL packs
+      actions: read           # only required for workflows in private repositories
+      contents: read
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: actions
+          queries: security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:actions"
