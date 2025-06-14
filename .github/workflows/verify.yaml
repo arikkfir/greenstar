@@ -7,6 +7,11 @@ on:
       - opened
       - synchronize
 
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
+
 defaults:
   run:
     shell: bash -exuo pipefail {0}
