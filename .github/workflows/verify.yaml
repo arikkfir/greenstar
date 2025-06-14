@@ -190,9 +190,11 @@ jobs:
 
       - name: Install Helm package
         run: |
+          task setup-sensitive-environment
           helm install greenstar ./greenstar-*.tgz \
               --create-namespace -n greenstar \
               -f deploy/local/chart-ci-values.yaml \
+              -f hack/greenstar-values.yaml \
               --wait --wait-for-jobs
 
       - name: Setup Node.js
@@ -225,6 +227,7 @@ jobs:
           kubectl cluster-info dump -o yaml --output-directory=./cluster-state --namespaces=ingress,greenstar
           kubectl get gateways.gateway.networking.k8s.io -o yaml -A > ./cluster-state/gateways.yaml
           kubectl get httproutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/httproutes.yaml
+          kubectl get jobs -o yaml -A > ./cluster-state/jobs.yaml
           kubectl get tlsroutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/tlsroutes.yaml
 
       - name: Upload cluster state artifact

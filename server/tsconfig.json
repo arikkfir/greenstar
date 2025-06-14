@@ -1,10 +1,10 @@
 {
     "extends": "@tsconfig/node23/tsconfig.json",
     "compilerOptions": {
-        "rootDir": "./src",
-        "outDir": "dist",
         "forceConsistentCasingInFileNames": true,
+        "outDir": "dist",
         "resolveJsonModule": true,
+        "rootDir": "./src"
     },
     "include": ["src/**/*.ts"],
     "exclude": ["node_modules"]

@@ -32,8 +32,10 @@ import { DashboardPage } from "./pages/dashboard/DashboardPage.tsx"
 import { SettingsPage } from "./pages/settings/SettingsPage.tsx"
 import SettingsIcon from "@mui/icons-material/Settings"
 import { TransactionsPage } from "./pages/transactions/TransactionsPage.tsx"
+import { ScrapersPage } from "./pages/scrapers/ScrapersPage.tsx"
 import { AboutPage } from "./pages/About.tsx"
 import InfoIcon from "@mui/icons-material/Info"
+import CodeIcon from "@mui/icons-material/Code"
 import { ErrorPage } from "./pages/error/ErrorPage.tsx"
 
 function BreadcrumbsLink({ href, label, Icon }: { href?: string, label: string, Icon: ComponentType<SvgIconProps> }) {
@@ -140,6 +142,13 @@ export function Layout() {
                                         <BreadcrumbsLink label="Transactions" Icon={ReceiptLongIcon} />
                                     </Breadcrumbs>
                                     <TransactionsPage />
+                                </Route>
+                                <Route path="/scrapers">
+                                    <Breadcrumbs>
+                                        <HomeBreadcrumbsLink />
+                                        <BreadcrumbsLink label="Scrapers" Icon={CodeIcon} />
+                                    </Breadcrumbs>
+                                    <ScrapersPage />
                                 </Route>
                                 <Route path="/about">
                                     <Breadcrumbs>
