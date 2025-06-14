@@ -23,6 +23,21 @@
                 "extraEnv": {
                     "$ref": "#/$defs/extraEnv"
                 },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "content"],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "content": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "image": {
                     "$ref": "#/$defs/image"
                 },
@@ -79,6 +94,18 @@
                 },
                 "volumes": {
                     "$ref": "#/$defs/volumesConfiguration"
+                }
+            }
+        },
+        "scrapers": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "image": {
+                    "$ref": "#/$defs/image"
+                },
+                "rbac": {
+                    "$ref": "#/$defs/rbacConfiguration"
                 }
             }
         },
@@ -222,8 +249,7 @@
                             "const": false
                         }
                     }
-                },
-                {
+                }, {
                     "type": "object",
                     "additionalProperties": false,
                     "properties": {
@@ -253,8 +279,7 @@
                             }
                         }
                     }
-                },
-                {
+                }, {
                     "type": "object",
                     "additionalProperties": false,
                     "properties": {

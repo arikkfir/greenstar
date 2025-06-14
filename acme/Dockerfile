@@ -6,8 +6,8 @@ COPY package.json package-lock.json ./
 ARG VERSION=0.0.0-notset
 RUN npm pkg set version="${VERSION}"
 RUN npm ci
-COPY ./src ./src/
 COPY ./tsconfig.json ./
+COPY ./src ./src/
 ARG NODE_ENV
 RUN npm run build
 ENTRYPOINT ["npm","run","generate"]

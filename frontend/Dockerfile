@@ -17,11 +17,11 @@ COPY --from=dependencies /app ./
 COPY eslint.config.js ./
 COPY index.html ./
 COPY public ./public/
-COPY src ./src/
 COPY tsconfig.app.json ./
 COPY tsconfig.json ./
 COPY tsconfig.node.json ./
 COPY vite.config.ts ./
+COPY src ./src/
 ENTRYPOINT ["npm","run","dev"]
 
 FROM development AS builder

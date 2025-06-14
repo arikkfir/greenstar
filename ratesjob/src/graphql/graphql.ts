@@ -100,6 +100,7 @@ export type CreateTransaction = {
   date: Scalars['DateTime']['input'];
   description: Scalars['String']['input'];
   referenceID: Scalars['String']['input'];
+  sequence: Scalars['Int']['input'];
   sourceAccountID?: InputMaybe<Scalars['ID']['input']>;
   targetAccountID?: InputMaybe<Scalars['ID']['input']>;
   tenantID: Scalars['ID']['input'];
@@ -132,15 +133,17 @@ export type Mutation = {
   __typename?: 'Mutation';
   createAccount: Account;
   createCurrencyRate: CurrencyRate;
-  createScraper: Scraper;
   createTenant: Tenant;
   createTransaction: Transaction;
-  deleteAccount?: Maybe<Scalars['Void']['output']>;
-  deleteScraper?: Maybe<Scalars['Void']['output']>;
+  deleteAccount: Scalars['Void']['output'];
+  deleteScraper: Scalars['Void']['output'];
   deleteTenant?: Maybe<Scalars['Void']['output']>;
-  deleteTransaction?: Maybe<Scalars['Void']['output']>;
+  deleteTransaction: Scalars['Void']['output'];
   moveAccount: Account;
-  noOp?: Maybe<Scalars['Void']['output']>;
+  noOp: Scalars['Void']['output'];
+  setLastSuccessfulScrapedDate: Scalars['DateTime']['output'];
+  triggerScraper: ScraperJob;
+  upsertScraper: Scraper;
 };
 
 
@@ -159,15 +162,6 @@ export type MutationCreateCurrencyRateArgs = {
   rate: Scalars['Float']['input'];
   sourceCurrencyCode: Scalars['String']['input'];
   targetCurrencyCode: Scalars['String']['input'];
-};
-
-
-export type MutationCreateScraperArgs = {
-  displayName: Scalars['String']['input'];
-  id?: InputMaybe<Scalars['ID']['input']>;
-  parameters: Array<ScraperParameterInput>;
-  scraperTypeID: Scalars['ID']['input'];
-  tenantID: Scalars['ID']['input'];
 };
 
 
@@ -190,7 +184,6 @@ export type MutationDeleteAccountArgs = {
 
 export type MutationDeleteScraperArgs = {
   id: Scalars['ID']['input'];
-  scraperTypeID: Scalars['ID']['input'];
   tenantID: Scalars['ID']['input'];
 };
 
@@ -212,13 +205,34 @@ export type MutationMoveAccountArgs = {
   tenantID: Scalars['ID']['input'];
 };
 
+
+export type MutationSetLastSuccessfulScrapedDateArgs = {
+  date: Scalars['DateTime']['input'];
+  scraperID: Scalars['ID']['input'];
+  tenantID: Scalars['ID']['input'];
+};
+
+
+export type MutationTriggerScraperArgs = {
+  id: Scalars['ID']['input'];
+  tenantID: Scalars['ID']['input'];
+};
+
+
+export type MutationUpsertScraperArgs = {
+  displayName: Scalars['String']['input'];
+  id?: InputMaybe<Scalars['ID']['input']>;
+  parameters: Array<ScraperParameterInput>;
+  scraperTypeID: Scalars['ID']['input'];
+  tenantID: Scalars['ID']['input'];
+};
+
 export type Query = {
   __typename?: 'Query';
   currencies: Array<Currency>;
   currency?: Maybe<Currency>;
   currencyRate?: Maybe<CurrencyRate>;
   currencyRates: Array<CurrencyRate>;
-  scraperParameterTypes: Array<ScraperParameterType>;
   scraperTypes: Array<ScraperType>;
   tenant?: Maybe<Tenant>;
   tenants: Array<Tenant>;
@@ -260,32 +274,63 @@ export type Scraper = {
   createdAt: Scalars['DateTime']['output'];
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  job?: Maybe<ScraperJob>;
+  jobs: Array<ScraperJob>;
+  lastSuccessfulScrapedDate?: Maybe<Scalars['DateTime']['output']>;
   parameters: Array<ScraperParameter>;
+  tenant: Tenant;
   type: ScraperType;
   updatedAt: Scalars['DateTime']['output'];
 };
 
+
+export type ScraperJobArgs = {
+  id: Scalars['ID']['input'];
+};
+
+export type ScraperJob = {
+  __typename?: 'ScraperJob';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  logs: Array<Scalars['String']['output']>;
+  parameters: Array<ScraperParameter>;
+  scraper: Scraper;
+  status: ScraperJobStatus;
+};
+
+
+export type ScraperJobLogsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum ScraperJobStatus {
+  Failed = 'Failed',
+  Pending = 'Pending',
+  Running = 'Running',
+  Successful = 'Successful'
+}
+
 export type ScraperParameter = {
   __typename?: 'ScraperParameter';
-  createdAt: Scalars['DateTime']['output'];
   parameter: ScraperTypeParameter;
-  scraper: Scraper;
-  updatedAt: Scalars['DateTime']['output'];
   value: Scalars['String']['output'];
 };
 
 export type ScraperParameterInput = {
-  scraperTypeParameterID: Scalars['ID']['input'];
+  parameterID: Scalars['ID']['input'];
   value: Scalars['String']['input'];
 };
 
-export type ScraperParameterType = {
-  __typename?: 'ScraperParameterType';
-  createdAt: Scalars['DateTime']['output'];
-  displayName: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  updatedAt: Scalars['DateTime']['output'];
-};
+export enum ScraperParameterType {
+  Account = 'Account',
+  Boolean = 'Boolean',
+  Date = 'Date',
+  Float = 'Float',
+  Integer = 'Integer',
+  Password = 'Password',
+  String = 'String'
+}
 
 export type ScraperType = {
   __typename?: 'ScraperType';
@@ -298,12 +343,9 @@ export type ScraperType = {
 
 export type ScraperTypeParameter = {
   __typename?: 'ScraperTypeParameter';
-  createdAt: Scalars['DateTime']['output'];
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  parameterType: ScraperParameterType;
-  scraperType: ScraperType;
-  updatedAt: Scalars['DateTime']['output'];
+  type: ScraperParameterType;
 };
 
 export enum SortDirection {
@@ -322,8 +364,10 @@ export type Tenant = {
   id: Scalars['ID']['output'];
   lastTransactionDate?: Maybe<Scalars['DateTime']['output']>;
   rootAccounts: Array<Account>;
+  scraper?: Maybe<Scraper>;
   scrapers: Array<Scraper>;
   totalTransactions: Scalars['Int']['output'];
+  transaction?: Maybe<Transaction>;
   transactions: TransactionsResult;
   updatedAt: Scalars['DateTime']['output'];
 };
@@ -344,6 +388,21 @@ export type TenantAccountsBalanceOverTimeArgs = {
   currency: Scalars['String']['input'];
   endDate?: InputMaybe<Scalars['DateTime']['input']>;
   startDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+
+export type TenantScraperArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type TenantScrapersArgs = {
+  scraperTypeID?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type TenantTransactionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -369,15 +428,25 @@ export type TenantsSortColumnsInput = {
 export type Transaction = {
   __typename?: 'Transaction';
   amount: Scalars['Float']['output'];
+  classification?: Maybe<TransactionClassification>;
   createdAt: Scalars['DateTime']['output'];
   currency: Currency;
   date: Scalars['DateTime']['output'];
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   referenceID: Scalars['String']['output'];
+  sequence: Scalars['Int']['output'];
   sourceAccount: Account;
   targetAccount: Account;
   updatedAt: Scalars['DateTime']['output'];
+};
+
+export type TransactionClassification = {
+  __typename?: 'TransactionClassification';
+  confidence?: Maybe<Scalars['Float']['output']>;
+  reasoning?: Maybe<Scalars['String']['output']>;
+  sourceAccount?: Maybe<Account>;
+  targetAccount?: Maybe<Account>;
 };
 
 export type TransactionsResult = {

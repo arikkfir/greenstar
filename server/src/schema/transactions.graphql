@@ -20,12 +20,21 @@ type Transaction {
     createdAt: DateTime!
     updatedAt: DateTime!
     date: DateTime!
+    sequence: Int!
     referenceID: String!
     amount: Float!
     currency: Currency!
     description: String!
     sourceAccount: Account!
     targetAccount: Account!
+    classification: TransactionClassification
+}
+
+type TransactionClassification {
+    sourceAccount: Account
+    targetAccount: Account
+    confidence: Float
+    reasoning: String
 }
 
 type TransactionsResult {
@@ -35,12 +44,13 @@ type TransactionsResult {
 
 extend type Mutation {
     createTransaction(tx: CreateTransaction!): Transaction!
-    deleteTransaction(tenantID: ID!, id: ID!): Void
+    deleteTransaction(tenantID: ID!, id: ID!): Void!
 }
 
 input CreateTransaction {
     tenantID: ID!
     date: DateTime!
+    sequence: Int!
     referenceID: String!
     amount: Float!
     currency: String!
