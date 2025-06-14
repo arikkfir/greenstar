@@ -207,7 +207,7 @@ export class AccountsDataAccessLayer {
     async fetchAccounts(tenantID: Tenant["id"], displayNameFilter?: string | null): Promise<Account[]> {
         const parameters: any[] = [ tenantID ]
         if (displayNameFilter) {
-            parameters.push(displayNameFilter || null)
+            parameters.push(displayNameFilter)
         }
         const res = await this.pg.query(`
                     SELECT p.tenant_id,
