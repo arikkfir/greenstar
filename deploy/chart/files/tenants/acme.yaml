@@ -1,0 +1,508 @@
+id: acme
+displayName: A.C.M.E
+defaultCurrency: ILS
+scrapers:
+  - id: bankYahav
+    type: bankYahav
+    parameters:
+      accountID: primaryCheckingAccount
+accounts:
+  - id: employers
+    icon: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 12h.01"/>
+        <path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        <path d="M22 13a18.15 18.15 0 0 1-20 0"/>
+        <rect width="20" height="14" x="2" y="6" rx="2"/>
+      </svg>
+    children:
+      - id: microsoft
+        icon: |
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+            <rect x="0" y="0" width="11" height="11"/>
+            <rect x="13" y="0" width="11" height="11"/>
+            <rect x="0" y="13" width="11" height="11"/>
+            <rect x="13" y="13" width="11" height="11"/>
+          </svg>
+        outgoingTransactions:
+          - targetAccountID: primaryCheckingAccount
+            dateDelta: -P1M
+            amount: 25000
+            amountDelta: ±100
+            description: Salary
+            repeat: 4
+      - id: amazon
+        icon: |
+          <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <title>Amazon</title>
+            <path stroke="none" fill="currentColor" d="M.045 18.02c.072-.116.187-.124.348-.022 3.636 2.11 7.594 3.166 11.87 3.166 2.852 0 5.668-.533 8.447-1.595l.315-.14c.138-.06.234-.1.293-.13.226-.088.39-.046.525.13.12.174.09.336-.12.48-.256.19-.6.41-1.006.654-1.244.743-2.64 1.316-4.185 1.726a17.617 17.617 0 01-10.951-.577 17.88 17.88 0 01-5.43-3.35c-.1-.074-.151-.15-.151-.22 0-.047.021-.09.051-.13zm6.565-6.218c0-1.005.247-1.863.743-2.577.495-.71 1.17-1.25 2.04-1.615.796-.335 1.756-.575 2.912-.72.39-.046 1.033-.103 1.92-.174v-.37c0-.93-.105-1.558-.3-1.875-.302-.43-.78-.65-1.44-.65h-.182c-.48.046-.896.196-1.246.46-.35.27-.575.63-.675 1.096-.06.3-.206.465-.435.51l-2.52-.315c-.248-.06-.372-.18-.372-.39 0-.046.007-.09.022-.15.247-1.29.855-2.25 1.82-2.88.976-.616 2.1-.975 3.39-1.05h.54c1.65 0 2.957.434 3.888 1.29.135.15.27.3.405.48.12.165.224.314.283.45.075.134.15.33.195.57.06.254.105.42.135.51.03.104.062.3.076.615.01.313.02.493.02.553v5.28c0 .376.06.72.165 1.036.105.313.21.54.315.674l.51.674c.09.136.136.256.136.36 0 .12-.06.226-.18.314-1.2 1.05-1.86 1.62-1.963 1.71-.165.135-.375.15-.63.045a6.062 6.062 0 01-.526-.496l-.31-.347a9.391 9.391 0 01-.317-.42l-.3-.435c-.81.886-1.603 1.44-2.4 1.665-.494.15-1.093.227-1.83.227-1.11 0-2.04-.343-2.76-1.034-.72-.69-1.08-1.665-1.08-2.94l-.05-.076zm3.753-.438c0 .566.14 1.02.425 1.364.285.34.675.512 1.155.512.045 0 .106-.007.195-.02.09-.016.134-.023.166-.023.614-.16 1.08-.553 1.424-1.178.165-.28.285-.58.36-.91.09-.32.12-.59.135-.8.015-.195.015-.54.015-1.005v-.54c-.84 0-1.484.06-1.92.18-1.275.36-1.92 1.17-1.92 2.43l-.035-.02zm9.162 7.027c.03-.06.075-.11.132-.17.362-.243.714-.41 1.05-.5a8.094 8.094 0 011.612-.24c.14-.012.28 0 .41.03.65.06 1.05.168 1.172.33.063.09.099.228.099.39v.15c0 .51-.149 1.11-.424 1.8-.278.69-.664 1.248-1.156 1.68-.073.06-.14.09-.197.09-.03 0-.06 0-.09-.012-.09-.044-.107-.12-.064-.24.54-1.26.806-2.143.806-2.64 0-.15-.03-.27-.087-.344-.145-.166-.55-.257-1.224-.257-.243 0-.533.016-.87.046-.363.045-.7.09-1 .135-.09 0-.148-.014-.18-.044-.03-.03-.036-.047-.02-.077 0-.017.006-.03.02-.063v-.06z"/>
+          </svg>
+        outgoingTransactions:
+          - targetAccountID: primaryCheckingAccount
+            date: -P7M
+            dateDelta: +P1M
+            amount: 30000
+            amountDelta: ±100
+            description: Salary
+            repeat: 4
+      - id: google
+        icon: |
+          <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <title>Google</title>
+            <path stroke="none" fill="currentColor" d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>
+          </svg>
+        outgoingTransactions:
+          - targetAccountID: primaryCheckingAccount
+            date: -P11M
+            dateDelta: +P1M
+            amount: 20000
+            amountDelta: ±100
+            description: Salary
+            repeat: 4
+  - id: insuranceCompanies
+    icon: |
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+        <path d="M12 2l8 4v5c0 5-3.5 9.7-8 11-4.5-1.3-8-6-8-11V6l8-4z"/>
+        <path d="M12 8.5c-1.5-2-4.5-1-4.5 1.5 0 2.5 4.5 5 4.5 5s4.5-2.5 4.5-5c0-2.5-3-3.5-4.5-1.5z" fill="#fff"/>
+      </svg>
+    children:
+      - id: Libra
+        icon: |
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7zM11 10v4a1 1 0 1 0 2 0v-4h-2z"/>
+            <circle cx="8" cy="17" r="2"/>
+            <circle cx="16" cy="17" r="2"/>
+            <path d="M6 21c0-2 4-2 4 0H6zm8 0c0-2 4-2 4 0h-4z"/>
+          </svg>
+        children:
+          - id: skodaInsurancePayments
+            icon: |
+              <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                <title>&#352;KODA</title>
+                <path d="M12 0C5.3726 0 0 5.3726 0 12s5.3726 12 12 12 12-5.3726 12-12S18.6274 0 12 0Zm0 22.9636C5.945 22.9636 1.0364 18.055 1.0364 12 1.0364 5.945 5.945 1.0364 12 1.0364S22.9636 5.945 22.9636 12 18.055 22.9636 12 22.9636Zm5.189-7.2325-.269.7263h-.984c.263-.7089 3.5783-8.6177-2.9362-13.9819a9.5254 9.5254 0 0 0-4.0531.4483c.2172.175 2.474 2.0276 3.5373 4.315l-.312.084c-.5861-.6387-2.7156-2.9833-4.7448-3.7379a9.6184 9.6184 0 0 0-2.8448 2.3597c.953.4875 3.4432 1.9748 4.3896 3.1302-.0542.0244-.267.139-.267.139-1.736-1.3195-4.8199-2.0043-4.9775-2.0383a9.5126 9.5126 0 0 0-1.2267 3.6098c4.7759.9613 6.0618 3.1715 6.2818 5.6721H7.878l-1.5545-.6776a.8563.8563 0 0 0-.2524-.0531H3.1767a9.587 9.587 0 0 0 1.9267 2.9155h1.2334c.1063 0 .1993-.0133.2923-.0664l1.2489-.6378h9.042l.269.7264a4.8386 4.8386 0 0 0 2.9466-1.4667 4.839 4.839 0 0 0-2.9467-1.4666zm-4.14-.5786a1.1863 1.1863 0 0 1-.5038-1.2162 1.1862 1.1862 0 0 1 .931-.9309 1.1863 1.1863 0 0 1 1.2161.5038c.3098.4636.2563 1.0924-.1473 1.496-.4032.4032-1.0318.4574-1.496.1473z"/>
+              </svg>
+  - id: government
+    icon: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" x2="21" y1="22" y2="22"/>
+        <line x1="6" x2="6" y1="18" y2="11"/>
+        <line x1="10" x2="10" y1="18" y2="11"/>
+        <line x1="14" x2="14" y1="18" y2="11"/>
+        <line x1="18" x2="18" y1="18" y2="11"/>
+        <polygon points="12 2 20 7 4 7"/>
+      </svg>
+    children:
+      - id: transportationOffice
+        icon: |
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+            <circle cx="7" cy="17" r="2"/>
+            <path d="M9 17h6"/>
+            <circle cx="17" cy="17" r="2"/>
+          </svg>
+        children:
+          - id: skodaLicensePayments
+            icon: |
+              <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <title>&#352;KODA</title>
+                <path d="M12 0C5.3726 0 0 5.3726 0 12s5.3726 12 12 12 12-5.3726 12-12S18.6274 0 12 0Zm0 22.9636C5.945 22.9636 1.0364 18.055 1.0364 12 1.0364 5.945 5.945 1.0364 12 1.0364S22.9636 5.945 22.9636 12 18.055 22.9636 12 22.9636Zm5.189-7.2325-.269.7263h-.984c.263-.7089 3.5783-8.6177-2.9362-13.9819a9.5254 9.5254 0 0 0-4.0531.4483c.2172.175 2.474 2.0276 3.5373 4.315l-.312.084c-.5861-.6387-2.7156-2.9833-4.7448-3.7379a9.6184 9.6184 0 0 0-2.8448 2.3597c.953.4875 3.4432 1.9748 4.3896 3.1302-.0542.0244-.267.139-.267.139-1.736-1.3195-4.8199-2.0043-4.9775-2.0383a9.5126 9.5126 0 0 0-1.2267 3.6098c4.7759.9613 6.0618 3.1715 6.2818 5.6721H7.878l-1.5545-.6776a.8563.8563 0 0 0-.2524-.0531H3.1767a9.587 9.587 0 0 0 1.9267 2.9155h1.2334c.1063 0 .1993-.0133.2923-.0664l1.2489-.6378h9.042l.269.7264a4.8386 4.8386 0 0 0 2.9466-1.4667 4.839 4.839 0 0 0-2.9467-1.4666zm-4.14-.5786a1.1863 1.1863 0 0 1-.5038-1.2162 1.1862 1.1862 0 0 1 .931-.9309 1.1863 1.1863 0 0 1 1.2161.5038c.3098.4636.2563 1.0924-.1473 1.496-.4032.4032-1.0318.4574-1.496.1473z"/>
+              </svg>
+  - id: realEstateTenants
+    icon: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 10l5.5-5a2 2 0 0 1 2.7 0l5.5 5v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/>
+        <path d="M8.5 21v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/>
+        <circle cx="19" cy="14" r="1.5"/>
+        <path d="M19 15.5V20"/>
+        <path d="M17.5 21v-2.5a1.5 1.5 0 0 1 3 0V21"/>
+      </svg>
+    children:
+      - id: manhattanApartment
+        icon: |
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="16" height="20" x="4" y="2" rx="2" ry="2"/>
+            <path d="M9 22v-4h6v4"/>
+            <path d="M8 6h.01"/>
+            <path d="M16 6h.01"/>
+            <path d="M12 6h.01"/>
+            <path d="M12 10h.01"/>
+            <path d="M12 14h.01"/>
+            <path d="M16 10h.01"/>
+            <path d="M16 14h.01"/>
+            <path d="M8 10h.01"/>
+            <path d="M8 14h.01"/>
+          </svg>
+        children:
+          - id: jack
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="5"/>
+                <path d="M20 21a8 8 0 0 0-16 0"/>
+              </svg>
+            outgoingTransactions:
+              - targetAccountID: primaryCheckingAccount
+                date: -P18M
+                dateDelta: +P1M
+                amount: 2500
+                amountDelta: ±50
+                description: Rent for Manhattan apartment
+                repeat: 18
+          - id: john
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="5"/>
+                <path d="M20 21a8 8 0 0 0-16 0"/>
+              </svg>
+            outgoingTransactions:
+              - targetAccountID: primaryCheckingAccount
+                date: -P12M
+                dateDelta: +P1M
+                amount: 2700
+                amountDelta: ±50
+                description: Rent for Manhattan apartment
+                repeat: 12
+      - id: countryHouse
+        icon: |
+          <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <title>Home Assistant Community Store</title>
+            <path d="M1.63.47a.393.393 0 0 0-.39.39v2.417c0 .212.177.39.39.39h20.74c.213 0 .39-.178.39-.39V.859a.393.393 0 0 0-.39-.39zm-.045 4.126a.41.41 0 0 0-.407.337l-1.17 6.314C0 11.274 0 11.3 0 11.327v2.117c0 .23.186.416.416.416h23.168c.23 0 .416-.186.416-.416v-2.126c0-.027 0-.053-.009-.08l-1.169-6.305a.41.41 0 0 0-.407-.337zM1.7 14.781a.457.457 0 0 0-.46.46v7.829c0 .257.203.46.46.46h14.108c.257 0 .46-.203.46-.46v-6.589c0-.257.204-.46.461-.46h4.02c.258 0 .461.203.461.46v6.589c0 .257.204.46.46.46h.62a.456.456 0 0 0 .461-.46v-7.829a.458.458 0 0 0-.46-.46zm1.842 1.55h7.847c.212 0 .39.177.39.39V21.6c0 .212-.178.39-.39.39H3.542a.393.393 0 0 1-.39-.39v-4.88c0-.221.178-.39.39-.39Z"/>
+          </svg>
+        children:
+          - id: jennifer
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="5"/>
+                <path d="M20 21a8 8 0 0 0-16 0"/>
+              </svg>
+            outgoingTransactions:
+              - targetAccountID: primaryCheckingAccount
+                date: -P6M
+                dateDelta: +P1M
+                amount: 1400
+                amountDelta: ±50
+                description: Rent for country house
+                repeat: 6
+  - id: banks
+    icon: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" x2="21" y1="22" y2="22"/>
+        <line x1="6" x2="6" y1="18" y2="11"/>
+        <line x1="10" x2="10" y1="18" y2="11"/>
+        <line x1="14" x2="14" y1="18" y2="11"/>
+        <line x1="18" x2="18" y1="18" y2="11"/>
+        <polygon points="12 2 20 7 4 7"/>
+      </svg>
+    children:
+      - id: bankOfAmerica
+        icon: |
+          <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <title>Bank of America</title>
+              <path d="M15.194 7.57c.487-.163 1.047-.307 1.534-.451-1.408-.596-3.176-1.227-4.764-1.625-.253.073-1.01.271-1.534.434.541.162 2.328.577 4.764 1.642zm-8.896 6.785c.577.343 1.19.812 1.786 1.209 3.952-3.068 7.85-5.432 12.127-6.767-.596-.307-1.119-.578-1.787-.902-2.562.65-6.947 2.4-12.126 6.46zm-.758-6.46c-2.112.974-4.331 2.31-5.54 3.085.433.199.866.361 1.461.65 2.671-1.805 4.764-2.905 5.594-3.266-.595-.217-1.154-.361-1.515-.47zm8.066.234c-.686-.379-3.068-1.263-4.71-1.642-.487.18-1.173.451-1.642.65.595.162 2.815.758 4.71 1.714.487-.235 1.173-.523 1.642-.722zm-3.374 1.552c-.56-.27-1.173-.523-1.643-.74-1.425.704-3.284 1.769-5.63 3.447.505.27 1.047.595 1.624.92 1.805-1.335 3.627-2.598 5.649-3.627zm1.732 8.825c3.79-3.249 9.113-6.407 12.036-7.544a48.018 48.018 0 00-1.949-1.155c-3.771 1.246-8.174 4.007-12.108 7.129.667.505 1.371 1.028 2.02 1.57zm2.851-.235h-.108l-.18-.27h-.109v.27h-.072v-.596h.27c.055 0 .109 0 .145.036.054.019.072.073.072.127 0 .108-.09.162-.198.162zm-.289-.343c.09 0 .199.018.199-.09 0-.072-.072-.09-.144-.09h-.163v.18zm-.523.036c0-.289.235-.523.541-.523.307 0 .542.234.542.523a.543.543 0 01-.542.542.532.532 0 01-.54-.542m.107 0c0 .235.199.433.451.433a.424.424 0 100-.848c-.27 0-.45.199-.45.415"/>
+          </svg>
+        children:
+          - id: skodaLoanPayments
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5"/>
+                <path d="M18 12h.01"/>
+                <path d="M19 22v-6"/>
+                <path d="m22 19-3-3-3 3"/>
+                <path d="M6 12h.01"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+          - id: manhattanMortgagePayments
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5"/>
+                <path d="M18 12h.01"/>
+                <path d="M19 22v-6"/>
+                <path d="m22 19-3-3-3 3"/>
+                <path d="M6 12h.01"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+          - id: countryHouseMortgagePayments
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5"/>
+                <path d="M18 12h.01"/>
+                <path d="M19 22v-6"/>
+                <path d="m22 19-3-3-3 3"/>
+                <path d="M6 12h.01"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+  - id: checkingAccounts
+    icon: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/>
+        <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>
+      </svg>
+    children:
+      - id: primaryCheckingAccount
+        icon: |
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/>
+              <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>
+          </svg>
+        outgoingTransactions:
+
+          # Car payments
+          - targetAccountID: skodaLoanPayments
+            date: -P18M
+            dateDelta: +P1M
+            amount: 1500
+            description: Car loan installment
+            repeat: 18
+          - targetAccountID: skodaLicensePayments
+            date: -P18M
+            dateDelta: +P1Y
+            amount: 1200
+            description: Car licence
+            repeat: 2
+          - targetAccountID: skodaInsurancePayments
+            date: -P18M
+            dateDelta: +P1Y
+            amount: 4000
+            description: Car insurance
+            repeat: 2
+
+          # Mortgage payments
+          - targetAccountID: manhattanMortgagePayments
+            date: -P18M
+            dateDelta: +P1M
+            amount: 5000
+            description: Manhattan apt. mortgage installment
+            repeat: 18
+          - targetAccountID: countryHouseMortgagePayments
+            date: -P6M
+            dateDelta: +P1M
+            amount: 3000
+            description: Country house apt. mortgage installment
+            repeat: 6
+
+          # Entertainment
+          - targetAccountID: netflix
+            date: -P12M
+            dateDelta: +P1M
+            amount: 29.99
+            description: Netflix Subscription
+            repeat: 12
+          - targetAccountID: primeVideo
+            date: -P12M
+            dateDelta: +P1M
+            amount: 14.98
+            description: Amazon Prime Video Subscription
+            repeat: 12
+          - targetAccountID: spotify
+            date: -P12M
+            dateDelta: +P1M
+            amount: 9.99
+            description: Spotify Subscription
+            repeat: 12
+          - targetAccountID: youtube
+            date: -P3M
+            dateDelta: +P1M
+            amount: 12.99
+            description: YouTube Premium Subscription
+            repeat: 3
+
+          # Leisure
+          - targetAccountID: theBrownHogPub
+            date: -P4M
+            amount: 123.45
+            description: Beers with friends
+          - targetAccountID: theBrownHogPub
+            date: -P2M
+            amount: 123.45
+            description: Jack's birthday at the pub
+          - targetAccountID: monCheryRestaurant
+            date: -P6M
+            amount: 462.65
+            description: Wedding anniversary
+          - targetAccountID: coralStrandsHotel
+            date: -P8M
+            amount: 1065
+            description: Seychelles Trip
+
+          # Household
+          - targetAccountID: groceries
+            date: -P12M
+            dateDelta: +P1M
+            amount: 86
+            description: Groceries
+            repeat: 12
+          - targetAccountID: meat
+            date: -P12M
+            dateDelta: +P2M
+            amount: 86
+            description: Meat
+            repeat: 6
+          - targetAccountID: electronics
+            date: -P9M
+            amount: 299.99
+            description: LG TV
+
+          # Clothing
+          - targetAccountID: nike
+            date: -P7M
+            amount: 79.99
+            description: Sneakers for Julie
+          - targetAccountID: adidas
+            date: -P11M
+            amount: 69.99
+            description: Sneakers for Jean
+          - targetAccountID: zara
+            date: -P2M
+            amount: 687.95
+            description: Clothes for Jean
+
+  - id: expenses
+    icon: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5"/>
+          <path d="m16 19 3 3 3-3"/>
+          <path d="M18 12h.01"/>
+          <path d="M19 16v6"/>
+          <path d="M6 12h.01"/>
+          <circle cx="12" cy="12" r="2"/>
+      </svg>
+    children:
+      - id: entertainment
+        icon: |
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 7.75a.75.75 0 0 1 1.142-.638l3.664 2.249a.75.75 0 0 1 0 1.278l-3.664 2.25a.75.75 0 0 1-1.142-.64z"/>
+              <path d="M7 21h10"/>
+              <rect width="20" height="14" x="2" y="3" rx="2"/>
+          </svg>
+        children:
+          - id: netflix
+            icon: |
+              <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <title>Netflix</title>
+                  <path d="M5.398 0v.006c3.028 8.556 5.37 15.175 8.348 23.596 2.344.058 4.85.398 4.854.398-2.8-7.924-5.923-16.747-8.487-24zm8.489 0v9.63L18.6 22.951c-.043-7.86-.004-15.913.002-22.95zM5.398 1.05V24c1.873-.225 2.81-.312 4.715-.398v-9.22z"/>
+              </svg>
+          - id: primeVideo
+            icon: |
+              <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <title>Prime</title>
+                  <path d="M22.787 15.292c-.336-.43-2.222-.204-3.069-.103-.257.031-.296-.193-.065-.356 1.504-1.056 3.968-.75 4.255-.397.288.357-.076 2.827-1.485 4.007-.217.18-.423.084-.327-.155.317-.792 1.027-2.566.69-2.996m-1.093 1.248c-2.627 1.94-6.437 2.97-9.717 2.97-4.597 0-8.737-1.7-11.87-4.528-.246-.222-.026-.525.27-.353 3.38 1.967 7.559 3.151 11.876 3.151a23.63 23.63 0 0 0 9.06-1.854c.444-.188.816.293.381.614m.482-5.038c-.761 0-1.346-.209-1.755-.626-.409-.418-.613-1.017-.613-1.797 0-.799.209-1.425.627-1.88.418-.454.998-.682 1.741-.682.572 0 1.019.138 1.341.415.323.276.484.645.484 1.105 0 .461-.174.81-.52 1.046-.348.237-.86.355-1.535.355-.35 0-.654-.034-.912-.101.037.411.161.706.373.884.212.178.533.268.963.268.172 0 .34-.011.502-.033a6.208 6.208 0 0 0 .733-.157.304.304 0 0 1 .046-.004c.104 0 .156.07.156.212v.424c0 .098-.013.167-.04.207a.341.341 0 0 1-.162.106 3.954 3.954 0 0 1-1.429.258m-.304-2.893c.314 0 .541-.048.682-.143.142-.095.212-.241.212-.438 0-.387-.23-.58-.69-.58-.59 0-.931.362-1.024 1.087.246.05.52.074.82.074m-9.84 2.755c-.08 0-.139-.018-.176-.055-.036-.037-.055-.096-.055-.175V6.886c0-.086.019-.146.055-.18.037-.034.096-.05.176-.05h.663c.141 0 .227.067.258.202l.074.249c.325-.215.619-.367.88-.456.26-.09.53-.134.806-.134.553 0 .943.197 1.17.59a3.77 3.77 0 0 1 .885-.452c.276-.092.562-.138.857-.138.43 0 .763.12 1 .36.236.239.354.574.354 1.004v3.253c0 .08-.017.138-.05.175-.034.037-.094.055-.18.055h-.885c-.08 0-.138-.018-.175-.055-.037-.037-.055-.096-.055-.175V8.176c0-.418-.188-.627-.562-.627-.332 0-.667.08-1.005.24v3.345c0 .08-.017.138-.05.175-.034.037-.094.055-.18.055h-.884c-.08 0-.139-.018-.176-.055-.036-.037-.055-.096-.055-.175V8.176c0-.418-.187-.627-.562-.627-.344 0-.682.083-1.013.249v3.336c0 .08-.017.138-.051.175-.034.037-.094.055-.18.055zM9.987 5.927c-.234 0-.42-.064-.562-.193-.142-.129-.212-.304-.212-.525 0-.221.07-.397.212-.526.141-.129.328-.193.562-.193.233 0 .42.064.562.193a.676.676 0 0 1 .212.526c0 .22-.07.396-.212.525-.141.129-.329.193-.562.193m-.443 5.437c-.08 0-.138-.019-.175-.055-.037-.037-.055-.096-.055-.176V6.886c0-.086.018-.146.055-.18.037-.034.096-.05.175-.05h.885c.086 0 .146.016.18.05s.05.094.05.18v4.247c0 .08-.017.139-.05.176-.034.036-.094.055-.18.055zm-3.681 0c-.08 0-.139-.018-.176-.055-.036-.037-.055-.096-.055-.175V6.886c0-.086.019-.146.055-.18.037-.034.096-.05.176-.05h.663c.141 0 .227.067.258.202l.12.497c.245-.27.477-.462.695-.575.219-.114.45-.17.696-.17h.13c.085 0 .147.016.183.05.037.034.056.094.056.18v.773c0 .08-.017.139-.051.176-.034.036-.094.055-.18.055a1.93 1.93 0 0 1-.166-.01 2.968 2.968 0 0 0-.258-.009c-.14 0-.313.02-.516.06-.202.04-.374.091-.515.152v3.097c0 .08-.018.138-.051.175-.034.037-.094.055-.18.055zM.344 13.262c-.08 0-.138-.017-.175-.05-.037-.034-.055-.095-.055-.18V6.886c0-.086.018-.146.055-.18.037-.034.095-.05.175-.05h.664c.14 0 .227.067.258.202l.064.24a2.03 2.03 0 0 1 .668-.424 2.13 2.13 0 0 1 .797-.157c.596 0 1.067.218 1.414.654.348.437.521 1.026.521 1.77 0 .51-.086.955-.258 1.336-.172.38-.405.674-.7.88a1.727 1.727 0 0 1-1.014.308c-.252 0-.491-.04-.719-.12a1.74 1.74 0 0 1-.58-.331v2.018c0 .085-.017.146-.05.18-.034.033-.095.05-.18.05zm2.018-2.81c.344 0 .597-.117.76-.35.163-.234.245-.603.245-1.106 0-.51-.08-.882-.24-1.115-.16-.234-.415-.35-.765-.35-.32 0-.62.083-.903.248v2.424c.27.166.571.249.903.249Z"/>
+              </svg>
+          - id: spotify
+            icon: |
+              <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <title>Spotify</title>
+                  <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+              </svg>
+          - id: youtube
+            icon: |
+              <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <title>YouTube</title>
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+      - id: leisure
+        icon: |
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/>
+              <path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"/>
+              <path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"/>
+              <path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/>
+          </svg>
+        children:
+          - id: goingOut
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>
+              </svg>
+            children:
+              - id: monCheryRestaurant
+                icon: |
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"/>
+                      <path d="M6 17h12"/>
+                  </svg>
+              - id: theBrownHogPub
+                icon: |
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 11h1a3 3 0 0 1 0 6h-1"/>
+                      <path d="M9 12v6"/>
+                      <path d="M13 12v6"/>
+                      <path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/>
+                      <path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/>
+                  </svg>
+          - id: vacations
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
+              </svg>
+            children:
+              - id: coralStrandsHotel
+                icon: |
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8"/>
+                      <path d="M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/>
+                      <path d="M12 4v6"/>
+                      <path d="M2 18h20"/>
+                  </svg>
+      - id: household
+        icon: |
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+              <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          </svg>
+        children:
+          - id: groceries
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/>
+                  <path d="M10 2c1 .5 2 2 2 5"/>
+              </svg>
+          - id: meat
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13.144 21.144A7.274 10.445 45 1 0 2.856 10.856"/>
+                  <path d="M13.144 21.144A7.274 4.365 45 0 0 2.856 10.856a7.274 4.365 45 0 0 10.288 10.288"/>
+                  <path d="M16.565 10.435 18.6 8.4a2.501 2.501 0 1 0 1.65-4.65 2.5 2.5 0 1 0-4.66 1.66l-2.024 2.025"/>
+                  <path d="m8.5 16.5-1-1"/>
+              </svg>
+          - id: electronics
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m19 5 3-3"/>
+                  <path d="m2 22 3-3"/>
+                  <path d="M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z"/>
+                  <path d="M7.5 13.5 10 11"/>
+                  <path d="M10.5 16.5 13 14"/>
+                  <path d="m12 6 6 6 2.3-2.3a2.4 2.4 0 0 0 0-3.4l-2.6-2.6a2.4 2.4 0 0 0-3.4 0Z"/>
+              </svg>
+      - id: clothing
+        icon: |
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+          </svg>
+        children:
+          - id: shoes
+            icon: |
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/>
+                  <path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/>
+                  <path d="M16 17h4"/>
+                  <path d="M4 13h4"/>
+              </svg>
+            children:
+              - id: nike
+                icon: |
+                  <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <title>Nike</title>
+                      <path d="M24 7.8L6.442 15.276c-1.456.616-2.679.925-3.668.925-1.12 0-1.933-.392-2.437-1.177-.317-.504-.41-1.143-.28-1.918.13-.775.476-1.6 1.036-2.478.467-.71 1.232-1.643 2.297-2.8a6.122 6.122 0 00-.784 1.848c-.28 1.195-.028 2.072.756 2.632.373.261.886.392 1.54.392.522 0 1.11-.084 1.764-.252L24 7.8z"/>
+                  </svg>
+              - id: adidas
+                icon: |
+                  <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <title>Adidas</title>
+                      <path d="m24 19.535-8.697-15.07-4.659 2.687 7.145 12.383Zm-8.287 0L9.969 9.59 5.31 12.277l4.192 7.258ZM4.658 14.723l2.776 4.812H1.223L0 17.41Z"/>
+                  </svg>
+          - id: zara
+            icon: |
+              <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <title>Zara</title>
+                <path d="M8.562 7l.002.006 2.794 7.621v-7.23h-1.15v-.07h3.96c1.903 0 3.231.976 3.231 2.375 0 1.02-.91 1.868-2.263 2.109l-.249.031.25.026c.821.094 1.473.346 1.935.75l.003.003L19.141 7h.07l.002.006 3.556 9.698H24v.07h-3.918v-.07h1.154l-1.17-3.189h-2.373v.002l.013.037c.094.281.142.576.139.873v1.196c0 .615.271 1.238.79 1.238.304 0 .547-.107.837-.372l.041.038c-.314.332-.695.473-1.266.473-.43 0-.8-.104-1.096-.308l-.056-.04c-.39-.296-.644-.778-.753-1.435l-.018-.106-.018-.16-.002-.028-.654 1.78h.928v.07h-1.942v-.07h.938l.718-1.954v-.005a6.35 6.35 0 01-.013-.346v-.854c0-1.049-.78-1.65-2.14-1.65h-1.337v4.81h1.158v.07H9.433v-.07h1.154l-1.17-3.189H6.172l-1.158 3.154.048-.008c1.521-.262 2.22-1.423 2.23-2.645h.07v2.758H0l5.465-9.377H3.268c-1.822 0-2.646 1.407-2.659 2.81H.54v-2.88h6.634l-.04.07-5.425 9.307h2.854c.071 0 .141-.003.212-.009l.072-.006.09-.01L8.491 7h.07zm9.883 2.095l-1.313 3.576.007.007.067.066c.193.197.347.43.452.684l.007.017h2.375l-1.595-4.35zm-10.648 0l-1.599 4.35h3.194l-1.595-4.35zm6.026-1.698h-1.02v4.427h1.336c1.353 0 1.767-.493 1.767-2.107 0-1.517-.72-2.32-2.083-2.32z"/>
+              </svg>

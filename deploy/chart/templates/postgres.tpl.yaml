@@ -3,10 +3,13 @@
 {{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
 {{- $serviceName := printf "%s-%s" $prefix $componentName -}}
 {{- $secretName := printf "%s-%s" $prefix $componentName -}}
-{{- $pvcName := printf "%s-%s-data" $prefix $componentName -}}
-{{- $initPassword := .Values.postgres.initPassword | default (randAlphaNum 16) -}}
-{{- $backendPassword := .Values.postgres.backendPassword | default (randAlphaNum 16) -}}
+{{- $dataPVCName := printf "%s-%s-data" $prefix $componentName -}}
+{{- $migrationUserPassword := default (randAlphaNum 16) .Values.server.migrate.postgresPassword -}}
+{{- $postgresUserPassword := default (randAlphaNum 16) .Values.postgres.password -}}
+{{- $serverUserPassword := default (randAlphaNum 16) .Values.server.postgresPassword -}}
 {{- /*------------------------------------------------------------------------------------------------------------*/ -}}
+
+---
 
 apiVersion: v1
 kind: ServiceAccount
@@ -49,15 +52,16 @@ metadata:
   labels:
     {{- include "greenstar.commonLabels" . | nindent 4 }}
     app.kubernetes.io/component: {{ $componentName | quote }}
-  name: {{ $pvcName | quote }}
+  name: {{ $dataPVCName | quote }}
 spec:
+  volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 4Gi
     limits:
-      storage: 32Gi
+      storage: 4Gi
 
 ---
 
@@ -71,57 +75,76 @@ metadata:
 type: Opaque
 immutable: false
 stringData:
-  init-pwd: {{ $initPassword | quote }}
-  backend-pwd: {{ $backendPassword | quote }}
-  init-users.sh: |-
-    #!/bin/bash
-    set -e
+  migration-user-pwd: {{ $migrationUserPassword | quote }}
+  postgres-user-pwd: {{ $postgresUserPassword | quote }}
+  server-user-pwd: {{ $serverUserPassword | quote }}
+  init-users.sh: |
+    {{- $file := .Files.Get "files/postgres-init.sh" -}}
+    {{- $vars := dict -}}
+    {{- $vars = merge $vars (dict "migrationUserPassword" $migrationUserPassword) -}}
+    {{- $vars = merge $vars (dict "serverUserPassword" $serverUserPassword) -}}
+    {{- $rendered := tpl $file $vars -}}
+    {{ $rendered | nindent 4 }}
 
-    # TODO: restrict Postgres permissions
-
-    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    	CREATE ROLE greenstar_backend WITH LOGIN ENCRYPTED PASSWORD '{{ $backendPassword }}';
-    	CREATE DATABASE greenstar WITH OWNER=greenstar_backend;
-    	GRANT CONNECT, TEMPORARY ON DATABASE greenstar TO greenstar_backend;
-    	GRANT pg_read_server_files TO greenstar_backend;
-        {{ range $user, $pwd := .Values.postgres.extraUsers -}}
-        CREATE ROLE {{ $user }} WITH LOGIN ENCRYPTED PASSWORD '{{ $pwd }}' SUPERUSER;
-        {{- end }}
-    EOSQL
 ---
 
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   labels:
     {{- include "greenstar.commonLabels" . | nindent 4 }}
     app.kubernetes.io/component: {{ $componentName | quote }}
-  name: {{ printf "%s-%s" $prefix "postgres" | quote }}
+  name: {{ printf "%s-postgres" $prefix | quote }}
 spec:
+  serviceName: {{ $serviceName | quote }}
   selector:
     matchLabels:
       {{- include "greenstar.versionAgnosticLabels" . | nindent 6 }}
       app.kubernetes.io/component: {{ $componentName | quote }}
-  strategy:
-    type: Recreate
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+        prometheus.io/path: "/metrics"
       labels:
         {{- include "greenstar.commonLabels" . | nindent 8 }}
         app.kubernetes.io/component: {{ $componentName | quote }}
     spec:
+      {{- if .Values.postgres.clean }}
+      initContainers:
+        - image: "busybox:1.37"
+          command:
+            - rm
+            - -rfv
+            - /var/lib/postgresql/data/*
+          name: clean
+          resources:
+            limits:
+              cpu: 100m
+              memory: 32Mi
+            requests:
+              cpu: 50m
+              memory: 32Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              readOnly: false
+      {{- end }}
       containers:
-        - image: postgres:16.4
+        - image: {{ printf "postgres:%s" .Values.postgres.version | quote }}
           {{- if not (empty .Values.postgres.extraArgs) }}
           args:
             {{- toYaml .Values.postgres.extraArgs | nindent 12 }}
           {{- end }}
           env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ $secretName | quote }}
-                  key: init-pwd
+                  key: postgres-user-pwd
                   optional: false
             {{- range $key, $value := .Values.postgres.extraEnv }}
             - name: {{ $key | quote }}
@@ -133,18 +156,18 @@ spec:
               name: postgres
           resources:
             limits:
-              cpu: {{ .Values.postgres.resources.limits.cpu | default "2000m" | quote }}
-              memory: {{ .Values.postgres.resources.limits.memory | default "2Gi" | quote }}
+              cpu: {{ required "PostgreSQL CPU limit is required" .Values.postgres.resources.limits.cpu | quote }}
+              memory: {{ required "PostgreSQL RAM limit is required" .Values.postgres.resources.limits.memory | quote }}
             requests:
-              cpu: {{ .Values.postgres.resources.requests.cpu | default "1000m" | quote }}
-              memory: {{ .Values.postgres.resources.requests.memory | default "1Gi" | quote }}
+              cpu: {{ required "PostgreSQL CPU request is required" .Values.postgres.resources.requests.cpu | quote }}
+              memory: {{ required "PostgreSQL RAM request is required" .Values.postgres.resources.requests.memory | quote }}
           livenessProbe:
             exec:
               command: [ pg_isready, --user, postgres ]
             successThreshold: 1
-            failureThreshold: 3
-            timeoutSeconds: 30
-            periodSeconds: 60
+            failureThreshold: 6
+            timeoutSeconds: 10
+            periodSeconds: 5
             terminationGracePeriodSeconds: 60
           readinessProbe:
             exec:
@@ -152,11 +175,11 @@ spec:
             successThreshold: 1
             failureThreshold: 1
             timeoutSeconds: 3
-            periodSeconds: 3
+            periodSeconds: 1
           startupProbe:
             exec:
               command: [ pg_isready, --user, postgres ]
-            initialDelaySeconds: 5
+            initialDelaySeconds: 1
             successThreshold: 1
             failureThreshold: 10
             periodSeconds: 3
@@ -172,6 +195,40 @@ spec:
             - name: init-scripts
               mountPath: /docker-entrypoint-initdb.d
               readOnly: true
+        {{- if .Values.postgres.metrics }}
+        - image: "quay.io/prometheuscommunity/postgres-exporter:v0.17.1"
+          args:
+{{/*            - --collector.long_running_transactions*/}}
+            - --collector.process_idle
+            - --no-collector.replication
+            - --collector.stat_activity_autovacuum
+            - --collector.stat_statements
+            - --disable-settings-metrics
+          env:
+{{/*            - name: PG_EXPORTER_DISABLE_SETTINGS_METRICS*/}}
+{{/*              value: "true"*/}}
+            - name: DATA_SOURCE_URI
+              value: "localhost:5432/postgres?sslmode=disable"
+            - name: DATA_SOURCE_USER
+              value: "postgres"
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName | quote }}
+                  key: postgres-user-pwd
+                  optional: false
+          name: metrics
+          ports:
+            - containerPort: 9187
+              name: metrics
+          resources:
+            limits:
+              cpu: 500m
+              memory: 64Mi
+            requests:
+              cpu: 100m
+              memory: 32Mi
+        {{- end }}
       enableServiceLinks: false
       serviceAccountName: {{ $serviceAccountName | quote }}
       volumes:
@@ -187,7 +244,7 @@ spec:
                 path: init-users.sh
         - name: data
           persistentVolumeClaim:
-            claimName: {{ $pvcName | quote }}
+            claimName: {{ $dataPVCName | quote }}
             readOnly: false
 {{- if .Values.postgres.ingress.enabled }}
 ---

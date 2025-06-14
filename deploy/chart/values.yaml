@@ -1,91 +1,74 @@
-commitSHA: "unknown"
 ingress:
   domain: ""
-observability:
-  logging:
-    level: info
-    format: json
-backend:
-  acme:
-    enabled: true
-    extraArgs: []
-    extraEnv:
-      OTEL_SDK_DISABLED:
-        value: "true"
-      OTEL_LOG_LEVEL:
-        value: info
-    image:
-      repository: ghcr.io/arikkfir/greenstar/backend-acme
-      tag: "abc"
-      pullPolicy: IfNotPresent
-    postgres:
-      connectTimeout: 1
-    rbac:
-      annotations: {}
-    resources:
-      limits:
-        cpu: ""
-        memory: ""
-      requests:
-        cpu: ""
-        memory: ""
-    volumeMounts: []
+acme:
+  extraArgs: []
+  extraEnv: {}
+  image:
+    repository: ghcr.io/arikkfir/greenstar/acme
+    tag: "local"
+    pullPolicy: IfNotPresent
+  rbac:
+    annotations: {}
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+server:
   migrate:
-    enabled: true
-    extraArgs: []
-    extraEnv:
-      OTEL_SDK_DISABLED:
-        value: "true"
-      OTEL_LOG_LEVEL:
-        value: info
-    image:
-      repository: ghcr.io/arikkfir/greenstar/backend-migrate
-      tag: "abc"
-      pullPolicy: IfNotPresent
-    postgres:
-      connectTimeout: 1
-    rbac:
-      annotations: {}
+    extraEnv: {}
+    postgresPassword: ""
     resources:
       limits:
-        cpu: ""
-        memory: ""
+        cpu: "500m"
+        memory: "256Mi"
       requests:
-        cpu: ""
-        memory: ""
-    volumeMounts: []
-  server:
-    extraArgs: []
-    extraEnv:
-      OTEL_SDK_DISABLED:
-        value: "true"
-      OTEL_LOG_LEVEL:
-        value: info
-    image:
-      repository: ghcr.io/arikkfir/greenstar/backend-server
-      tag: "abc"
-      pullPolicy: IfNotPresent
-    ingress:
-      enabled: false
-    postgres:
-      connectTimeout: 1
-    rbac:
-      annotations: {}
-    resources:
-      limits:
-        cpu: ""
-        memory: ""
-      requests:
-        cpu: ""
-        memory: ""
-    volumeMounts: []
+        cpu: "100m"
+        memory: "128Mi"
+  extraArgs: []
+  extraEnv: {}
+  image:
+    repository: ghcr.io/arikkfir/greenstar/server
+    tag: "local"
+    pullPolicy: IfNotPresent
+  ingress:
+    enabled: false
+  postgresPassword: ""
+  rbac:
+    annotations: {}
+  resources:
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+  volumeMounts: []
   volumes: []
+ratesjob:
+  extraEnv: {}
+  image:
+    repository: ghcr.io/arikkfir/greenstar/ratesjob
+    tag: "local"
+    pullPolicy: IfNotPresent
+  rbac:
+    annotations: {}
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+  schedule: "0 * * * *"
 frontend:
   extraArgs: []
   extraEnv: {}
   image:
     repository: ghcr.io/arikkfir/greenstar/frontend
-    tag: "abc"
+    tag: "local"
     pullPolicy: IfNotPresent
   ingress:
     enabled: false
@@ -93,34 +76,33 @@ frontend:
     annotations: {}
   resources:
     limits:
-      cpu: ""
-      memory: ""
+      cpu: "500m"
+      memory: "128Mi"
     requests:
-      cpu: ""
-      memory: ""
+      cpu: "50m"
+      memory: "32Mi"
   volumeMounts: []
   volumes: []
   livenessProbe: true
   readinessProbe: true
   startupProbe: true
 postgres:
-  # Set backend user's password (defaults to random alphanumeric passwords)
-  # NOTE: this is NOT updated on helm upgrade! to change, manually login to Postgres and update
-  backendPassword: ""
+  version: "17.2"
+  clean: false
   extraArgs: []
   extraEnv: {}
-  extraUsers: {}
+  password: ""
+  metrics: true
   ingress:
     enabled: false
   rbac:
     annotations: {}
-  initPassword: ""
   resources:
     limits:
-      cpu: ""
-      memory: ""
+      cpu: "500m"
+      memory: "512Mi"
     requests:
-      cpu: ""
-      memory: ""
+      cpu: "250m"
+      memory: "256Mi"
   volumes: []
   volumeMounts: []

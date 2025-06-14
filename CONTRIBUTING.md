@@ -15,8 +15,6 @@ this project you agree to abide by its terms.
 ```shell
 $ brew install go-task      # Ensure you have the "task" CLI
 $ task setup-domain-dns     # Setup your local DNS to resolve *.greenstar.test to 127.0.0.1
-$ task setup-cluster        # Create a local `kind` cluster with HTTP server & observability
-$ task setup-observability  # Deploy observability tools such as Jaeger, Prometheus and Grafana
 $ task dev                  # Starts Skaffold dev loop, that's it! 
 ```
 
@@ -43,7 +41,7 @@ If you want GreenSTAR to detect your geographic location, and infer which curren
 To delete your local `kind` cluster run the following:
 
 ```shell
-$ task teardown
+$ task teardown-cluster
 ```
 
 ### What does `setup-domain-dns` do?
@@ -98,18 +96,7 @@ This target sets up a local Kubernetes cluster using `kind`, and installs the fo
 - Creates a local `kind` cluster
 - Installs the Kubernetes Gateway API CRDs
 - Installs Traefik as the Ingress Controller & Gateway API implementation
-
-### What does `setup-observability` do?
-
-This task adds observability stack into your local cluster:
-
-- Metrics Server
-- Kube State Metrics
-- Node Exporter
-- Prometheus
-- Alertmanager
-- Jaeger Server
-- Grafana
+- Installs observability tools such as Prometheus, Jaeger & Grafana
 
 ## Developing
 
@@ -123,7 +110,7 @@ To run it from the CLI, simply run:
 $ task dev
 ```
 
-This will keep running in the shell foreground, and redeploy whenever you make changes to your source code. To stop,
+This will keep running in the shell foreground and redeploy whenever you make changes to your source code. To stop,
 just press CTRL+C and it will undeploy and stop.
 
 If, however, you prefer to perform a one-off deployment without the Skaffold development loop, use this instead:
@@ -136,6 +123,14 @@ To remove it, use this:
 
 ```shell
 $ task undeploy
+```
+
+### Testing
+
+To run the tests, use this in the root project directory (not in `server` or `frontend`!):
+
+```shell
+$ task test
 ```
 
 ## Issues and PRs
@@ -181,24 +176,16 @@ should look:
 
 #### Types
 
-- feat: new features or enhancements
-- fix: bug fixes
-- docs: documentation addition or changes
-- tests: additions, removals or changes to tests
-- chore: refactors or general changes that aren't really features or fixes (usually refactors or tweaks with little
-  influence)
-
-#### Scopes
-
-Try to stick to the following scopes, though it's ok if you need to use something outside this list:
-
-- build: Skaffold, Docker, GitHub Actions, Taskfile, Helm, etc. 
-- ide: JetBrains/VSCode files
-- backend: anything related to the backend - you can be more specific if needed
-- frontend: anything related to the frontend - you can be more specific if needed
-
-> [!NOTE]
-> Scopes are optional, but justification is requested when they are missing.
+- feat: MUST be used when a commit is mostly focused on adding a new feature to the application.
+- fix: MUST be used when a commit is mostly focused on fixing a bug or an incorrect behavior.
+- tests: MUST be used when the commit is mostly focused on testing.
+- docs: MUST be used when the commit is mostly focused on documentation.
+- perf: MUST be used when a commit is mostly focused on improving performance for a specific feature or functionality.
+- ci: MUST be used when a commit is centered around improvements to the CI pipelines or logic.
+- build: MUST be used when a commit is centered around how the application is built & run.
+- refactor: MUST be used for code changes that do not affect functionality but rather focused on robustness, 
+  readability, maintainability, extensibility, etc.
+- chore: MUST be used for any other type of change.
 
 ## Resources
 

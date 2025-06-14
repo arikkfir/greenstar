@@ -1,0 +1,22 @@
+type Query {
+    version: String!
+}
+
+type Mutation {
+    noOp: Void
+}
+
+enum SortDirection {
+    Asc
+    Desc
+}
+
+type AccountBalanceOverTime {
+    account: Account!
+    points: [BalancePoint!]!
+}
+
+type BalancePoint {
+    date: DateTime!
+    balance: Float!
+}

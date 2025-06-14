@@ -1,51 +1,21 @@
-import { StrictMode, useMemo } from "react"
 import { createRoot } from "react-dom/client"
-import "./index.css"
+import { StrictMode } from "react"
+import { muiXTelemetrySettings } from "@mui/x-license"
 import { App } from "./App.tsx"
-import { BrowserRouter } from "react-router"
-import { createTheme, CssBaseline, ThemeProvider } from "@mui/material"
-import { LocaleProvider } from "./providers/LocaleProvider.tsx"
+import type {} from "@mui/x-tree-view-pro/themeAugmentation"
+import type {} from "@mui/x-date-pickers-pro/themeAugmentation"
+import type {} from "@mui/x-date-pickers-pro/AdapterLuxon"
 
-function WithTheme({ children }: any) {
-    const theme = useMemo(
-        () =>
-            createTheme({
-                colorSchemes: {
-                    dark: true,
-                    light: true,
-                },
-                cssVariables: {
-                    colorSchemeSelector: "class",
-                },
-                // components: {
-                //     MuiDataGrid: {
-                //         styleOverrides: {
-                //             root: {
-                //                 backgroundColor: 'red',
-                //             },
-                //         },
-                //     },
-                // }
-            }),
-        [],
-    )
-
-    return (
-        <ThemeProvider theme={theme}>
-            <CssBaseline />
-            {children}
-        </ThemeProvider>
-    )
-}
+muiXTelemetrySettings.disableTelemetry()
 
 createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-        <LocaleProvider>
-            <BrowserRouter>
-                <WithTheme>
-                    <App />
-                </WithTheme>
-            </BrowserRouter>
-        </LocaleProvider>
-    </StrictMode>,
+    import.meta.env.DEV
+        ? (
+            <StrictMode>
+                <App />
+            </StrictMode>
+        )
+        : (
+            <App />
+        ),
 )

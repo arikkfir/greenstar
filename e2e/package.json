@@ -1,18 +1,25 @@
 {
-  "name": "e2e",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {},
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "@types/node": "^22.8.7"
-  },
-  "dependencies": {
-    "@playwright/test": "^1.49.0",
-    "dotenv": "^16.4.5",
-    "monocart-reporter": "^2.9.10"
-  }
+    "name": "e2e",
+    "description": "GreenSTAR End-to-End Tests",
+    "version": "0.0.0+local",
+    "license": "ISC",
+    "author": {
+        "name": "Arik Kfir",
+        "email": "arik@kfirs.com",
+        "url": "https://github.com/arikkfir"
+    },
+    "main": "index.js",
+    "scripts": {
+        "deps": "playwright install --with-deps",
+        "test": "playwright test"
+    },
+    "keywords": [],
+    "devDependencies": {
+        "@playwright/test": "^1.52.0",
+        "@types/node": "^24.0.0"
+    },
+    "dependencies": {
+        "dotenv": "^16.5.0",
+        "monocart-reporter": "^2.9.20"
+    }
 }

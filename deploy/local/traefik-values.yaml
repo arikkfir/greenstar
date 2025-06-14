@@ -59,8 +59,8 @@ ports:
     protocol: TCP
     nodePort: 30443
   postgres:
-    port: 5432
-    containerPort: 5432
+    port: 30432
+    containerPort: 30432
     expose:
       default: true
     exposedPort: 5432

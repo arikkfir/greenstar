@@ -1,0 +1,37 @@
+.transactions-page {
+  padding: 1em;
+
+  display: grid;
+  grid-template:
+    "accounts-tree transactions-grid" 1fr
+  / 25% 1fr;
+  grid-gap: 1em;
+  height: 100%;
+
+  .accounts-tree-container {
+    overflow: auto;
+    grid-area: accounts-tree;
+  }
+
+  .transactions-container {
+    grid-area: transactions-grid;
+    height: 100%;
+    flex-direction: column;
+
+    display: grid;
+    grid-template-rows: 1fr;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .transactions-grid-content {
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+  }
+
+  .transactions-grid-content .MuiDataGrid-root {
+    height: 100%;
+    width: 100%;
+  }
+}

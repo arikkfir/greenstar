@@ -5,37 +5,43 @@ metadata:
   name: greenstar
 build:
   artifacts:
-    - image: ghcr.io/arikkfir/greenstar/backend-acme
-      context: backend
+    - context: acme
       docker:
         buildArgs:
-          VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
-        dockerfile: backend/Dockerfile.acme
-        target: production
-    - image: ghcr.io/arikkfir/greenstar/backend-migrate
-      context: backend
+          VERSION: 0.0.0+local
+        dockerfile: acme/Dockerfile
+      image: ghcr.io/arikkfir/greenstar/acme
+    - context: ratesjob
       docker:
         buildArgs:
-          VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
-        dockerfile: backend/Dockerfile.migrate
-        target: production
-    - image: ghcr.io/arikkfir/greenstar/backend-server
-      context: backend
+          VERSION: 0.0.0+local
+        dockerfile: ratesjob/Dockerfile
+      image: ghcr.io/arikkfir/greenstar/ratesjob
+    - context: server
       docker:
         buildArgs:
-          VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
-        dockerfile: backend/Dockerfile.server
-        target: production
-    - image: ghcr.io/arikkfir/greenstar/frontend
-      context: frontend
-      docker:
-        buildArgs:
-          VERSION: v0.0.0+{{cmd "bash" "-c" "git rev-parse HEAD" | substr 0 7}}
-        dockerfile: frontend/Dockerfile
+          VERSION: 0.0.0+local
+        dockerfile: server/Dockerfile
         target: development
+      image: ghcr.io/arikkfir/greenstar/server
       sync:
         manual:
           - src: src/**
+            dest: /app/
+    - context: frontend
+      docker:
+        buildArgs:
+          VERSION: 0.0.0+local
+        dockerfile: frontend/Dockerfile
+        target: development
+      image: ghcr.io/arikkfir/greenstar/frontend
+      sync:
+        manual:
+          - src: public/**
+            dest: /app/
+          - src: src/**
+            dest: /app/
+          - src: index.html
             dest: /app/
   local:
     push: false
@@ -56,19 +62,18 @@ deploy:
           - deploy/local/chart-local-values.yaml
           - hack/greenstar-values.yaml
         setValueTemplates:
-          backend:
-            acme:
-              image:
-                repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_backend_acme}}"
-                tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_backend_acme}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_backend_acme}}"
-            migrate:
-              image:
-                repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_backend_migrate}}"
-                tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_backend_migrate}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_backend_migrate}}"
-            server:
-              image:
-                repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_backend_server}}"
-                tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_backend_server}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_backend_server}}"
+          acme:
+            image:
+              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_acme}}"
+              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_acme}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_acme}}"
+          ratesjob:
+            image:
+              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_ratesjob}}"
+              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_ratesjob}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_ratesjob}}"
+          server:
+            image:
+              repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_server}}"
+              tag: "{{.IMAGE_TAG_ghcr_io_arikkfir_greenstar_server}}@{{.IMAGE_DIGEST_ghcr_io_arikkfir_greenstar_server}}"
           frontend:
             image:
               repository: "{{.IMAGE_REPO_ghcr_io_arikkfir_greenstar_frontend}}"

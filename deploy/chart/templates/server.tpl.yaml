@@ -1,0 +1,324 @@
+{{- $prefix := include "greenstar.prefix" . -}}
+{{- $componentName := "server" -}}
+{{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
+{{- $serviceName := printf "%s-%s" $prefix $componentName -}}
+{{- $migrationsConfigMapName := printf "%s-%s-migrations" $prefix $componentName -}}
+{{- /*------------------------------------------------------------------------------------------------------------*/ -}}
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  {{- if not (empty .Values.server.rbac.annotations) }}
+  annotations:
+    {{ range $name, $value := .Values.server.rbac.annotations -}}
+    {{ $name }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceName | quote }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+  selector:
+    {{- include "greenstar.versionAgnosticLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $migrationsConfigMapName | quote }}
+data:
+{{ (.Files.Glob "files/migrations/*.sql").AsConfig | indent 2 }}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix $componentName | quote }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "greenstar.versionAgnosticLabels" . | nindent 6 }}
+      app.kubernetes.io/component: {{ $componentName | quote }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+      labels:
+        {{- include "greenstar.commonLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $componentName | quote }}
+    spec:
+      initContainers:
+
+        # Wait for Postgres to be available
+        - image: {{ printf "postgres:%s" .Values.postgres.version | quote }}
+          args:
+            - bash
+            - -c
+            - "while ! psql -c \"\\q\"; do sleep 1; done"
+          env:
+            - name: PGHOST
+              value: {{ printf "%s-postgres" $prefix | quote }}
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: "greenstar"
+            - name: PGUSER
+              value: "greenstar_server"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-postgres" $prefix | quote }}
+                  key: server-user-pwd
+                  optional: false
+            - name: PGAPPNAME
+              value: {{ printf "%s-%s-wait-for-postgres" $prefix $componentName | quote }}
+            - name: PGCONNECT_TIMEOUT
+              value: "3"
+            - name: PGIDLE_TIMEOUT
+              value: "10"
+            - name: PGSSLMODE
+              value: "disable"
+          name: wait-for-postgres
+          resources:
+            limits:
+              cpu: "100m"
+              memory: "32Mi"
+            requests:
+              cpu: "100m"
+              memory: "16Mi"
+
+        # Database migrations initialization container
+        - image: flyway/flyway:11.3.1-alpine
+          args: [ migrate ]
+          env:
+            - name: FLYWAY_URL
+              value: jdbc:postgresql://{{ printf "%s-postgres" $prefix }}:5432/greenstar?connectTimeout=3&sslmode=disable
+            - name: FLYWAY_USER
+              value: "greenstar_migration"
+            - name: FLYWAY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-postgres" $prefix | quote }}
+                  key: migration-user-pwd
+                  optional: false
+            - name: FLYWAY_LOCATIONS
+              value: "filesystem:/var/lib/flyway/sql"
+            - name: FLYWAY_OUTPUT_QUERY_RESULTS
+              value: "true"
+            {{- range $key, $value := .Values.server.migrate.extraEnv }}
+            - name: {{ $key | quote }}
+              {{ toYaml $value | nindent 14 }}
+            {{- end }}
+          name: flyway
+          resources:
+            limits:
+              cpu: {{ required "Server migration CPU limit is required" .Values.server.migrate.resources.limits.cpu | quote }}
+              memory: {{ required "Server migration RAM limit is required" .Values.server.migrate.resources.limits.memory | quote }}
+            requests:
+              cpu: {{ required "Server migration CPU request is required" .Values.server.migrate.resources.requests.cpu | quote }}
+              memory: {{ required "Server migration RAM request is required" .Values.server.migrate.resources.requests.memory | quote }}
+          volumeMounts:
+            - name: migrations
+              readOnly: true
+              mountPath: /var/lib/flyway/sql
+
+      containers:
+        - image: {{ .Values.server.image.repository }}:{{ .Values.server.image.tag | default .Chart.AppVersion }}
+          imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+          {{- if not (empty .Values.server.extraArgs) }}
+          args:
+            {{- toYaml .Values.server.extraArgs | nindent 12 }}
+          {{- end }}
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: {{ $serviceName | quote }}
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: {{ printf "service.version=%s" .Chart.AppVersion | quote }}
+            - name: OTEL_EXPORTER_PROMETHEUS_PORT
+              value: {{ "8000" | quote }}
+            - name: OTEL_EXPORTER_PROMETHEUS_ENDPOINT
+              value: {{ "/metrics" | quote }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ "http://jaeger.observability.svc.cluster.local:4318" | quote }}
+            - name: OTEL_TRACES_EXPORTER
+              value: {{ "otlp" | quote }}
+            - name: PORT
+              value: "4000"
+            - name: PGHOST
+              value: {{ printf "%s-postgres" $prefix | quote }}
+            - name: PGPORT
+              value: "5432"
+            - name: PGDATABASE
+              value: "greenstar"
+            - name: PGUSER
+              value: "greenstar_server"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-postgres" $prefix | quote }}
+                  key: server-user-pwd
+                  optional: false
+            - name: PGAPPNAME
+              value: {{ printf "%s-%s" $prefix $componentName | quote }}
+            - name: PGCONNECT_TIMEOUT
+              value: "3"
+            - name: PGSSLMODE
+              value: "disable"
+            - name: HTTP_ALLOWED_ORIGINS
+              value: "https://signup.{{ .Values.ingress.domain }},https://app.{{ .Values.ingress.domain }},https://*.app.{{ .Values.ingress.domain }}"
+            {{- range $key, $value := .Values.server.extraEnv }}
+            - name: {{ $key | quote }}
+              {{ toYaml $value | nindent 14 }}
+            {{- end }}
+          name: server
+          ports:
+            - containerPort: 4000
+              name: http
+            - containerPort: 8000
+              name: metrics
+            - containerPort: 9000
+              name: health
+          resources:
+            limits:
+              cpu: {{ required "Server CPU limit is required" .Values.server.resources.limits.cpu | quote }}
+              memory: {{ required "Server RAM limit is required" .Values.server.resources.limits.memory | quote }}
+            requests:
+              cpu: {{ required "Server CPU request is required" .Values.server.resources.requests.cpu | quote }}
+              memory: {{ required "Server RAM request is required" .Values.server.resources.requests.memory | quote }}
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /graphql?query=%7B__typename%7D
+              httpHeaders:
+                - name: apollo-require-preflight
+                  value: "true"
+            failureThreshold: 6
+            periodSeconds: 5
+            timeoutSeconds: 3
+            terminationGracePeriodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /graphql?query=%7B__typename%7D
+              httpHeaders:
+                - name: apollo-require-preflight
+                  value: "true"
+            failureThreshold: 3
+            periodSeconds: 1
+            timeoutSeconds: 1
+          startupProbe:
+            httpGet:
+              port: http
+              path: /graphql?query=%7B__typename%7D
+              httpHeaders:
+                - name: apollo-require-preflight
+                  value: "true"
+            initialDelaySeconds: 1
+            periodSeconds: 1
+            successThreshold: 1
+            failureThreshold: 10
+            timeoutSeconds: 1
+            terminationGracePeriodSeconds: 60
+          {{- if not (empty .Values.server.volumeMounts) }}
+          volumeMounts:
+            {{- toYaml .Values.server.volumeMounts | nindent 12 }}
+          {{- end }}
+      enableServiceLinks: false
+      serviceAccountName: {{ $serviceAccountName | quote }}
+      volumes:
+        - name: migrations
+          configMap:
+            name: {{ $migrationsConfigMapName | quote }}
+            optional: false
+      {{- if not (empty .Values.server.volumes) }}
+        {{- toYaml .Values.server.volumes | nindent 8 }}
+      {{- end }}
+
+{{- if .Values.server.ingress.enabled }}
+
+---
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix "backend-http" | quote }}
+spec:
+  parentRefs:
+    - name: {{ .Values.server.ingress.parentRef.name }}
+      namespace: {{ .Values.server.ingress.parentRef.namespace }}
+      sectionName: {{ .Values.server.ingress.parentRef.httpSectionName }}
+      kind: {{ .Values.server.ingress.parentRef.kind }}
+  hostnames:
+    - {{ printf "api.%s" .Values.ingress.domain | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+
+---
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix "backend-https" | quote }}
+spec:
+  parentRefs:
+    - name: {{ .Values.server.ingress.parentRef.name }}
+      namespace: {{ .Values.server.ingress.parentRef.namespace }}
+      sectionName: {{ .Values.server.ingress.parentRef.httpsSectionName }}
+      kind: {{ .Values.server.ingress.parentRef.kind }}
+  hostnames:
+    - {{ printf "api.%s" .Values.ingress.domain | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ $serviceName | quote }}
+          namespace: {{ .Release.Namespace | quote }}
+          port: 80
+          kind: Service
+
+{{- end }}

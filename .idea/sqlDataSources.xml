@@ -19,7 +19,7 @@
           <option name="dbmsName" value="POSTGRES" />
           <option name="urls">
             <array>
-              <option value="file://$PROJECT_DIR$/backend/internal/migration/schema/001_initial_version.up.sql" />
+              <option value="file://$PROJECT_DIR$/deploy/chart/files/migrations" />
             </array>
           </option>
           <option name="outLayout" value="File per object by schema.groovy" />

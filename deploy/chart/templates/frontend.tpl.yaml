@@ -68,8 +68,8 @@ spec:
             {{- toYaml .Values.frontend.extraArgs | nindent 12 }}
           {{- end }}
           env:
-            - name: DUMMY
-              value: DUMB
+            - name: FOO
+              value: BAR
             {{- range $key, $value := .Values.frontend.extraEnv }}
             - name: {{ $key | quote }}
               {{ toYaml $value | nindent 14 }}
@@ -80,20 +80,20 @@ spec:
               name: http
           resources:
             limits:
-              cpu: {{ .Values.frontend.resources.limits.cpu | default "50m" | quote }}
-              memory: {{ .Values.frontend.resources.limits.memory | default "32Mi" | quote }}
+              cpu: {{ required "Frontend CPU limit is required" .Values.frontend.resources.limits.cpu | quote }}
+              memory: {{ required "Frontend RAM limit is required" .Values.frontend.resources.limits.memory | quote }}
             requests:
-              cpu: {{ .Values.frontend.resources.requests.cpu | default "50m" | quote }}
-              memory: {{ .Values.frontend.resources.requests.memory | default "32Mi" | quote }}
+              cpu: {{ required "Frontend CPU request is required" .Values.frontend.resources.requests.cpu | quote }}
+              memory: {{ required "Frontend RAM request is required" .Values.frontend.resources.requests.memory | quote }}
           {{- if .Values.frontend.livenessProbe }}
           livenessProbe:
             httpGet:
               port: http
               path: /healthz
-            failureThreshold: 3
+            failureThreshold: 6
             periodSeconds: 5
-            terminationGracePeriodSeconds: 30
             timeoutSeconds: 3
+            terminationGracePeriodSeconds: 30
           {{- end }}
           {{- if .Values.frontend.readinessProbe }}
           readinessProbe:

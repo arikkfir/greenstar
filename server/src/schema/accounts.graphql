@@ -1,0 +1,52 @@
+enum AccountType {
+    CheckingAccount
+}
+
+type Account {
+    id: ID!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    displayName: String!
+    type: AccountType
+    icon: String!
+    parent: Account
+    childCount: Int!
+    children: [Account!]!
+    tenant: Tenant!
+    outgoingTransactions(
+        since: DateTime
+        until: DateTime
+        sort: [TransactionsSortColumnsInput!]
+        offset: Int
+        limit: Int
+    ): TransactionsResult!
+    incomingTransactions(
+        since: DateTime
+        until: DateTime
+        sort: [TransactionsSortColumnsInput!]
+        offset: Int
+        limit: Int
+    ): TransactionsResult!
+    transactions(
+        since: DateTime
+        until: DateTime
+        sort: [TransactionsSortColumnsInput!]
+        offset: Int
+        limit: Int
+    ): TransactionsResult!
+    balance(currency: String!, until: DateTime): Float!
+    balanceOverTime(currency: String!, startDate: DateTime!, endDate: DateTime!): [BalancePoint!]!
+}
+
+extend type Mutation {
+    createAccount(
+        tenantID: ID!,
+        id: ID,
+        parentID: ID,
+        displayName: String!,
+        icon: String,
+        type: AccountType,
+    ): Account!
+    deleteAccount(tenantID: ID!, id: ID!): Void
+    moveAccount(tenantID: ID!, accountID: ID!, targetParentAccountID: ID): Account!
+}

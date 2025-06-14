@@ -28,7 +28,7 @@ spec:
         namespaces:
           from: All
       name: postgres
-      port: 5432
+      port: 30432
       protocol: TLS
       tls:
         certificateRefs:
