@@ -1,3 +1,0 @@
-[submodule "deploy/grafana-dashboards"]
-	path = deploy/grafana-dashboards
-	url = https://github.com/arikkfir/grafana-dashboards-kubernetes.git
