@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:23-alpine AS dependencies
+FROM node:24-alpine AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json apply-patches.sh ./
 RUN npm ci
@@ -8,7 +8,7 @@ RUN apk add --no-cache patch ed && chmod +x apply-patches.sh && ./apply-patches.
 ARG VERSION=0.0.0-notset
 RUN npm pkg set version="${VERSION}"
 
-FROM node:23-alpine AS development
+FROM node:24-alpine AS development
 WORKDIR /app
 ARG VITE_GRAPHQL_API_URL="https://api.greenstar.test/graphql"
 ARG VITE_GEOAPIFY_API_KEY
