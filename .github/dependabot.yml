@@ -14,6 +14,22 @@ updates:
 
   # NPM
   - package-ecosystem: npm
+    directory: /acme
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(acme)"
+    labels:
+      - dependencies
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(e2e)"
+    labels:
+      - dependencies
+  - package-ecosystem: npm
     directory: /frontend
     schedule:
       interval: weekly
@@ -21,23 +37,37 @@ updates:
       prefix: "chore(frontend)"
     labels:
       - dependencies
-
-  # Go
-  - package-ecosystem: gomod
-    directory: /backend
+  - package-ecosystem: npm
+    directory: /ratesjob
     schedule:
       interval: weekly
     commit-message:
-      prefix: "chore(backend)"
+      prefix: "chore(ratesjob)"
+    labels:
+      - dependencies
+  - package-ecosystem: npm
+    directory: /server
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(server)"
     labels:
       - dependencies
 
   # Docker
   - package-ecosystem: docker
-    directory: /backend
+    directory: /acme
     schedule:
       interval: weekly
   - package-ecosystem: docker
     directory: /frontend
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /ratesjob
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /server
     schedule:
       interval: weekly
