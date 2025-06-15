@@ -26,8 +26,8 @@ jobs:
     permissions:
       actions: read
     outputs:
-      pr: ${{ steps.extract.outputs.pr }}
-      sha: ${{ steps.extract.outputs.sha }}
+      pr: ${{ steps.extract-pr.outputs.pr }}
+      sha: ${{ steps.extract-sha.outputs.sha }}
     steps:
 
       - name: Download metadata artifact
