@@ -182,14 +182,11 @@ tasks:
     status:
       - kubectl diff --namespace=observability -f deploy/local/jaeger.yaml
 
-  update-grafana-dashboards:
-    cmd: git submodule update --remote deploy/grafana-dashboards
-
   setup-grafana:
     deps: [ create-cluster, ensure-observability-namespace ]
     cmds:
       - |
-        kustomize build deploy/grafana-dashboards | kubectl apply -f - --namespace observability
+        kustomize build deploy/local/grafana | kubectl apply -f - --namespace observability
         helm upgrade --install grafana grafana \
           --repo https://grafana.github.io/helm-charts \
           --create-namespace \
@@ -198,7 +195,8 @@ tasks:
           --wait
     sources:
       - ./deploy/local/grafana-values.yaml
-      - ./deploy/grafana-dashboards/dashboards/*.json
+      - ./deploy/local/grafana/kustomization.yaml
+      - ./deploy/local/grafana/dashboards/*.json
     status:
       - helm --namespace=observability get metadata grafana
 
