@@ -39,11 +39,11 @@ jobs:
 
       - name: Extract source PR
         id: extract-pr
-        run: echo "pr=$(jq '.pr' < workflow-metadata.json)" >> "$GITHUB_OUTPUT"
+        run: echo "pr=$(jq -r '.pr' < workflow-metadata.json)" >> "$GITHUB_OUTPUT"
 
       - name: Extract source SHA
         id: extract-sha
-        run: echo "sha=$(jq '.sha' < workflow-metadata.json)" >> "$GITHUB_OUTPUT"
+        run: echo "sha=$(jq -r '.sha' < workflow-metadata.json)" >> "$GITHUB_OUTPUT"
 
   upload:
     name: Upload
