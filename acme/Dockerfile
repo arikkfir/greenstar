@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:23-alpine AS production
+FROM node:24-alpine AS production
 WORKDIR /app
 COPY package.json package-lock.json ./
 ARG VERSION=0.0.0-notset
