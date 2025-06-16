@@ -73,7 +73,7 @@ function parseDate(input?: string): DateTime<true> {
     } else if (input[0] === "-") {
         return now.minus(Duration.fromISO(input.substring(1)))
     } else {
-        let parsed = DateTime.fromISO(input)
+        let parsed = DateTime.fromISO(input, {zone: "UTC"})
         if (parsed.isValid) {
             return parsed
         } else {
