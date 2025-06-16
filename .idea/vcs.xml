@@ -18,6 +18,5 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/deploy/grafana-dashboards" vcs="Git" />
   </component>
 </project>
