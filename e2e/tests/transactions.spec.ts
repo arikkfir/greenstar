@@ -28,7 +28,6 @@ test.describe("transactions", {}, () => {
         // Keep scrolling down until we find all expected rows
         const referenceIDs: Set<string> = new Set<string>()
         while (true) {
-            console.log(`**[ ${referenceIDs.size} rows ]*****************************************************`)
             const txRows = await txRowsArea.locator("div[role=row]").all()
             const txIDs  = txRows.map(async row => await row.getAttribute("data-id"))
             for (let i = 0; i < txIDs.length; i++) {
