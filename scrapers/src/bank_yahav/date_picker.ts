@@ -30,12 +30,12 @@ export class DatePicker {
 
     async navigateToPreviousMonth() {
         await this.pmuPrevButtonLocator.click()
-        await this.page.waitForTimeout(500)
+        await this.page.waitForTimeout(300)
     }
 
     async navigateToNextMonth() {
         await this.pmuNextButtonLocator.click()
-        await this.page.waitForTimeout(500)
+        await this.page.waitForTimeout(300)
     }
 
     async hasNextMonth() {
@@ -50,7 +50,7 @@ export class DatePicker {
         const firstEligibleDay = this.pmuDaysLocator.locator(`> div.pmu-button:not(.pmu-disabled):not(.pmu-not-in-month)`).first()
         await expect(firstEligibleDay).toBeVisible()
         await firstEligibleDay.click()
-        await this.page.waitForTimeout(500)
+        await this.page.waitForTimeout(300)
     }
 
     async selectLastDayOfMonth() {
@@ -59,6 +59,6 @@ export class DatePicker {
                                     .last()
         await expect(lastEligibleDay).toBeVisible()
         await lastEligibleDay.click()
-        await this.page.waitForTimeout(500)
+        await this.page.waitForTimeout(300)
     }
 }
