@@ -1,0 +1,39 @@
+{
+    "name": "scrapers",
+    "description": "GreenSTAR Scrapers",
+    "version": "0.0.0+local",
+    "private": true,
+    "license": "ISC",
+    "type": "module",
+    "author": {
+        "name": "Arik Kfir",
+        "email": "arik@kfirs.com",
+        "url": "https://github.com/arikkfir"
+    },
+    "scripts": {
+        "codegen": "graphql-codegen --config codegen.ts",
+        "scrape": "playwright test"
+    },
+    "dependencies": {
+        "@graphql-typed-document-node/core": "^3.2.0",
+        "@playwright/test": "^1.52.0",
+        "@urql/core": "^5.1.1",
+        "dotenv": "^16.5.0",
+        "graphql": "^16.11.0",
+        "luxon": "^3.6.1"
+    },
+    "devDependencies": {
+        "@graphql-codegen/cli": "^5.0.7",
+        "@graphql-codegen/schema-ast": "^4.1.0",
+        "@graphql-codegen/typescript": "^4.1.6",
+        "@graphql-codegen/typescript-document-nodes": "^4.0.16",
+        "@tsconfig/node23": "^23.0.2",
+        "@types/luxon": "^3.6.2",
+        "@types/node": "^24.0.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3"
+    },
+    "scarfSettings": {
+        "enabled": false
+    }
+}
