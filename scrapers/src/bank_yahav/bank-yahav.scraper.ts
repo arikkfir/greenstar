@@ -1,9 +1,15 @@
-import { test } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 import { Site } from "./site.ts"
 import { requireEnvVar } from "../util/env.ts"
 import { graphQLClient } from "../util/graphql-client.ts"
 import { GetTransactionsSummary } from "./query.ts"
 import { createInitializationTransaction, TransactionRow } from "./transaction_row.ts"
+
+function buildTransactionsFileName(fromDate: string, toDate: string) {
+    const fromTokens = fromDate.split("/")
+    const toTokens   = toDate.split("/")
+    return `${fromTokens[2]}${fromTokens[1]}${fromTokens[0]}-${toTokens[2]}${toTokens[1]}${toTokens[0]}`
+}
 
 test("bank-yahav", async ({ page }) => {
     const tenantID  = requireEnvVar("TENANT_ID")
@@ -40,17 +46,39 @@ test("bank-yahav", async ({ page }) => {
     }
     await toDatePicker.selectLastDayOfMonth()
 
+    // Setup file download handlers
+    const xlsDownloadIconLocator = page.locator(`div.export-options-lft-content > div.export-options-cell > a > i.icon.xls`)
+    await expect(xlsDownloadIconLocator).toBeVisible()
+    const pdfDownloadIconLocator = page.locator(`div.export-options-lft-content > div.export-options-cell > a > i.icon.pdf`)
+    await expect(pdfDownloadIconLocator).toBeVisible()
+
+    // Iterate over months, downloading & scraping each one
     let rowCount = 0
     do {
         // TODO: consider replacing this timeout with: await page.waitForLoadState("networkidle")
         await page.waitForTimeout(1000 * 3)
 
+        const exportFilePrefix = `transactions-${buildTransactionsFileName(await fromDatePicker.getDate(),
+            await toDatePicker.getDate())}`
+
+        // STEP 5.1: DOWNLOAD XLS DATA
+        const xlsDownloadPromise = page.waitForEvent("download")
+        await xlsDownloadIconLocator.click()
+        const xlsDownload = await xlsDownloadPromise
+        await xlsDownload.saveAs(`./${exportFilePrefix}.xls`)
+
+        // STEP 5.1: DOWNLOAD PDF DATA
+        const pdfDownloadPromise = page.waitForEvent("download")
+        await pdfDownloadIconLocator.click()
+        const pdfDownload = await pdfDownloadPromise
+        await pdfDownload.saveAs(`./${exportFilePrefix}.pdf`)
+
         // STEP 5: SCRAPE DATA
-        const count = await site.getTransactionRowCount()
+        const count                    = await site.getTransactionRowCount()
         let row: TransactionRow | null = null
-        for (let rowIndex = 0; rowIndex < count; rowIndex++) {
+        for (let rowIndex = count - 1; rowIndex >= 0; rowIndex--) {
             // STEP 8: SEND TRANSACTION DATA TO GREENSTAR API
-            row = await site.getTransactionRow(++rowCount, rowIndex);
+            row = await site.getTransactionRow(++rowCount, rowIndex)
             if (row) {
                 await row.create()
             } else {
@@ -59,12 +87,17 @@ test("bank-yahav", async ({ page }) => {
         }
 
         // If we just finished processing the first page of transactions, AND
-        // This tenant has NO transactions (this is the first scrape ever), THEN
+        // This tenant has NO transactions prior to processing this page (this is the first scrape ever), THEN
         // We need an initialization transaction to bring the balance to be up-to-date
         if (row && rowCount == count && totalTransactions === 0) {
 
             // Obtain the last transaction row in the page (which is essentially the first transaction we've scraped)
-            await createInitializationTransaction(row)
+            const firstRow = await site.getTransactionRow(1, count - 1)
+            if (firstRow) {
+                await createInitializationTransaction(firstRow)
+            } else {
+                throw new Error(`Failed to obtain transaction row 1 / ${count}`)
+            }
 
         }
 

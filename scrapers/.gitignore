@@ -6,3 +6,5 @@
 /results.xml
 /test-results.json
 /.env
+/*.xls
+/*.pdf

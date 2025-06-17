@@ -19,6 +19,10 @@ export class DatePicker {
         this.pmuDaysLocator       = this.pmuInstanceLocator.locator(`> div.pmu-days`)
     }
 
+    async getDate() {
+        return await this.inputLocator.inputValue()
+    }
+
     async open() {
         await this.inputLocator.click()
         await expect(this.pmuDaysLocator).toBeVisible()

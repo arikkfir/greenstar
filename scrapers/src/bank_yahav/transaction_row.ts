@@ -10,6 +10,7 @@ export class TransactionRow {
     constructor(
         public readonly tenantID: string,
         public readonly accountID: string,
+        public readonly rowCount: number,
         public readonly rowIndex: number,
         private readonly rowLocator: Locator,
     ) {
@@ -20,7 +21,16 @@ export class TransactionRow {
     async getDate() {
         const dateStr              = await this.rowColumnsLocator.nth(0).locator("> span").innerText()
         const [ day, month, year ] = dateStr.split("/")
-        return new Date(Number(year), Number(month) - 1, Number(day))
+        const i                    = this.rowCount - 1
+        const date                 = DateTime.fromObject({
+            year: Number(year),
+            month: Number(month),
+            day: Number(day),
+            hour: Math.floor(i / 3600),
+            minute: Math.floor(i / 60) % 60,
+            second: i % 60,
+        }, { zone: "Asia/Jerusalem" })
+        return date.toJSDate()
     }
 
     async getReferenceID() {
@@ -127,9 +137,13 @@ export class TransactionRow {
 }
 
 export async function createInitializationTransaction(row: TransactionRow) {
-    const debit  = await row.getDebit()
-    const credit = await row.getCredit()
-    let balance  = await row.getBalance()
+    const tenantID    = row.tenantID
+    const date        = DateTime.fromJSDate(await row.getDate()).minus({ days: 1 })
+    const referenceID = "initialization"
+    const debit       = await row.getDebit()
+    const credit      = await row.getCredit()
+
+    let balance = await row.getBalance()
     if (debit) {
         balance = balance + debit
     } else if (credit) {
@@ -141,20 +155,25 @@ export async function createInitializationTransaction(row: TransactionRow) {
             `- Credit: ${credit}`,
         )
     }
+    const amount = Math.abs(balance)
+
+    const currency        = "ILS"
+    const description     = "Balance initialization"
     const sourceAccountID = balance < 0 ? row.accountID : null
     const targetAccountID = balance > 0 ? row.accountID : null
 
+    console.info(`Creating BALANCE-INIT transaction ${row.rowCount}/${row.rowIndex} initialization transaction: `,
+        `  (tenant=${tenantID})\n`,
+        `  (date=${date})\n`,
+        `  (referenceID=${referenceID})\n`,
+        `  (credit=${credit})\n`,
+        `  (debit=${debit})\n`,
+        `  (balance=${balance})\n`,
+        `  (amount=${amount})\n`,
+        `  (description=${description})`)
+
     const result = await graphQLClient.mutation(CreateTransaction, {
-        tx: {
-            tenantID: row.tenantID,
-            date: DateTime.fromJSDate(await row.getDate()).minus({ days: 1 }),
-            referenceID: "initialization",
-            amount: Math.abs(balance),
-            currency: "ILS",
-            description: "Balance initialization",
-            sourceAccountID,
-            targetAccountID,
-        },
+        tx: { tenantID, date, referenceID, amount, currency, description, sourceAccountID, targetAccountID },
     })
     if (result.error) {
         throw new Error(

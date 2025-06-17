@@ -104,12 +104,13 @@ export class Site {
         return await this.transactionRowsLocator.count()
     }
 
-    async getTransactionRow(rowIndex: number, elementIndex: number) {
-        const rowLocator = this.transactionRowsLocator.nth(elementIndex)
+    async getTransactionRow(rowCount: number, rowIndex: number) {
+        const rowLocator = this.transactionRowsLocator.nth(rowIndex)
         if (await rowLocator.count() > 0) {
             return new TransactionRow(
                 this.tenantID,
                 this.accountID,
+                rowCount,
                 rowIndex,
                 rowLocator,
             )
