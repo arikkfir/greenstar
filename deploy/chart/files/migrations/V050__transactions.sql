@@ -8,6 +8,7 @@ CREATE TABLE transactions
     created_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     date              TIMESTAMP WITH TIME ZONE,
+    sequence          SMALLINT   NOT NULL      DEFAULT 0 CHECK ( sequence >= 0 ),
     reference_id      TEXT       NOT NULL,
     amount            NUMERIC    NOT NULL CHECK (amount > 0),
     currency          VARCHAR(5) NOT NULL CHECK (CHAR_LENGTH(currency) = 3)
@@ -18,6 +19,10 @@ CREATE TABLE transactions
     source_account_id TEXT       NOT NULL,
     target_account_id TEXT       NOT NULL,
     PRIMARY KEY (tenant_id, id),
+    CONSTRAINT uq_transactions UNIQUE (
+                                       tenant_id, date, reference_id, amount, currency,
+                                       description, source_account_id, target_account_id
+        ),
     FOREIGN KEY (tenant_id, source_account_id) REFERENCES accounts (tenant_id, id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (tenant_id, target_account_id) REFERENCES accounts (tenant_id, id) ON UPDATE CASCADE ON DELETE CASCADE
 );
