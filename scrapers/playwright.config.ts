@@ -6,7 +6,7 @@ dotenv.config()
 
 export default defineConfig({
     testDir: "./src",
-    testMatch: /.*.*\/.*\.scraper\.ts/,
+    testMatch: /scrapers\/.+\/scraper\.ts/,
     fullyParallel: true,
     forbidOnly: false,
     workers: 1,
@@ -24,6 +24,9 @@ export default defineConfig({
         //     locale: "he-IL",
         //     permissions: ["geolocation"],
         // },
+        contextOptions: {
+            reducedMotion: "reduce",
+        },
         screenshot: "on",
         trace: "on",
         video: "on",
@@ -31,7 +34,8 @@ export default defineConfig({
     expect: {
         timeout: 1000 * 15,
     },
-    timeout: 1000 * 60 * 5,
+    reportSlowTests: null,
+    timeout: 1000 * 60 * 30,
     projects: [
         {
             name: "Google Chrome",

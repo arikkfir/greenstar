@@ -22,17 +22,17 @@ div.transactions > div.transactionList
         > div[role=row]
             > div.row
                 > div.col > span            -> DATE: 30/06/2024
-        > div.col > span            -> REF: &#x202D;12-799-000803480 (&#x202d = Left To Right Override; see https://www.codetable.net/hex/202d)
-        > div.col
-            > span                  -> DESCRIPTION: &#x202B;ב.הפועלים-ביט/&#x202B;דוד דוול/&#x202B;26.6 (&#x202B; = Right-To-Left Embedding; see https://www.codetable.net/hex/202b)
-            > span.icon.debitcard   -> clicking this will navigate to debitcard data
-        > div.col > span?           -> DEBIT: 350.00&nbsp;
-        > div.col > span?           -> CREDIT: 350.00&nbsp;
-        > div.col
-            > div
-                > span -> BALANCE: 11,952.79&nbsp;
-                > span.icon -> clicking this will open the row's "div.expanded-data"
-    > div.expanded-data
+                > div.col > span            -> REF: &#x202D;12-799-000803480 (&#x202d = Left To Right Override; see https://www.codetable.net/hex/202d)
+                > div.col
+                    > span                  -> DESCRIPTION: &#x202B;ב.הפועלים-ביט/&#x202B;דוד דוול/&#x202B;26.6 (&#x202B; = Right-To-Left Embedding; see https://www.codetable.net/hex/202b)
+                    > span.icon.debitcard   -> clicking this will navigate to debitcard data
+                > div.col > span?           -> DEBIT: 350.00&nbsp;
+                > div.col > span?           -> CREDIT: 350.00&nbsp;
+                > div.col
+                    > div
+                        > span -> BALANCE: 11,952.79&nbsp;
+                        > span.icon -> clicking this will open the row's "div.expanded-data"
+            > div.expanded-data
 ```
 
 ## ROADMAP
