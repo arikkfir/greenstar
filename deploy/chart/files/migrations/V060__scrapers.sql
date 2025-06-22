@@ -14,7 +14,7 @@ VALUES ('number', 'Number'),
 
 CREATE TABLE scraper_types
 (
-    id           TEXT PRIMARY KEY,
+    id           VARCHAR(10) PRIMARY KEY,
     created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     display_name TEXT NOT NULL
@@ -47,7 +47,7 @@ VALUES ('bankYahav', 'accountID', 'Checking Account', 'account');
 
 CREATE TABLE scrapers
 (
-    tenant_id       TEXT NOT NULL
+    tenant_id       VARCHAR(10) NOT NULL
         CONSTRAINT fk_scrapers_tenant_id
             REFERENCES tenants
             ON UPDATE CASCADE ON DELETE CASCADE,
@@ -65,7 +65,7 @@ GRANT SELECT, DELETE, INSERT, UPDATE ON TABLE scrapers TO greenstar_server;
 
 CREATE TABLE scraper_parameters
 (
-    tenant_id                 TEXT NOT NULL
+    tenant_id                 VARCHAR(10) NOT NULL
         CONSTRAINT fk_scraper_parameters_tenant_id
             REFERENCES tenants
             ON UPDATE CASCADE ON DELETE CASCADE,
