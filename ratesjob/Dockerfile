@@ -1,13 +1,13 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24-alpine AS production
+FROM node:24-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
+RUN npm ci
 ARG VERSION=0.0.0-notset
 RUN npm pkg set version="${VERSION}"
-RUN npm ci
-COPY ./src ./src/
 COPY ./tsconfig.json ./
-ARG NODE_ENV
+COPY ./src ./src/
+ARG NODE_ENV=development
 RUN npm run build
 ENTRYPOINT ["npm","run","generate"]
