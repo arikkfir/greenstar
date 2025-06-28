@@ -23,6 +23,21 @@
                 "extraEnv": {
                     "$ref": "#/$defs/extraEnv"
                 },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "content"],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "content": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "image": {
                     "$ref": "#/$defs/image"
                 },

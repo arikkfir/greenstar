@@ -222,6 +222,13 @@ tasks:
     cmds:
       - touch ./hack/greenstar-values.yaml
       - yq -i '.frontend.extraEnv.VITE_GEOAPIFY_API_KEY.value = env(GEOAPIFY_API_KEY)' ./hack/greenstar-values.yaml
+      - yq -i '.acme.files = []' ./hack/greenstar-values.yaml
+      - |
+        for filepath in ./deploy/local/acme/*.yaml; do
+          NAME="$(basename "$filepath")" CONTENT="$(cat "$filepath")" yq -i \
+            '.acme.files += [{"name": env(NAME), "content": env(CONTENT)}]' \
+            ./hack/greenstar-values.yaml
+        done
 
   deploy:
     deps: [ setup-cluster, setup-sensitive-environment ]
