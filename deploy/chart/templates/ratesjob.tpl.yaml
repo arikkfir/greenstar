@@ -91,7 +91,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    "helm.sh/hook": post-install, post-upgrade
+    "helm.sh/hook": post-install, post-upgrade, post-delete, post-rollback
     "helm.sh/hook-weight": "-10"
     "helm.sh/hook-delete-policy": before-hook-creation # TODO: ,hook-succeeded
   labels:
@@ -99,6 +99,8 @@ metadata:
     app.kubernetes.io/component: {{ $componentName | quote }}
   name: {{ printf "%s-%s" $prefix $componentName | quote }}
 spec:
+  activeDeadlineSeconds: 60
+  backoffLimit: 3
   template:
     metadata:
       labels:
