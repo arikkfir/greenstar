@@ -1,9 +1,5 @@
 CREATE TABLE accounts
 (
-    tenant_id    VARCHAR(10) NOT NULL
-        CONSTRAINT fk_accounts_tenant_id
-            REFERENCES tenants
-            ON UPDATE CASCADE ON DELETE CASCADE,
     id           TEXT        NOT NULL     DEFAULT gen_random_uuid(),
     created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -13,6 +9,8 @@ CREATE TABLE accounts
         CONSTRAINT icon_length CHECK (CHAR_LENGTH(icon) > 0),
     type         TEXT,
     parent_id    TEXT,
+    tenant_id    VARCHAR(10) NOT NULL
+        CONSTRAINT fk_accounts_tenant_id REFERENCES tenants (id) ON UPDATE CASCADE ON DELETE CASCADE,
     PRIMARY KEY (tenant_id, id),
     CONSTRAINT fk_accounts_parent_id FOREIGN KEY (tenant_id, parent_id) REFERENCES accounts (tenant_id, id) ON UPDATE CASCADE ON DELETE CASCADE
 );
