@@ -156,7 +156,7 @@ export interface DataLayer {
     moveAccount(args: MutationMoveAccountArgs): Promise<Account>
 }
 
-export class NoOpDataLayer {
+export class NoOpDataLayer implements DataLayer {
     createAccount(args: MutationCreateAccountArgs): Promise<Account> {
         throw new Error("Not implemented")
     }
