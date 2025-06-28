@@ -12,6 +12,12 @@ CREATE TABLE transactions
     reference_id      TEXT       NOT NULL,
     amount            NUMERIC    NOT NULL CHECK (amount > 0),
     currency          VARCHAR(5) NOT NULL CHECK (CHAR_LENGTH(currency) = 3)
+    sequence          SMALLINT    NOT NULL             DEFAULT 0
+        CONSTRAINT sequence_gt_0 CHECK ( sequence >= 0 ),
+    amount            NUMERIC     NOT NULL
+        CONSTRAINT amount_gt_0 CHECK (amount > 0),
+    currency          VARCHAR(5)  NOT NULL
+        CONSTRAINT currency_not_empty CHECK (CHAR_LENGTH(currency) = 3)
         CONSTRAINT fk_transactions_currency
             REFERENCES currencies
             ON UPDATE CASCADE ON DELETE RESTRICT,
@@ -19,6 +25,8 @@ CREATE TABLE transactions
     source_account_id TEXT       NOT NULL,
     target_account_id TEXT       NOT NULL,
     PRIMARY KEY (tenant_id, id),
+    description       TEXT
+        CONSTRAINT description_not_empty CHECK (CHAR_LENGTH(description) > 0),
     CONSTRAINT uq_transactions UNIQUE (
                                        tenant_id, date, reference_id, amount, currency,
                                        description, source_account_id, target_account_id
