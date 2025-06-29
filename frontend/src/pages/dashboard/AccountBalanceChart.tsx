@@ -11,10 +11,10 @@ import { Card, CardContent } from "@mui/material"
 
 // GraphQL query to get account balance over time
 const AccountsBalanceOverTime = gql(`
-    query AccountBalanceOverTimeQuery($tenantID: ID!, $accountIDs: [ID!]!, $currency: String!) {
+    query AccountBalanceOverTimeQuery($tenantID: ID!, $accountIDs: [ID!]!, $currency: String!, $endDate: DateTime) {
         tenant(id: $tenantID) {
             id
-            accountsBalanceOverTime(accountIDs: $accountIDs, currency: $currency) {
+            accountsBalanceOverTime(accountIDs: $accountIDs, currency: $currency, endDate: $endDate) {
                 account {
                     id
                     label: displayName
@@ -85,7 +85,14 @@ export function AccountBalanceChart({ accountIDs }: AccountBalanceChartProps) {
                 return
             }
 
-            fetch({ variables: { tenantID, accountIDs, currency: selectedCurrency?.currency?.code || "USD" } }).then(
+            fetch({
+                variables: {
+                    tenantID,
+                    accountIDs,
+                    currency: selectedCurrency?.currency?.code || "USD",
+                    //endDate: DateTime.fromISO("2025-01-01", { setZone: true }),
+                },
+            }).then(
                 fetchResult => {
                     if (fetchResult.error) {
                         throw fetchResult.error
