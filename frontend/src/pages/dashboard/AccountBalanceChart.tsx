@@ -1,5 +1,5 @@
 import { useContext, useEffect, useMemo, useState } from "react"
-import { LineChart } from "@mui/x-charts/LineChart"
+import { LineChartPro } from "@mui/x-charts-pro/LineChartPro"
 import { useLazyQuery } from "@apollo/client"
 import { gql } from "../../graphql"
 import { useTenantID } from "../../hooks/tenant.ts"
@@ -150,10 +150,10 @@ export function AccountBalanceChart({ accountIDs }: AccountBalanceChartProps) {
                                             subTitle={result.error.message}
                                             extra={buildErrorExtra(result.error)} />}
                 {!result.error && (
-                    <LineChart xAxis={xAxis}
-                               yAxis={yAxis}
-                               series={series || []}
-                               skipAnimation
+                    <LineChartPro xAxis={xAxis}
+                                  yAxis={yAxis}
+                                  series={series || []}
+                                  skipAnimation
                     />
                 )}
             </CardContent>
