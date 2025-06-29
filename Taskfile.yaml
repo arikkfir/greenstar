@@ -248,3 +248,7 @@ tasks:
     dir: e2e
     cmds:
       - npm run test -- {{.CLI_ARGS}}
+
+  docker-cleanup:
+    cmds:
+      - docker system prune --all --force --volumes
