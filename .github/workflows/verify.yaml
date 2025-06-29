@@ -51,7 +51,17 @@ jobs:
         run: task generate-graphql-${{ matrix.module }}
 
       - name: Verify
-        run: git diff --exit-code || git diff --compact-summary --exit-code
+        id: verify
+        run: |
+          git diff > diff.txt
+          git diff --compact-summary --exit-code
+
+      - name: Upload diff
+        if: failure() && steps.verify.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.module }}-diff.txt
+          path: diff.txt
 
   build-images:
     name: Build ${{ matrix.image }} image
