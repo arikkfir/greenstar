@@ -122,11 +122,13 @@ export function AccountBalanceChart({ accountIDs }: AccountBalanceChartProps) {
         data: Date[] | undefined
         scaleType: "time"
         valueFormatter: (value: any) => string
-        label: string
+        label: string,
+        zoom?: boolean,
     }
     type YAxisConfig = {
         width?: number
         label: string
+        zoom?: boolean,
     }
 
     const xAxis: XAxisConfig[] = useMemo(
@@ -136,12 +138,13 @@ export function AccountBalanceChart({ accountIDs }: AccountBalanceChartProps) {
                 scaleType: "time",
                 valueFormatter: (value: any) => DateTime.fromJSDate(value).toLocaleString(DateTime.DATE_SHORT),
                 label: "Time",
+                zoom: true,
             },
         ]),
         [ xAxisData ],
     )
 
-    const yAxis: YAxisConfig[] = useMemo(() => ([ { width: 100, label: "Balance" } ]), [])
+    const yAxis: YAxisConfig[] = useMemo(() => ([ { width: 100, label: "Balance", zoom: true } ]), [])
 
     return (
         <Card className="balance-chart-container" elevation={3}>
