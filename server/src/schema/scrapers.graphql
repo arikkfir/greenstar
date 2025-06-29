@@ -1,8 +1,11 @@
-type ScraperParameterType {
-    id: ID!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-    displayName: String!
+enum ScraperParameterType {
+    String
+    Password
+    Boolean
+    Integer
+    Float
+    Date
+    Account
 }
 
 type ScraperType {
@@ -15,11 +18,14 @@ type ScraperType {
 
 type ScraperTypeParameter {
     id: ID!
-    createdAt: DateTime!
-    updatedAt: DateTime!
     displayName: String!
-    scraperType: ScraperType!
-    parameterType: ScraperParameterType!
+    source: ScraperTypeParameterSource!
+    type: ScraperParameterType!
+}
+
+enum ScraperTypeParameterSource {
+    User
+    System
 }
 
 type Scraper {
@@ -29,19 +35,24 @@ type Scraper {
     displayName: String!
     type: ScraperType!
     parameters: [ScraperParameter!]!
+    runs: [ScraperRun!]!
 }
 
 type ScraperParameter {
-    scraper: Scraper!
     parameter: ScraperTypeParameter!
     value: String!
-    createdAt: DateTime!
-    updatedAt: DateTime!
 }
 
 extend type Query {
-    scraperParameterTypes: [ScraperParameterType!]!
     scraperTypes: [ScraperType!]!
+}
+
+type ScraperRun {
+    id: ID!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    scraper: Scraper!
+    parameters: [ScraperParameter!]!
 }
 
 extend type Mutation {
@@ -52,10 +63,15 @@ extend type Mutation {
         scraperTypeID: ID!,
         parameters: [ScraperParameterInput!]!
     ): Scraper!
-    deleteScraper(tenantID: ID!, scraperTypeID: ID!, id: ID!): Void
+    createScraperRun(
+        tenantID: ID!,
+        scraperID: ID!,
+        parameters: [ScraperParameterInput!]!
+    ): ScraperRun!
+    deleteScraper(tenantID: ID!, id: ID!): Void
 }
 
 input ScraperParameterInput {
-    scraperTypeParameterID: ID!
+    parameterID: ID!
     value: String!
 }

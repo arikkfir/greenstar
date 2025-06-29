@@ -7,15 +7,15 @@ import { splitCamelCase } from "./util.js"
 export const CreateScraper = gql(`
     mutation CreateScraper(
         $tenantID: ID!
+        $id: ID!,
         $scraperTypeID: ID!
-        $id: ID!
         $displayName: String!
         $parameters: [ScraperParameterInput!]!
     ) {
         createScraper(
             tenantID: $tenantID
-            scraperTypeID: $scraperTypeID
             id: $id
+            scraperTypeID: $scraperTypeID
             displayName: $displayName
             parameters: $parameters
         ) {
@@ -29,13 +29,11 @@ export async function generateScraper(tenantID: Tenant["id"], scraper: ACMEScrap
         CreateScraper,
         {
             tenantID,
-            scraperTypeID: scraper.type,
             id: scraper.id,
+            scraperTypeID: scraper.type,
             displayName: scraper.displayName || splitCamelCase(scraper.id),
-            parameters: Object.entries(scraper.parameters || {}).map(kv => ({
-                scraperTypeParameterID: kv[0],
-                value: kv[1],
-            })) || [],
+            parameters: Object.entries(scraper.parameters || {})
+                              .map(([ parameterID, value ]) => ({ parameterID, value })) || [],
         }).toPromise()
     if (result.error) {
         throw result.error
