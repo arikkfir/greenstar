@@ -51,7 +51,7 @@ jobs:
         run: task generate-graphql-${{ matrix.module }}
 
       - name: Verify
-        run: git diff --compact-summary --exit-code
+        run: git diff --exit-code || git diff --compact-summary --exit-code
 
   build-images:
     name: Build ${{ matrix.image }} image
