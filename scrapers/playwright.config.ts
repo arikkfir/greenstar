@@ -5,27 +5,23 @@ import * as dotenv from "dotenv"
 dotenv.config()
 
 export default defineConfig({
-    testDir: "./src",
-    testMatch: /scrapers\/.+\/scraper\.ts/,
+    testDir: "./src/scrapers",
+    testMatch: /.+\/scraper\.ts$/,
     fullyParallel: true,
-    forbidOnly: false,
+    forbidOnly: true,
+    retries: 0,
     workers: 1,
     reporter: [
         ["list", { printSteps: true }],
         ["html", { open: "never" }],
     ],
     use: {
-        baseURL: "https://www.bank-yahav.co.il",
-        // contextOptions: {
-        //     geolocation: {
-        //         longitude: 34.89242,
-        //         latitude: 32.1869342,
-        //     },
-        //     locale: "he-IL",
-        //     permissions: ["geolocation"],
-        // },
         contextOptions: {
             reducedMotion: "reduce",
+        },
+        headless: !!process.env.KUBERNETES_SERVICE_HOST,
+        launchOptions: {
+            args: ['--no-sandbox'],
         },
         screenshot: "on",
         trace: "on",

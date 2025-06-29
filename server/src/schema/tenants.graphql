@@ -33,7 +33,8 @@ type Tenant {
         offset: Int
         limit: Int
     ): TransactionsResult!
-    scrapers: [Scraper!]!
+    scraper(id: ID!): Scraper
+    scrapers(scraperTypeID: ID): [Scraper!]!
 }
 
 extend type Query {

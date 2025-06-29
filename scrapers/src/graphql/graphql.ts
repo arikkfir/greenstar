@@ -134,6 +134,7 @@ export type Mutation = {
   createAccount: Account;
   createCurrencyRate: CurrencyRate;
   createScraper: Scraper;
+  createScraperRun: ScraperRun;
   createTenant: Tenant;
   createTransaction: Transaction;
   deleteAccount?: Maybe<Scalars['Void']['output']>;
@@ -172,6 +173,13 @@ export type MutationCreateScraperArgs = {
 };
 
 
+export type MutationCreateScraperRunArgs = {
+  parameters: Array<ScraperParameterInput>;
+  scraperID: Scalars['ID']['input'];
+  tenantID: Scalars['ID']['input'];
+};
+
+
 export type MutationCreateTenantArgs = {
   displayName: Scalars['String']['input'];
   id: Scalars['ID']['input'];
@@ -191,7 +199,6 @@ export type MutationDeleteAccountArgs = {
 
 export type MutationDeleteScraperArgs = {
   id: Scalars['ID']['input'];
-  scraperTypeID: Scalars['ID']['input'];
   tenantID: Scalars['ID']['input'];
 };
 
@@ -219,7 +226,6 @@ export type Query = {
   currency?: Maybe<Currency>;
   currencyRate?: Maybe<CurrencyRate>;
   currencyRates: Array<CurrencyRate>;
-  scraperParameterTypes: Array<ScraperParameterType>;
   scraperTypes: Array<ScraperType>;
   tenant?: Maybe<Tenant>;
   tenants: Array<Tenant>;
@@ -262,29 +268,38 @@ export type Scraper = {
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   parameters: Array<ScraperParameter>;
+  runs: Array<ScraperRun>;
   type: ScraperType;
   updatedAt: Scalars['DateTime']['output'];
 };
 
 export type ScraperParameter = {
   __typename?: 'ScraperParameter';
-  createdAt: Scalars['DateTime']['output'];
   parameter: ScraperTypeParameter;
-  scraper: Scraper;
-  updatedAt: Scalars['DateTime']['output'];
   value: Scalars['String']['output'];
 };
 
 export type ScraperParameterInput = {
-  scraperTypeParameterID: Scalars['ID']['input'];
+  parameterID: Scalars['ID']['input'];
   value: Scalars['String']['input'];
 };
 
-export type ScraperParameterType = {
-  __typename?: 'ScraperParameterType';
+export enum ScraperParameterType {
+  Account = 'Account',
+  Boolean = 'Boolean',
+  Date = 'Date',
+  Float = 'Float',
+  Integer = 'Integer',
+  Password = 'Password',
+  String = 'String'
+}
+
+export type ScraperRun = {
+  __typename?: 'ScraperRun';
   createdAt: Scalars['DateTime']['output'];
-  displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  parameters: Array<ScraperParameter>;
+  scraper: Scraper;
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -299,13 +314,16 @@ export type ScraperType = {
 
 export type ScraperTypeParameter = {
   __typename?: 'ScraperTypeParameter';
-  createdAt: Scalars['DateTime']['output'];
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  parameterType: ScraperParameterType;
-  scraperType: ScraperType;
-  updatedAt: Scalars['DateTime']['output'];
+  source: ScraperTypeParameterSource;
+  type: ScraperParameterType;
 };
+
+export enum ScraperTypeParameterSource {
+  System = 'System',
+  User = 'User'
+}
 
 export enum SortDirection {
   Asc = 'Asc',
@@ -323,6 +341,7 @@ export type Tenant = {
   id: Scalars['ID']['output'];
   lastTransactionDate?: Maybe<Scalars['DateTime']['output']>;
   rootAccounts: Array<Account>;
+  scraper?: Maybe<Scraper>;
   scrapers: Array<Scraper>;
   totalTransactions: Scalars['Int']['output'];
   transactions: TransactionsResult;
@@ -345,6 +364,16 @@ export type TenantAccountsBalanceOverTimeArgs = {
   currency: Scalars['String']['input'];
   endDate?: InputMaybe<Scalars['DateTime']['input']>;
   startDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+
+export type TenantScraperArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type TenantScrapersArgs = {
+  scraperTypeID?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
