@@ -92,8 +92,10 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           builder: ${{ steps.buildx.outputs.name }}
-          cache-from: type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.image }}
-          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-${{ matrix.image }}
+          cache-from: |
+            type=gha,mode=max,scope=${{ github.event_name == 'pull_request' && format('pr-{0}-{1}', github.event.number, matrix.image) || format('{0}-{1}', github.ref_name, matrix.image) }}
+            type=gha,mode=max,scope=main-${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ github.event_name == 'pull_request' && format('pr-{0}-{1}', github.event.number, matrix.image) || format('{0}-{1}', github.ref_name, matrix.image) }}
           context: ${{ matrix.image }}
           build-args: |
             VERSION=0.0.0+${{ github.sha }}
