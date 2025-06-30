@@ -20,8 +20,8 @@ if ! gh auth status &> /dev/null; then
     exit 1
 fi
 
-RUN_ID=$(gh run list --repo "${REPO_NAME}" --workflow=verify.yaml --commit="${COMMIT}" --json databaseId --jq '.[0].databaseId')
 echo "Finding the last run of the verify workflow for commit ${COMMIT}..." >&2
+RUN_ID=$(gh run list --repo "${REPO_NAME}" --workflow=Verify --commit="${COMMIT}" --json databaseId --jq '.[0].databaseId')
 
 if [ -z "${RUN_ID}" ]; then
     echo "No verify workflow run found for commit ${COMMIT}" >&2
