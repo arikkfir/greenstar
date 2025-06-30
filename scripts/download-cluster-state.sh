@@ -6,9 +6,7 @@ COMMIT=$(git rev-parse HEAD)
 echo "Most recent commit: ${COMMIT}" >&2
 
 # Get the repository name from the remote URL
-REPO_URL=$(git config --get remote.origin.url)
-REPO_NAME=$(echo "${REPO_URL}" | sed -E 's|.*github\.com[:/]([^/]+/[^/]+)(\.git)?$|\1|')
-echo "Repository: ${REPO_NAME}"
+REPO_NAME="arikkfir/greenstar"
 
 # Use GitHub CLI to find the last run of the verify workflow for that commit
 if ! command -v gh &> /dev/null; then
