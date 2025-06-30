@@ -248,3 +248,7 @@ tasks:
     dir: e2e
     cmds:
       - npm run test -- {{.CLI_ARGS}}
+
+  download-cluster-state:
+    cmds:
+      - ./scripts/download-cluster-state.sh
