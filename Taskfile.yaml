@@ -64,11 +64,11 @@ tasks:
   generate-certificates:
     deps: [ toolchain:mkcert ]
     cmds:
-      - mkcert -cert-file deploy/local/wildcard-tls.crt -key-file deploy/local/wildcard-tls.key "${DOMAIN}" "*.app.${DOMAIN}" "*.${DOMAIN}" "localhost" "127.0.0.1" "::1"
-      - defer: rm -fv deploy/local/wildcard-tls.crt deploy/local/wildcard-tls.key
-      - kubectl create secret tls wildcard-tls --cert=deploy/local/wildcard-tls.crt --key=deploy/local/wildcard-tls.key --dry-run=client --output=yaml > deploy/local/wildcard-tls-secret.yaml
+      - mkcert -cert-file deploy/local/wildcard-tls.local.crt -key-file deploy/local/wildcard-tls.local.key "${DOMAIN}" "*.app.${DOMAIN}" "*.${DOMAIN}" "localhost" "127.0.0.1" "::1"
+      - defer: rm -fv deploy/local/wildcard-tls.local.crt deploy/local/wildcard-tls.local.key
+      - kubectl create secret tls wildcard-tls --cert=deploy/local/wildcard-tls.local.crt --key=deploy/local/wildcard-tls.local.key --dry-run=client --output=yaml > deploy/local/wildcard-tls-secret.local.yaml
     status:
-      - test -f deploy/local/wildcard-tls-secret.yaml
+      - test -f deploy/local/wildcard-tls-secret.local.yaml
 
   create-cluster:
     deps: [ toolchain:kind ]
@@ -104,10 +104,10 @@ tasks:
           --create-namespace --namespace="ingress" \
           -f deploy/local/traefik-values.yaml \
           --wait
-      - kubectl apply --namespace=ingress -f ./deploy/local/wildcard-tls-secret.yaml
+      - kubectl apply --namespace=ingress -f ./deploy/local/wildcard-tls-secret.local.yaml
       - kubectl apply --namespace=ingress -f ./deploy/local/ingress-gateway.yaml
     sources:
-      - ./deploy/local/wildcard-tls-secret.yaml
+      - ./deploy/local/wildcard-tls-secret.local.yaml
       - ./deploy/local/ingress-gateway.yaml
       - ./deploy/local/traefik-values.yaml
     status:
@@ -214,6 +214,13 @@ tasks:
     cmds:
       - touch ./hack/greenstar-values.yaml
       - yq -i '.frontend.extraEnv.VITE_GEOAPIFY_API_KEY.value = env(GEOAPIFY_API_KEY)' ./hack/greenstar-values.yaml
+      - yq -i '.acme.files = []' ./hack/greenstar-values.yaml
+      - |
+        for filepath in ./deploy/local/acme/*.yaml; do
+          NAME="$(basename "$filepath")" CONTENT="$(cat "$filepath")" yq -i \
+            '.acme.files += [{"name": env(NAME), "content": env(CONTENT)}]' \
+            ./hack/greenstar-values.yaml
+        done
 
   deploy:
     deps: [ setup-cluster, setup-sensitive-environment ]
