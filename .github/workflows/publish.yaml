@@ -160,14 +160,14 @@ jobs:
 
       - name: Create contents
         env:
-          FAILED: "${{ needs.upload.outputs.failed }}"
-          FLAKY: "${{ needs.upload.outputs.flaky }}"
-          SKIPPED: "${{ needs.upload.outputs.skipped }}"
-          PASSED: "${{ needs.upload.outputs.passed }}"
-          TESTS: "${{ needs.upload.outputs.tests }}"
+          FAILED: "${{ needs.upload-test-results.outputs.failed }}"
+          FLAKY: "${{ needs.upload-test-results.outputs.flaky }}"
+          SKIPPED: "${{ needs.upload-test-results.outputs.skipped }}"
+          PASSED: "${{ needs.upload-test-results.outputs.passed }}"
+          TESTS: "${{ needs.upload-test-results.outputs.tests }}"
         run: |
           cat > comment.txt <<EOF
-          ### ${{ needs.upload.outputs.failed == '0' && ':rocket:' || ':bangbang:' }} End-to-end tests ${{ needs.upload.outputs.failed == '0' && 'passed' || 'failed' }}!
+          ### ${{ needs.upload-test-results.outputs.failed == '0' && ':rocket:' || ':bangbang:' }} End-to-end tests ${{ needs.upload.outputs.failed == '0' && 'passed' || 'failed' }}!
         
           | Result                         | Count                                    |
           |--------------------------------|------------------------------------------|
