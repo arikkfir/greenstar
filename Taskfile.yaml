@@ -249,6 +249,10 @@ tasks:
     cmds:
       - npm run test -- {{.CLI_ARGS}}
 
+  docker-cleanup:
+    cmds:
+      - docker system prune --all --force --volumes
+
   download-cluster-state:
     cmds:
       - ./scripts/download-cluster-state.sh
