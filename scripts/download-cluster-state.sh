@@ -38,11 +38,6 @@ trap 'rm -rf "${TEMP_DIR}"' EXIT
 echo "Downloading cluster-state artifact from workflow run ${RUN_ID}..." >&2
 gh run download "${RUN_ID}" --repo "${REPO_NAME}" --name cluster-state --dir "${TEMP_DIR}"
 
-if [ ! -d "${TEMP_DIR}/cluster-state" ]; then
-    echo "Failed to download cluster-state artifact or artifact does not contain expected directory structure"
-    exit 1
-fi
-
 # Prepare the target directory
 TARGET_DIR="hack/cluster-state"
 if [ -d "${TARGET_DIR}" ]; then
