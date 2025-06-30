@@ -53,6 +53,6 @@ fi
 # Create the target directory and move the files
 mkdir -p "${TARGET_DIR}"
 echo "Extracting artifact to ${TARGET_DIR}..."
-cp -R "${TEMP_DIR}/cluster-state/"* "${TARGET_DIR}/"
+cp -vR "${TEMP_DIR}/"* "${TARGET_DIR}/"
 
 echo "Cluster state successfully downloaded and extracted to ${TARGET_DIR}"
