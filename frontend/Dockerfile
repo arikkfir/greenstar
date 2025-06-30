@@ -30,7 +30,7 @@ ARG VITE_GEOAPIFY_API_KEY
 ENV NODE_ENV=production
 RUN npm run build
 
-FROM nginx:1.27 AS production
+FROM nginx:1.29 AS production
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /etc/greenstar && echo "${VERSION}" > /etc/greenstar/version
 COPY --from=builder /app/dist /app/
