@@ -1,0 +1,102 @@
+{{- $prefix := include "greenstar.prefix" . -}}
+{{- $componentName := "cleanup" -}}
+{{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
+{{- $roleName := printf "%s-%s" $prefix $componentName -}}
+{{- /*------------------------------------------------------------------------------------------------------------*/ -}}
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "0"
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "0"
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $roleName | quote }}
+rules:
+  - apiGroups: [ batch ]
+    resources: [ jobs, cronjobs ]
+    verbs: [ delete, list ]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+    "helm.sh/hook-weight": "0"
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix $componentName | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $roleName | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $serviceAccountName | quote }}
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded,hook-failed
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ printf "%s-%s" $prefix $componentName | quote }}
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "greenstar.commonLabels" . | nindent 8 }}
+        app.kubernetes.io/component: {{ $componentName | quote }}
+    spec:
+      containers:
+        - image: bitnami/kubectl:latest
+          name: {{ $componentName | quote }}
+          env:
+            - name: NS
+              value: {{ .Release.Namespace }}
+            - name: SELECTOR
+              value: app.kubernetes.io/instance={{ .Release.Name }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              kubectl delete cronjobs -n ${NS} -l ${SELECTOR} --ignore-not-found=true --wait
+              kubectl delete jobs -n ${NS} -l ${SELECTOR} --ignore-not-found=true --wait
+          resources:
+            limits:
+              cpu: 500m
+              memory: 64Mi
+            requests:
+              cpu: 100m
+              memory: 32Mi
+      restartPolicy: Never
+      enableServiceLinks: false
+      serviceAccountName: {{ $serviceAccountName | quote }}

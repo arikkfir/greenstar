@@ -40,7 +40,6 @@ metadata:
   annotations:
     "helm.sh/hook": post-install, post-upgrade
     "helm.sh/hook-weight": "-5"
-    "helm.sh/hook-delete-policy": before-hook-creation # TODO: ,hook-succeeded
   labels:
     {{- include "greenstar.commonLabels" . | nindent 4 }}
     app.kubernetes.io/component: {{ $componentName | quote }}
