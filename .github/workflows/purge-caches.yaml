@@ -93,7 +93,9 @@ jobs:
             ((cleanup_cycle++))
           
             # Add a small delay to avoid hitting rate limits
-            sleep 2
+            if [[ $((cleanup_cycle % 2)) -eq 0 ]]; then
+              sleep 1
+            fi
           done
           
           echo ""
