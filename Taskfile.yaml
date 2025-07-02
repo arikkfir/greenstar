@@ -262,4 +262,4 @@ tasks:
 
   download-cluster-state:
     cmds:
-      - ./scripts/download-cluster-state.sh
+      - ./scripts/download-cluster-state.sh {{.CLI_ARGS}}
