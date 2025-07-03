@@ -240,7 +240,12 @@ tasks:
   devloop:
     deps: [ setup-observability, setup-sensitive-environment ]
     cmds:
-      - while true; do task dev; sleep 5; done
+      - |
+        while true; do
+          task dev;
+          echo "Sleeping for 10 seconds...";
+          sleep 10;
+        done
 
   test:
     deps: [ toolchain:node ]
