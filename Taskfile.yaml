@@ -237,6 +237,11 @@ tasks:
     cmds:
       - skaffold dev --tail=false
 
+  devloop:
+    deps: [ setup-observability, setup-sensitive-environment ]
+    cmds:
+      - while true; do task dev; sleep 5; done
+
   package-helm-chart:
     deps: [ toolchain:helm ]
     cmds:
