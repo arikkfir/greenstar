@@ -223,7 +223,7 @@ tasks:
         done
 
   deploy:
-    deps: [ setup-cluster, setup-sensitive-environment ]
+    deps: [ setup-observability, setup-sensitive-environment ]
     cmds:
       - skaffold build -q > hack/skaffold-build.json
       - skaffold deploy --load-images --build-artifacts hack/skaffold-build.json
@@ -233,7 +233,7 @@ tasks:
       - skaffold delete
 
   dev:
-    deps: [ setup-cluster, setup-sensitive-environment ]
+    deps: [ setup-observability, setup-sensitive-environment ]
     cmds:
       - skaffold dev --tail=false
 
@@ -241,19 +241,6 @@ tasks:
     deps: [ setup-observability, setup-sensitive-environment ]
     cmds:
       - while true; do task dev; sleep 5; done
-
-  package-helm-chart:
-    deps: [ toolchain:helm ]
-    cmds:
-      - yq -i ".acme.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - yq -i ".frontend.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - yq -i ".ratesjob.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - yq -i ".server.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - helm package ./deploy/chart --app-version "${VERSION}" --version "${VERSION}"
-    requires:
-      vars:
-        - IMAGES_TAG
-        - VERSION
 
   test:
     deps: [ toolchain:node ]

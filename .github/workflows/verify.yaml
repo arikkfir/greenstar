@@ -127,7 +127,12 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package Helm chart
-        run: task -v package-helm-chart
+        run: |
+          yq -i ".acme.image.tag = \"${IMAGES_TAG}\"" deploy/chart/values.yaml
+          yq -i ".frontend.image.tag = \"${IMAGES_TAG}\"" deploy/chart/values.yaml
+          yq -i ".ratesjob.image.tag = \"${IMAGES_TAG}\"" deploy/chart/values.yaml
+          yq -i ".server.image.tag = \"${IMAGES_TAG}\"" deploy/chart/values.yaml
+          helm package ./deploy/chart --app-version "${VERSION}" --version "${VERSION}"
         env:
           IMAGES_TAG: ${{ github.sha }}
 
