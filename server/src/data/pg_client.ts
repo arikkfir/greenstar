@@ -1,5 +1,6 @@
 import pg, { Pool } from "pg"
 import { DateTime, Duration } from "luxon"
+import postgresInterval from "postgres-interval"
 
 const { types } = pg
 
@@ -14,9 +15,20 @@ function convertDateValues(value: string | null): (DateTime | null) {
 function convertIntervalValues(value: any | null): (Duration | null) {
     if (value == null) {
         return null
-    } else {
-        return Duration.fromObject(value)
     }
+
+    const parsed = postgresInterval(value)
+
+    // Convert to Luxon Duration
+    return Duration.fromObject({
+        years: parsed.years || 0,
+        months: parsed.months || 0,
+        days: parsed.days || 0,
+        hours: parsed.hours || 0,
+        minutes: parsed.minutes || 0,
+        seconds: parsed.seconds || 0,
+        milliseconds: parsed.milliseconds || 0,
+    })
 }
 
 function convertIntegerValues(value: string | null): (number | null) {
