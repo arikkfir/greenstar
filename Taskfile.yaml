@@ -223,7 +223,7 @@ tasks:
         done
 
   deploy:
-    deps: [ setup-cluster, setup-sensitive-environment ]
+    deps: [ setup-observability, setup-sensitive-environment ]
     cmds:
       - skaffold build -q > hack/skaffold-build.json
       - skaffold deploy --load-images --build-artifacts hack/skaffold-build.json
@@ -233,7 +233,7 @@ tasks:
       - skaffold delete
 
   dev:
-    deps: [ setup-cluster, setup-sensitive-environment ]
+    deps: [ setup-observability, setup-sensitive-environment ]
     cmds:
       - skaffold dev --tail=false
 
