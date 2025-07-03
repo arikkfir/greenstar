@@ -237,19 +237,6 @@ tasks:
     cmds:
       - skaffold dev --tail=false
 
-  package-helm-chart:
-    deps: [ toolchain:helm ]
-    cmds:
-      - yq -i ".acme.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - yq -i ".frontend.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - yq -i ".ratesjob.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - yq -i ".server.image.tag = \"${IMAGES_TAG}"\" deploy/chart/values.yaml
-      - helm package ./deploy/chart --app-version "${VERSION}" --version "${VERSION}"
-    requires:
-      vars:
-        - IMAGES_TAG
-        - VERSION
-
   test:
     deps: [ toolchain:node ]
     dir: e2e
