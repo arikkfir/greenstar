@@ -1,30 +1,15 @@
 import { Context } from "./context.js"
-import {
-    Account,
-    Currency,
-    CurrencyRate,
-    Resolvers,
-    Scraper,
-    ScraperParameter,
-    ScraperParameterType,
-    ScraperType,
-    ScraperTypeParameter,
-    Tenant,
-} from "./schema/graphql.js"
+import { Account, Currency, CurrencyRate, Resolvers, Scraper, ScraperType, Tenant } from "./schema/graphql.js"
 import { DateTimeScalar } from "./schema/scalars-luxon-datetime.js"
 import { VoidScalar } from "./schema/scalars-void.js"
 
 import { TransactionsSummaryResult } from "./data/transactions.js"
-import pkg from "../package.json" with { type: "json" };
+import pkg from "../package.json" with { type: "json" }
+import { required } from "./util/util.js"
 
 export interface AccountRow extends Account {
     tenantID: Tenant["id"],
     parentID: Account["id"],
-}
-
-export interface ScraperTypeParameterRow extends ScraperTypeParameter {
-    scraperParameterTypeID: ScraperParameterType["id"],
-    scraperTypeID: ScraperType["id"],
 }
 
 export interface ScraperRow extends Scraper {
@@ -32,19 +17,12 @@ export interface ScraperRow extends Scraper {
     scraperTypeID: ScraperType["id"],
 }
 
-export interface ScraperParameterRow extends ScraperParameter {
-    tenantID: Tenant["id"],
-    scraperTypeID: ScraperType["id"],
-    scraperID: Scraper["id"],
-    scraperTypeParameterID: ScraperTypeParameter["id"],
-}
-
 export const GraphResolvers: Resolvers<Context> = {
     Mutation: {
         noOp: async (_: any, _args, _ctx) => null,
         createAccount: async (_: any, args, ctx) => ctx.data.createAccount(args),
         createCurrencyRate: async (_: any, args, ctx) => ctx.data.createCurrencyRate(args),
-        createScraper: async (_: any, args, ctx) => ctx.data.createScraper(args),
+        upsertScraper: async (_: any, args, ctx) => ctx.data.upsertScraper(args),
         createTransaction: async (_: any, args, ctx) => ctx.data.createTransaction(args),
         createTenant: async (_: any, args, ctx) => ctx.data.createTenant(args),
         deleteAccount: async (_: any, args, ctx) => ctx.data.deleteAccount(args),
@@ -52,6 +30,10 @@ export const GraphResolvers: Resolvers<Context> = {
         deleteTenant: async (_: any, args, ctx) => ctx.data.deleteTenant(args),
         deleteTransaction: async (_: any, args, ctx) => ctx.data.deleteTransaction(args),
         moveAccount: async (_: any, args, ctx) => ctx.data.moveAccount(args),
+        setLastSuccessfulScrapedDate: async (_: any, args, ctx) =>
+            ctx.data.setLastSuccessfulScrapedDate(args.tenantID, args.scraperID, args.date),
+        triggerScraper: async (_: any, args, ctx) =>
+            ctx.data.triggerScraper(args.tenantID, args.id),
     },
     Query: {
         version: async (_: any, _args, _ctx) => pkg.version,
@@ -64,62 +46,19 @@ export const GraphResolvers: Resolvers<Context> = {
             args.sourceCurrencyCode,
             args.targetCurrencyCode,
         ),
-        currencyRates: async (_parent, args, ctx): Promise<CurrencyRate[]> => ctx.data.fetchCurrencyRates(
-            args.startDate || undefined,
-            args.endDate || undefined,
-            args.sourceCurrencyCode || undefined,
-            args.targetCurrencyCode || undefined,
-        ),
-        scraperParameterTypes: async (_parent, _args: any, ctx) => ctx.data.fetchScraperParameterTypes(),
-        scraperTypes: async (_parent, _args: any, ctx) => ctx.data.fetchScraperTypes(),
-    },
-    ScraperType: {
-        parameters: async (scraperType, _args: any, ctx) =>
-            ctx.data.fetchScraperTypeParameters(scraperType.id),
-    },
-    ScraperTypeParameter: {
-        scraperType: async (scraperTypeParameter, _args: any, ctx) =>
-            required(
-                await ctx.data.fetchScraperType((scraperTypeParameter as ScraperTypeParameterRow).scraperTypeID),
-                "Scraper type not found",
+        currencyRates: async (_parent, args, ctx): Promise<CurrencyRate[]> =>
+            ctx.data.fetchCurrencyRates(
+                args.startDate || undefined,
+                args.endDate || undefined,
+                args.sourceCurrencyCode || undefined,
+                args.targetCurrencyCode || undefined,
             ),
-        parameterType: async (scraperTypeParameter, _args: any, ctx) =>
-            required(
-                await ctx.data.fetchScraperParameterType((scraperTypeParameter as ScraperTypeParameterRow).scraperParameterTypeID),
-                "Parameter type not found",
-            ),
+        scraperTypes: async (_parent, _args, ctx) =>
+            ctx.data.fetchScraperTypes(),
     },
     Scraper: {
-        type: async (scraper, _args: any, ctx) =>
-            required(
-                await ctx.data.fetchScraperType((scraper as ScraperRow).scraperTypeID),
-                "Scraper type not found",
-            ),
-        parameters: async (scraper, _args: any, ctx) =>
-            ctx.data.fetchScraperParameters(
-                (scraper as ScraperRow).tenantID,
-                (scraper as ScraperRow).scraperTypeID,
-                scraper.id,
-            ),
-    },
-    ScraperParameter: {
-        scraper: async (scraperParameter, _args: any, ctx) =>
-            required(
-                await ctx.data.fetchScraper(
-                    (scraperParameter as ScraperParameterRow).tenantID,
-                    (scraperParameter as ScraperParameterRow).scraperTypeID,
-                    (scraperParameter as ScraperParameterRow).scraperID,
-                ),
-                "Scraper not found",
-            ),
-        parameter: async (scraperParameter, _args: any, ctx) =>
-            required(
-                await ctx.data.fetchScraperTypeParameter(
-                    (scraperParameter as ScraperParameterRow).scraperTypeID,
-                    (scraperParameter as ScraperParameterRow).scraperTypeParameterID,
-                ),
-                "Scraper type parameter not found",
-            ),
+        jobs: async (scraper, _args: any, ctx) =>
+            ctx.data.fetchScraperJobs((scraper as ScraperRow).tenantID, scraper.id),
     },
     Tenant: {
         rootAccounts: async (tenant, _: any, ctx): Promise<Account[]> => ctx.data.fetchRootAccounts(tenant.id),
@@ -141,7 +80,8 @@ export const GraphResolvers: Resolvers<Context> = {
             const summary = await ctx.data.fetchTransactionsSummary(tenant.id)
             return summary.totalCount
         },
-        scrapers: async (tenant, _args, ctx) => ctx.data.fetchScrapers(tenant.id),
+        scrapers: async (tenant, args, ctx) => ctx.data.fetchScrapers(tenant.id, args.scraperTypeID || undefined),
+        scraper: async (tenant, args, ctx) => ctx.data.fetchScraper(tenant.id, args.id),
     },
     Account: {
         parent: async (account, _args: any, ctx) => ctx.data.fetchAccount(
@@ -183,11 +123,4 @@ export const GraphResolvers: Resolvers<Context> = {
     },
     DateTime: DateTimeScalar,
     Void: VoidScalar,
-}
-
-function required<T>(value: T | null | undefined, message: string): T {
-    if (value == null) {
-        throw new Error(message)
-    }
-    return value
 }
