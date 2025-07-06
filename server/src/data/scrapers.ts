@@ -205,6 +205,9 @@ export class ScrapersDataAccessLayer {
                 await batchAPI.deleteNamespacedJob({
                     namespace: podNamespace,
                     name: job.metadata?.name!,
+                    body: {
+                        propagationPolicy: "Foreground",
+                    },
                 })
             }
         } else {
