@@ -49,6 +49,7 @@ type ScraperJob {
     scraper: Scraper!
     parameters: [ScraperParameter!]!
     status: ScraperJobStatus!
+    logs(page: Int, pageSize: Int): [String!]!
 }
 
 enum ScraperJobStatus {

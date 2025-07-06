@@ -15,8 +15,8 @@ import { convertObjectKeysToCamelCase } from "./pg_client.js"
 import { DateTime, Duration } from "luxon"
 import { config } from "../config.js"
 import { ScraperRow } from "../resolvers.js"
-import { ApiException, V1Job, V1JobSpec } from "@kubernetes/client-node"
-import { batchAPI, deployment, podNamespace } from "../util/k8s_client.js"
+import { ApiException, V1Job, V1JobSpec, V1Pod } from "@kubernetes/client-node"
+import { batchAPI, coreAPI, deployment, podNamespace } from "../util/k8s_client.js"
 
 export class ScrapersDataAccessLayer {
     constructor(private readonly pg: PoolClient) {
@@ -357,6 +357,37 @@ export class ScrapersDataAccessLayer {
         return jobs.items.map(job => mapScraperJob(scraper, scraperTypeParameters, job))
     }
 
+    async fetchScraperJobLogs(
+        tenantID: string,
+        scraperJobID: string,
+        page: number,
+        pageSize: number): Promise<string[]> {
+
+        console.debug(`Fetching logs for scraper job ${scraperJobID} (page ${page}, pageSize ${pageSize})`)
+
+        const jobPods    = await coreAPI.listNamespacedPod({
+            namespace: podNamespace,
+            labelSelector: `greenstar.finance/tenant-id=${tenantID},job-name=${scraperJobID}`,
+        })
+        const sortedPods = jobPods.items.toSorted(comparePodCreationTimestamps)
+
+        const allLogs: string[] = []
+        for (let pod of sortedPods) {
+            const podLogs = await coreAPI.readNamespacedPodLog({
+                namespace: podNamespace,
+                name: pod.metadata!.name!,
+                timestamps: true,
+            })
+
+            allLogs.push(...podLogs.split("\n"))
+            if (allLogs.length >= page * pageSize + pageSize) {
+                break
+            }
+        }
+
+        return allLogs.slice(page * pageSize, page * pageSize + pageSize)
+    }
+
     async triggerScraper(tenantID: Tenant["id"], scraperID: Scraper["id"]): Promise<ScraperJob> {
         const scraper = await this.fetchScraper(tenantID, scraperID)
         if (!scraper) {
@@ -597,7 +628,9 @@ function mapScraper(r: any): ScraperRow {
     } as ScraperRow
 }
 
-function mapScraperJob(scraper: Scraper, scraperTypeParameters: { [p: string]: ScraperTypeParameter }, job: V1Job) {
+function mapScraperJob(scraper: Scraper,
+    scraperTypeParameters: { [p: string]: ScraperTypeParameter },
+    job: V1Job): ScraperJob {
     const jobEnvVars = job.spec?.template!.spec!.containers[0].env!
     return {
         id: job.metadata!.name!,
@@ -618,7 +651,7 @@ function mapScraperJob(scraper: Scraper, scraperTypeParameters: { [p: string]: S
                     value: e.value!,
                 }
             }) || [],
-    }
+    } as ScraperJob
 }
 
 function getScraperJobStatus(job: V1Job): ScraperJobStatus {
@@ -691,4 +724,8 @@ function getScraperJobStatus(job: V1Job): ScraperJobStatus {
 
     // Default fallback - if we can't determine state clearly, assume pending
     return ScraperJobStatus.Pending
+}
+
+function comparePodCreationTimestamps(a: V1Pod, b: V1Pod): number {
+    return a.metadata!.creationTimestamp!.getMilliseconds() - b.metadata!.creationTimestamp!.getMilliseconds()
 }

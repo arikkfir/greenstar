@@ -287,9 +287,16 @@ export type ScraperJob = {
   __typename?: 'ScraperJob';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
+  logs: Array<Scalars['String']['output']>;
   parameters: Array<ScraperParameter>;
   scraper: Scraper;
   status: ScraperJobStatus;
+};
+
+
+export type ScraperJobLogsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export enum ScraperJobStatus {
@@ -681,6 +688,7 @@ export type ScraperResolvers<ContextType = any, ParentType extends ResolversPare
 export type ScraperJobResolvers<ContextType = any, ParentType extends ResolversParentTypes['ScraperJob'] = ResolversParentTypes['ScraperJob']> = {
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  logs?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, Partial<ScraperJobLogsArgs>>;
   parameters?: Resolver<Array<ResolversTypes['ScraperParameter']>, ParentType, ContextType>;
   scraper?: Resolver<ResolversTypes['Scraper'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['ScraperJobStatus'], ParentType, ContextType>;

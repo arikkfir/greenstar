@@ -60,6 +60,10 @@ export const GraphResolvers: Resolvers<Context> = {
         jobs: async (scraper, _args: any, ctx) =>
             ctx.data.fetchScraperJobs((scraper as ScraperRow).tenantID, scraper.id),
     },
+    ScraperJob: {
+        logs: async (job, args, ctx) =>
+            ctx.data.fetchScraperJobLogs(job.scraper.tenant.id, job.id, args.page || 0, args.pageSize || 100),
+    },
     Tenant: {
         rootAccounts: async (tenant, _: any, ctx): Promise<Account[]> => ctx.data.fetchRootAccounts(tenant.id),
         account: async (tenant, args, ctx) => ctx.data.fetchAccount(tenant.id, args.id),

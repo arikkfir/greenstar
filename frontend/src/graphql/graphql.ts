@@ -286,9 +286,16 @@ export type ScraperJob = {
   __typename?: 'ScraperJob';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
+  logs: Array<Scalars['String']['output']>;
   parameters: Array<ScraperParameter>;
   scraper: Scraper;
   status: ScraperJobStatus;
+};
+
+
+export type ScraperJobLogsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  pageSize?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export enum ScraperJobStatus {
