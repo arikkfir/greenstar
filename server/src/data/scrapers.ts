@@ -265,12 +265,16 @@ export class ScrapersDataAccessLayer {
                            s.scraper_type_id AS s_scraper_type_id,
                            s.parameters      AS s_parameters,
                            s.tenant_id       AS s_tenant_id,
+                           t.created_at      AS t_created_at,
+                           t.updated_at      AS t_updated_at,
+                           t.display_name    AS t_display_name,
                            st.id             AS st_id,
                            st.created_at     AS st_created_at,
                            st.updated_at     AS st_updated_at,
                            st.display_name   AS st_display_name,
                            st.parameters     AS st_parameters
                     FROM scrapers AS s
+                             JOIN tenants AS t ON s.tenant_id = t.id
                              JOIN scraper_types AS st ON s.scraper_type_id = st.id
                     WHERE s.tenant_id = $1 AND s.id = $2
             `,
@@ -293,12 +297,16 @@ export class ScrapersDataAccessLayer {
                            s.scraper_type_id AS s_scraper_type_id,
                            s.parameters      AS s_parameters,
                            s.tenant_id       AS s_tenant_id,
+                           t.created_at      AS t_created_at,
+                           t.updated_at      AS t_updated_at,
+                           t.display_name    AS t_display_name,
                            st.id             AS st_id,
                            st.created_at     AS st_created_at,
                            st.updated_at     AS st_updated_at,
                            st.parameters     AS st_parameters,
                            st.display_name   AS st_display_name
                     FROM scrapers AS s
+                             JOIN tenants AS t ON s.tenant_id = t.id
                              JOIN scraper_types AS st ON s.scraper_type_id = st.id
                     WHERE TRUE
                       AND tenant_id = $1
@@ -579,6 +587,12 @@ function mapScraper(r: any): ScraperRow {
         },
         parameters: scraperParametersArray,
         tenantID: r.s_tenant_id,
+        tenant: {
+            id: r.s_tenant_id,
+            createdAt: r.t_created_at,
+            updatedAt: r.t_updated_at,
+            displayName: r.t_display_name,
+        },
         scraperTypeID: r.s_scraper_type_id,
     } as ScraperRow
 }

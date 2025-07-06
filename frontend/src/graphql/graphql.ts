@@ -277,6 +277,7 @@ export type Scraper = {
   jobs: Array<ScraperJob>;
   lastSuccessfulScrapedDate?: Maybe<Scalars['DateTime']['output']>;
   parameters: Array<ScraperParameter>;
+  tenant: Tenant;
   type: ScraperType;
   updatedAt: Scalars['DateTime']['output'];
 };

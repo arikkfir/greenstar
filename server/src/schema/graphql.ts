@@ -278,6 +278,7 @@ export type Scraper = {
   jobs: Array<ScraperJob>;
   lastSuccessfulScrapedDate?: Maybe<Scalars['DateTime']['output']>;
   parameters: Array<ScraperParameter>;
+  tenant: Tenant;
   type: ScraperType;
   updatedAt: Scalars['DateTime']['output'];
 };
@@ -671,6 +672,7 @@ export type ScraperResolvers<ContextType = any, ParentType extends ResolversPare
   jobs?: Resolver<Array<ResolversTypes['ScraperJob']>, ParentType, ContextType>;
   lastSuccessfulScrapedDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   parameters?: Resolver<Array<ResolversTypes['ScraperParameter']>, ParentType, ContextType>;
+  tenant?: Resolver<ResolversTypes['Tenant'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['ScraperType'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

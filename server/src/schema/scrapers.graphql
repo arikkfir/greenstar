@@ -33,6 +33,7 @@ type Scraper {
     displayName: String!
     type: ScraperType!
     lastSuccessfulScrapedDate: DateTime,
+    tenant: Tenant!
     parameters: [ScraperParameter!]!
     jobs: [ScraperJob!]!
 }
