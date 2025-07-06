@@ -30,10 +30,54 @@ export class ScrapersDataAccessLayer {
             await this.deleteJobs(tenantID, id)
         }
 
+        const scraperType = await this.fetchScraperType(scraperTypeID)
+        if (!scraperType) {
+            throw new Error(`Could not find scraper type ${scraperTypeID}`)
+        }
+
+        const scraperTypeParameters: ScraperTypeParametersInDB = scraperType.parameters.reduce(
+            (prev, curr) => ({ ...prev, [curr.id]: curr }),
+            {},
+        )
+
         const parametersForDB: ScraperParametersInDB = parameters.reduce(
             (prev, curr) => ({ ...prev, [curr.parameterID]: curr.value }),
             {} as ScraperParametersInDB,
         )
+        for (let [ parameterID, value ] of Object.entries(parametersForDB)) {
+            const parameterType = scraperTypeParameters[parameterID]
+            if (!parameterType) {
+                throw new Error(`Scraper type ${scraperTypeID} does not have parameter ${parameterID}`)
+            }
+            switch (parameterType.type) {
+                case "Account":
+                    break
+                case "Boolean":
+                    if (value != "true" && value != "false") {
+                        throw new Error(`Invalid value for boolean parameter ${parameterID}: ${value}`)
+                    }
+                    break
+                case "Date":
+                    if (!DateTime.fromISO(value).isValid) {
+                        throw new Error(`Invalid value for date parameter ${parameterID}: ${value}`)
+                    }
+                    break
+                case "Float":
+                    if (!/^-?\d+(\.\d+)?$/.test(value)) {
+                        throw new Error(`Invalid value for floating point parameter ${parameterID}: ${value}`)
+                    }
+                    break
+                case "Integer":
+                    if (!/^-?\d+$/.test(value)) {
+                        throw new Error(`Invalid value for integer parameter ${parameterID}: ${value}`)
+                    }
+                    break
+                case "Password":
+                    break
+                case "String":
+                    break
+            }
+        }
 
         // Save scraper with empty parameters
         const sqlParams = [ displayName, scraperTypeID, parametersForDB, tenantID ]
