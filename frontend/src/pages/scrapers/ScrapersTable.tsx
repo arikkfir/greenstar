@@ -1,15 +1,23 @@
 import { useMutation, useQuery } from "@apollo/client"
-import { useCallback, useMemo, useState } from "react"
-import { DataGridPremium, GridColDef, GridRenderCellParams } from "@mui/x-data-grid-premium"
+import { useCallback, useMemo, useRef, useState } from "react"
+import {
+    ColumnsPanelTrigger,
+    DataGridPremium,
+    GridColDef,
+    GridRenderCellParams,
+    Toolbar,
+    ToolbarButton,
+} from "@mui/x-data-grid-premium"
 import { gql } from "../../graphql"
 import { useTenantID } from "../../hooks/tenant.ts"
 import { Drawer, IconButton, Snackbar, Tooltip } from "@mui/material"
 import DeleteIcon from "@mui/icons-material/Delete"
 import PlayArrowIcon from "@mui/icons-material/PlayArrow"
-import { CustomToolbar } from "./CustomToolbar.tsx"
 import EditIcon from "@mui/icons-material/Edit"
 import { ScraperDrawer } from "./ScraperDrawer.tsx"
 import { FetchScrapers, ScraperRow } from "./FetchScrapersQuery.ts"
+import AddIcon from "@mui/icons-material/Add"
+import ViewColumnIcon from "@mui/icons-material/ViewColumn"
 
 const TriggerScraper = gql(`
     mutation TriggerScraper($tenantID: ID!, $scraperID: ID!) {
@@ -171,6 +179,22 @@ export function ScrapersTable() {
         [ renderActionsCell ],
     )
 
+    const newScraperPanelTriggerRef = useRef<HTMLButtonElement>(null)
+    const toolbar                   = () => (
+        <Toolbar>
+            <Tooltip title="New scraper">
+                <ToolbarButton ref={newScraperPanelTriggerRef} onClick={handleAddScraper}>
+                    <AddIcon fontSize="small" />
+                </ToolbarButton>
+            </Tooltip>
+            <Tooltip title="Columns">
+                <ColumnsPanelTrigger render={<ToolbarButton />}>
+                    <ViewColumnIcon fontSize="small" />
+                </ColumnsPanelTrigger>
+            </Tooltip>
+        </Toolbar>
+    )
+
     return (
         <div className="scrapers-grid-content">
             <Snackbar open={!!errorLoadingScrapers} message={errorLoadingScrapers?.message} />
@@ -195,12 +219,7 @@ export function ScrapersTable() {
                 loading={loadingScrapers}
                 pagination
                 pageSizeOptions={[ 10, 25, 50, 100 ]}
-                slots={{ toolbar: CustomToolbar }}
-                slotProps={{
-                    toolbar: {
-                        onAddScraperClicked: handleAddScraper,
-                    },
-                }}
+                slots={{ toolbar: toolbar }}
                 initialState={{
                     columns: {
                         columnVisibilityModel: {

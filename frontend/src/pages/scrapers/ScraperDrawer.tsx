@@ -26,6 +26,8 @@ import "./ScraperDrawer.scss"
 import { FetchScraperTypes } from "./FetchScraperTypesQuery.ts"
 import { FetchAccounts, ScraperRow } from "./FetchScrapersQuery.ts"
 import { UpsertScraper } from "./UpsertScraperQuery.ts"
+import { DatePicker } from "@mui/x-date-pickers-pro"
+import { DateTime } from "luxon"
 
 export interface ScraperDrawerProps {
     scraper?: ScraperRow,
@@ -139,7 +141,7 @@ export function ScraperDrawer({ scraper, onScraperUpserted, onClose }: ScraperDr
                     switch (p.parameter.type) {
                         case ScraperParameterType.Account:
                             return (
-                                <FormControl fullWidth>
+                                <FormControl fullWidth key={p.parameter.id}>
                                     <InputLabel
                                         id={p.parameter.id + "-account-label"}>{p.parameter.displayName}</InputLabel>
                                     <Select<Account["id"]>
@@ -158,13 +160,20 @@ export function ScraperDrawer({ scraper, onScraperUpserted, onClose }: ScraperDr
                         case ScraperParameterType.Boolean:
                             const flippedValue = p.value === "true" ? "false" : "true"
                             return <FormControlLabel
+                                key={p.parameter.id}
                                 control={<Checkbox checked={p.value === "true"}
                                                    onChange={() => handleValueChange(p, flippedValue)} />}
                                 label={p.parameter.displayName} />
                         case ScraperParameterType.Date:
-                            throw new Error("Account parameter type not implemented")
+                            return <DatePicker
+                                label={p.parameter.displayName}
+                                value={DateTime.fromISO(p.value)}
+                                onChange={(value) => handleValueChange(p, value ? value.toISO()! : "")}
+                            />
                         case ScraperParameterType.Float:
                             return <TextField
+                                key={p.parameter.id}
+                                autoComplete="off"
                                 required
                                 value={p.value}
                                 error={isNaN(parseFloat(p.value))}
@@ -174,6 +183,8 @@ export function ScraperDrawer({ scraper, onScraperUpserted, onClose }: ScraperDr
                             />
                         case ScraperParameterType.Integer:
                             return <TextField
+                                key={p.parameter.id}
+                                autoComplete="off"
                                 required
                                 value={p.value}
                                 error={isNaN(parseInt(p.value))}
@@ -183,6 +194,8 @@ export function ScraperDrawer({ scraper, onScraperUpserted, onClose }: ScraperDr
                             />
                         case ScraperParameterType.Password:
                             return <TextField
+                                key={p.parameter.id}
+                                autoComplete="off"
                                 required
                                 value={p.value}
                                 type="password"
@@ -193,6 +206,8 @@ export function ScraperDrawer({ scraper, onScraperUpserted, onClose }: ScraperDr
                             />
                         case ScraperParameterType.String:
                             return <TextField
+                                key={p.parameter.id}
+                                autoComplete="off"
                                 required
                                 value={p.value}
                                 error={!p.value}
