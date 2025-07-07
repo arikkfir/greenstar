@@ -19,7 +19,7 @@
         "@types/node": "^24.0.7"
     },
     "dependencies": {
-        "dotenv": "^17.0.0",
+        "dotenv": "^17.0.1",
         "monocart-reporter": "^2.9.21"
     },
     "scarfSettings": {
