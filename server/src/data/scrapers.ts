@@ -25,11 +25,6 @@ export class ScrapersDataAccessLayer {
     async upsertScraper(args: MutationUpsertScraperArgs): Promise<Scraper> {
         const { tenantID, id, displayName, scraperTypeID, parameters } = args
 
-        if (id) {
-            console.info(`Ensuring no Kubernetes scraping jobs exist for scraper '${id}' in tenant '${tenantID}'`)
-            await this.deleteJobs(tenantID, id)
-        }
-
         const scraperType = await this.fetchScraperType(scraperTypeID)
         if (!scraperType) {
             throw new Error(`Could not find scraper type ${scraperTypeID}`)
@@ -103,41 +98,68 @@ export class ScrapersDataAccessLayer {
             throw new Error(`Could not find newly created scraper ${scraperID}`)
         }
 
-        // Create the corresponding CronJob
-        console.debug(`Creating cron job for scraper ${scraperID}`)
-        await batchAPI.createNamespacedCronJob({
+        // Create or update the corresponding CronJob
+        const cronJobName        = generateScraperCronJobName(tenantID, scraperID)
+        const cronJobCoordinates = {
             namespace: podNamespace,
-            body: {
-                apiVersion: "batch/v1",
-                kind: "CronJob",
+            name: cronJobName,
+        }
+
+        // Define the CronJob spec that will be used for both create and patch operations
+        const cronJobSpec = {
+            schedule: "0 2 * * *",
+            suspend: true, // TODO: make suspension controllable (property of the scraper)
+            concurrencyPolicy: "Forbid",
+            failedJobsHistoryLimit: 2,
+            successfulJobsHistoryLimit: 1,
+            jobTemplate: {
                 metadata: {
-                    name: generateScraperCronJobName(tenantID, scraperID),
                     labels: scraperJobLabels(tenantID, scraperID, "scheduled"),
-                    ownerReferences: [
-                        {
-                            apiVersion: "apps/v1",
-                            kind: "Deployment",
-                            name: deployment.metadata!.name!,
-                            uid: deployment.metadata!.uid!,
-                            controller: true,
-                        },
-                    ],
                 },
-                spec: {
-                    schedule: "0 2 * * *",
-                    suspend: true, // TODO: make suspension controllable (property of the scraper)
-                    concurrencyPolicy: "Forbid",
-                    failedJobsHistoryLimit: 2,
-                    successfulJobsHistoryLimit: 1,
-                    jobTemplate: {
-                        metadata: {
-                            labels: scraperJobLabels(tenantID, scraperID, "scheduled"),
-                        },
-                        spec: createScraperJob(tenantID, scraper, "scheduled"),
-                    },
-                },
+                spec: createScraperJob(tenantID, scraper, "scheduled"),
             },
-        })
+        }
+
+        try {
+            // Try to read the existing CronJob
+            console.debug(`Checking if cron job ${cronJobName} exists`)
+            await batchAPI.readNamespacedCronJob(cronJobCoordinates)
+
+            // If we get here, the CronJob exists, so patch it
+            console.debug(`Patching existing cron job ${cronJobName}`)
+            await batchAPI.patchNamespacedCronJob({
+                ...cronJobCoordinates,
+                body: [ { op: "replace", path: "/spec", value: cronJobSpec } ],
+            }, {})
+        } catch (e) {
+            // If the CronJob doesn't exist, create it
+            if (e instanceof ApiException && e.code == 404) {
+                console.debug(`Creating new cron job ${cronJobName}`)
+                await batchAPI.createNamespacedCronJob({
+                    namespace: podNamespace,
+                    body: {
+                        apiVersion: "batch/v1",
+                        kind: "CronJob",
+                        metadata: {
+                            name: cronJobName,
+                            labels: scraperJobLabels(tenantID, scraperID, "scheduled"),
+                            ownerReferences: [
+                                {
+                                    apiVersion: "apps/v1",
+                                    kind: "Deployment",
+                                    name: deployment.metadata!.name!,
+                                    uid: deployment.metadata!.uid!,
+                                    controller: true,
+                                },
+                            ],
+                        },
+                        spec: cronJobSpec,
+                    },
+                })
+            } else {
+                throw e
+            }
+        }
 
         return (await this.fetchScraper(tenantID, scraperID))!
     }
@@ -145,25 +167,12 @@ export class ScrapersDataAccessLayer {
     async deleteScraper(args: MutationDeleteScraperArgs): Promise<void> {
         const { tenantID, id } = args
 
-        console.debug(`Deleting scraper ${id} in tenant ${tenantID}`)
-        await this.deleteJobs(tenantID, id)
-        const res = await this.pg.query(`
-            DELETE
-            FROM scrapers
-            WHERE tenant_id = $1 AND id = $2
-        `, [ tenantID, id ])
-        if (res.rowCount != 1) {
-            throw new Error(`Incorrect number of rows affected: ${JSON.stringify(res)}`)
-        }
-    }
-
-    private async deleteJobs(tenantID: Tenant["id"], scraperID: Scraper["id"]): Promise<void> {
+        console.debug(`Deleting CronJob for scraper ${id} in tenant ${tenantID}`)
         const cronJobCoordinates = {
             namespace: podNamespace,
-            name: generateScraperCronJobName(tenantID, scraperID),
+            name: generateScraperCronJobName(tenantID, id),
         }
-
-        const pollStartTime = DateTime.now()
+        const pollStartTime      = DateTime.now()
         while (true) {
 
             // Check if it exists
@@ -194,12 +203,12 @@ export class ScrapersDataAccessLayer {
             await new Promise(resolve => setTimeout(resolve, 1000))
         }
 
+        console.debug(`Deleting manual jobs for scraper ${id} in tenant ${tenantID}`)
         const manualJobs = await batchAPI.listNamespacedJob({
             namespace: podNamespace,
-            labelSelector: scraperJobLabelSelector(tenantID, scraperID, "manual"),
+            labelSelector: scraperJobLabelSelector(tenantID, id, "manual"),
         })
         if (manualJobs.items.length) {
-            console.debug(`Deleting ${manualJobs.items.length} manual jobs for scraper ${scraperID}`)
             for (let job of manualJobs.items) {
                 console.info(`Deleting manual job ${job.metadata?.name}`)
                 await batchAPI.deleteNamespacedJob({
@@ -210,8 +219,16 @@ export class ScrapersDataAccessLayer {
                     },
                 })
             }
-        } else {
-            console.debug(`No manual jobs found for scraper ${scraperID}`)
+        }
+
+        console.debug(`Deleting scraper ${id} in tenant ${tenantID}`)
+        const res = await this.pg.query(`
+            DELETE
+            FROM scrapers
+            WHERE tenant_id = $1 AND id = $2
+        `, [ tenantID, id ])
+        if (res.rowCount != 1) {
+            throw new Error(`Incorrect number of rows affected: ${JSON.stringify(res)}`)
         }
     }
 
@@ -644,8 +661,7 @@ function mapScraperJob(scraper: Scraper,
             .filter(e => e.name.startsWith("PARAM_"))
             .map(e => {
                 const fixedParamName = e.name.substring("PARAM_".length)
-                console.debug(`Mapping env parameter ${e.name} to ${fixedParamName}`)
-                const parameter = scraperTypeParameters[fixedParamName]
+                const parameter      = scraperTypeParameters[fixedParamName]
                 if (!parameter) {
                     throw new Error(`Scraper parameter ${fixedParamName} not found in scraper type parameters`)
                 }
