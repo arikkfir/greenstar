@@ -116,7 +116,7 @@ export async function startServer() {
             context: (): Promise<Context> => (Promise.resolve({ data: new NoOpDataLayer() })),
         }))
 
-    expressApp.get("/static/:tenantID/:fileName",
+    expressApp.get("/static/:id([^/]+)",
         cors<cors.CorsRequest>(),
         async (req, res) => {
             const client = await pgPool.connect()
@@ -125,9 +125,8 @@ export async function startServer() {
                 const rs = await client.query(`
                     SELECT id, data, size, content_type
                     FROM files AS f
-                    WHERE f.tenant_id = $1
-                      AND f.name = $2
-                `, [ req.params.tenantID, req.params.fileName ])
+                    WHERE f.id = $1
+                `, [ req.params.id ])
 
                 if (!rs.rows.length) {
                     res.status(404).type("text/plain").send("Not found")
@@ -146,7 +145,7 @@ export async function startServer() {
         },
     )
 
-    expressApp.get("/static/:id([^/]+)",
+    expressApp.get("/static/:tenantID/:fileName",
         cors<cors.CorsRequest>(),
         async (req, res) => {
             const client = await pgPool.connect()
@@ -155,8 +154,9 @@ export async function startServer() {
                 const rs = await client.query(`
                     SELECT id, data, size, content_type
                     FROM files AS f
-                    WHERE f.id = $1
-                `, [ req.params.id ])
+                    WHERE f.tenant_id = $1
+                      AND f.name = $2
+                `, [ req.params.tenantID, req.params.fileName ])
 
                 if (!rs.rows.length) {
                     res.status(404).type("text/plain").send("Not found")
