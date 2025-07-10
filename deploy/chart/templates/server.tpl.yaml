@@ -41,7 +41,7 @@ rules:
     verbs: [ get ]
   - apiGroups: [ batch ]
     resources: [ cronjobs, jobs ]
-    verbs: [ list, get, create, delete ]
+    verbs: [ list, get, create, delete, patch ]
 
 ---
 
