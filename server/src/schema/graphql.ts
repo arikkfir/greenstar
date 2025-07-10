@@ -275,12 +275,18 @@ export type Scraper = {
   createdAt: Scalars['DateTime']['output'];
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  job?: Maybe<ScraperJob>;
   jobs: Array<ScraperJob>;
   lastSuccessfulScrapedDate?: Maybe<Scalars['DateTime']['output']>;
   parameters: Array<ScraperParameter>;
   tenant: Tenant;
   type: ScraperType;
   updatedAt: Scalars['DateTime']['output'];
+};
+
+
+export type ScraperJobArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type ScraperJob = {
@@ -676,6 +682,7 @@ export type ScraperResolvers<ContextType = any, ParentType extends ResolversPare
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   displayName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  job?: Resolver<Maybe<ResolversTypes['ScraperJob']>, ParentType, ContextType, RequireFields<ScraperJobArgs, 'id'>>;
   jobs?: Resolver<Array<ResolversTypes['ScraperJob']>, ParentType, ContextType>;
   lastSuccessfulScrapedDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   parameters?: Resolver<Array<ResolversTypes['ScraperParameter']>, ParentType, ContextType>;

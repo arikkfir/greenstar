@@ -274,12 +274,18 @@ export type Scraper = {
   createdAt: Scalars['DateTime']['output'];
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  job?: Maybe<ScraperJob>;
   jobs: Array<ScraperJob>;
   lastSuccessfulScrapedDate?: Maybe<Scalars['DateTime']['output']>;
   parameters: Array<ScraperParameter>;
   tenant: Tenant;
   type: ScraperType;
   updatedAt: Scalars['DateTime']['output'];
+};
+
+
+export type ScraperJobArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type ScraperJob = {

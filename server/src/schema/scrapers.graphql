@@ -35,6 +35,7 @@ type Scraper {
     lastSuccessfulScrapedDate: DateTime,
     tenant: Tenant!
     parameters: [ScraperParameter!]!
+    job(id: ID!): ScraperJob
     jobs: [ScraperJob!]!
 }
 

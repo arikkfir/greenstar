@@ -57,6 +57,8 @@ export const GraphResolvers: Resolvers<Context> = {
             ctx.data.fetchScraperTypes(),
     },
     Scraper: {
+        job: async (scraper, args, ctx) =>
+            ctx.data.fetchScraperJob(scraper.tenant.id, args.id),
         jobs: async (scraper, _args: any, ctx) =>
             ctx.data.fetchScraperJobs((scraper as ScraperRow).tenantID, scraper.id),
     },
