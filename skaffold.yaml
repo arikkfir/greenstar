@@ -46,7 +46,7 @@ build:
   local:
     push: false
     useBuildkit: true
-    concurrency: 1
+    concurrency: 5
 deploy:
   helm:
     releases:
