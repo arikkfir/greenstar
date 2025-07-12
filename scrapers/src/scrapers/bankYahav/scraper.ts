@@ -19,7 +19,7 @@ import { BalanceTransaction } from "./balance-transaction.ts"
 import { ITransaction, saveTransaction } from "./transaction.ts"
 import { gql } from "../../graphql"
 import { generalConfig } from "../../util/general-config.ts"
-import { getLastSuccessfulScrapedDate } from "../../util/state.ts"
+import { getLastSuccessfulScrapedDate, setLastSuccessfulScrapedDate } from "../../util/state.ts"
 import { DateTime } from "luxon"
 
 /**
@@ -180,4 +180,6 @@ test("scrape", async ({ page }) => {
 
     // Logout
     await site.logout()
+
+    await setLastSuccessfulScrapedDate(await sortedTransactions[sortedTransactions.length-1].getDate())
 })

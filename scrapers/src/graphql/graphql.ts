@@ -141,7 +141,7 @@ export type Mutation = {
   deleteTransaction: Scalars['Void']['output'];
   moveAccount: Account;
   noOp: Scalars['Void']['output'];
-  setLastSuccessfulScrapedDate: Scalars['Void']['output'];
+  setLastSuccessfulScrapedDate: Scalars['DateTime']['output'];
   triggerScraper: ScraperJob;
   upsertScraper: Scraper;
 };
@@ -486,7 +486,7 @@ export type SetLastSuccessfulScrapedDateMutationVariables = Exact<{
 }>;
 
 
-export type SetLastSuccessfulScrapedDateMutation = { __typename?: 'Mutation', setLastSuccessfulScrapedDate: any };
+export type SetLastSuccessfulScrapedDateMutation = { __typename?: 'Mutation', setLastSuccessfulScrapedDate: DateTime };
 
 
 export const GetTransactionsCountDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetTransactionsCount"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"tenantID"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tenant"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"tenantID"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"totalTransactions"}}]}}]}}]} as unknown as DocumentNode<GetTransactionsCountQuery, GetTransactionsCountQueryVariables>;

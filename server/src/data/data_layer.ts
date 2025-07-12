@@ -130,7 +130,7 @@ export interface DataLayer {
 
     triggerScraper(tenantID: Tenant["id"], scraperID: Scraper["id"]): Promise<ScraperJob>
 
-    setLastSuccessfulScrapedDate(tenantID: Tenant["id"], scraperID: Scraper["id"], date: DateTime): Promise<void>
+    setLastSuccessfulScrapedDate(tenantID: Tenant["id"], scraperID: Scraper["id"], date: DateTime): Promise<DateTime>
 
     fetchScraperJobLogs(tenantID: string, scraperJobID: string, page: number, pageSize: number): Promise<string[]>
 }
@@ -276,7 +276,7 @@ export class NoOpDataLayer implements DataLayer {
         throw new Error("Not implemented")
     }
 
-    setLastSuccessfulScrapedDate(_tenantID: Tenant["id"], _scraperID: Scraper["id"], _date: DateTime): Promise<void> {
+    setLastSuccessfulScrapedDate(_tenantID: Tenant["id"], _scraperID: Scraper["id"], _date: DateTime): Promise<DateTime> {
         throw new Error("Not implemented")
     }
 
@@ -590,7 +590,7 @@ export class DataLayerImpl implements DataLayer {
     async setLastSuccessfulScrapedDate(
         tenantID: Tenant["id"],
         scraperID: Scraper["id"],
-        date: DateTime): Promise<void> {
+        date: DateTime): Promise<DateTime> {
         return await this.scrapersDAO.setLastSuccessfulScrapedDate(tenantID, scraperID, date)
     }
 

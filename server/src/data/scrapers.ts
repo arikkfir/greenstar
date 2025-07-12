@@ -278,21 +278,22 @@ export class ScrapersDataAccessLayer {
 
     async fetchScraper(tenantID: Tenant["id"], id: Scraper["id"]): Promise<Scraper | null> {
         const res = await this.pg.query(`
-                    SELECT s.id              AS s_id,
-                           s.created_at      AS s_created_at,
-                           s.updated_at      AS s_updated_at,
-                           s.display_name    AS s_display_name,
-                           s.scraper_type_id AS s_scraper_type_id,
-                           s.parameters      AS s_parameters,
-                           s.tenant_id       AS s_tenant_id,
-                           t.created_at      AS t_created_at,
-                           t.updated_at      AS t_updated_at,
-                           t.display_name    AS t_display_name,
-                           st.id             AS st_id,
-                           st.created_at     AS st_created_at,
-                           st.updated_at     AS st_updated_at,
-                           st.display_name   AS st_display_name,
-                           st.parameters     AS st_parameters
+                    SELECT s.id                           AS s_id,
+                           s.created_at                   AS s_created_at,
+                           s.updated_at                   AS s_updated_at,
+                           s.display_name                 AS s_display_name,
+                           s.scraper_type_id              AS s_scraper_type_id,
+                           s.parameters                   AS s_parameters,
+                           s.last_successful_scraped_date AS s_last_successful_scraped_date,
+                           s.tenant_id                    AS s_tenant_id,
+                           t.created_at                   AS t_created_at,
+                           t.updated_at                   AS t_updated_at,
+                           t.display_name                 AS t_display_name,
+                           st.id                          AS st_id,
+                           st.created_at                  AS st_created_at,
+                           st.updated_at                  AS st_updated_at,
+                           st.display_name                AS st_display_name,
+                           st.parameters                  AS st_parameters
                     FROM scrapers AS s
                              JOIN tenants AS t ON s.tenant_id = t.id
                              JOIN scraper_types AS st ON s.scraper_type_id = st.id
@@ -310,21 +311,22 @@ export class ScrapersDataAccessLayer {
 
     async fetchScrapers(tenantID: Tenant["id"], scraperTypeID?: ScraperType["id"]): Promise<Scraper[]> {
         const res = await this.pg.query(`
-                    SELECT s.id              AS s_id,
-                           s.created_at      AS s_created_at,
-                           s.updated_at      AS s_updated_at,
-                           s.display_name    AS s_display_name,
-                           s.scraper_type_id AS s_scraper_type_id,
-                           s.parameters      AS s_parameters,
-                           s.tenant_id       AS s_tenant_id,
-                           t.created_at      AS t_created_at,
-                           t.updated_at      AS t_updated_at,
-                           t.display_name    AS t_display_name,
-                           st.id             AS st_id,
-                           st.created_at     AS st_created_at,
-                           st.updated_at     AS st_updated_at,
-                           st.parameters     AS st_parameters,
-                           st.display_name   AS st_display_name
+                    SELECT s.id                           AS s_id,
+                           s.created_at                   AS s_created_at,
+                           s.updated_at                   AS s_updated_at,
+                           s.display_name                 AS s_display_name,
+                           s.last_successful_scraped_date AS s_last_successful_scraped_date,
+                           s.scraper_type_id              AS s_scraper_type_id,
+                           s.parameters                   AS s_parameters,
+                           s.tenant_id                    AS s_tenant_id,
+                           t.created_at                   AS t_created_at,
+                           t.updated_at                   AS t_updated_at,
+                           t.display_name                 AS t_display_name,
+                           st.id                          AS st_id,
+                           st.created_at                  AS st_created_at,
+                           st.updated_at                  AS st_updated_at,
+                           st.parameters                  AS st_parameters,
+                           st.display_name                AS st_display_name
                     FROM scrapers AS s
                              JOIN tenants AS t ON s.tenant_id = t.id
                              JOIN scraper_types AS st ON s.scraper_type_id = st.id
@@ -452,7 +454,7 @@ export class ScrapersDataAccessLayer {
     async setLastSuccessfulScrapedDate(
         tenantID: Tenant["id"],
         scraperID: Scraper["id"],
-        date: DateTime): Promise<void> {
+        date: DateTime): Promise<DateTime> {
 
         const res = await this.pg.query(`
             UPDATE scrapers
@@ -462,6 +464,9 @@ export class ScrapersDataAccessLayer {
         if (res.rowCount != 1) {
             throw new Error(`Incorrect number of rows affected: ${JSON.stringify(res)}`)
         }
+
+        const scraper = await this.fetchScraper(tenantID, scraperID)
+        return scraper!.lastSuccessfulScrapedDate!
     }
 }
 
@@ -633,6 +638,7 @@ function mapScraper(r: any): ScraperRow {
         createdAt: r.s_created_at,
         updatedAt: r.s_updated_at,
         displayName: r.s_display_name,
+        lastSuccessfulScrapedDate: r.s_last_successful_scraped_date,
         type: {
             id: r.st_id,
             createdAt: r.st_created_at,

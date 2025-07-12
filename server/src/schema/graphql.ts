@@ -142,7 +142,7 @@ export type Mutation = {
   deleteTransaction: Scalars['Void']['output'];
   moveAccount: Account;
   noOp: Scalars['Void']['output'];
-  setLastSuccessfulScrapedDate: Scalars['Void']['output'];
+  setLastSuccessfulScrapedDate: Scalars['DateTime']['output'];
   triggerScraper: ScraperJob;
   upsertScraper: Scraper;
 };
@@ -662,7 +662,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   deleteTransaction?: Resolver<ResolversTypes['Void'], ParentType, ContextType, RequireFields<MutationDeleteTransactionArgs, 'id' | 'tenantID'>>;
   moveAccount?: Resolver<ResolversTypes['Account'], ParentType, ContextType, RequireFields<MutationMoveAccountArgs, 'accountID' | 'tenantID'>>;
   noOp?: Resolver<ResolversTypes['Void'], ParentType, ContextType>;
-  setLastSuccessfulScrapedDate?: Resolver<ResolversTypes['Void'], ParentType, ContextType, RequireFields<MutationSetLastSuccessfulScrapedDateArgs, 'date' | 'scraperID' | 'tenantID'>>;
+  setLastSuccessfulScrapedDate?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType, RequireFields<MutationSetLastSuccessfulScrapedDateArgs, 'date' | 'scraperID' | 'tenantID'>>;
   triggerScraper?: Resolver<ResolversTypes['ScraperJob'], ParentType, ContextType, RequireFields<MutationTriggerScraperArgs, 'id' | 'tenantID'>>;
   upsertScraper?: Resolver<ResolversTypes['Scraper'], ParentType, ContextType, RequireFields<MutationUpsertScraperArgs, 'displayName' | 'parameters' | 'scraperTypeID' | 'tenantID'>>;
 };

@@ -141,7 +141,7 @@ export type Mutation = {
   deleteTransaction: Scalars['Void']['output'];
   moveAccount: Account;
   noOp: Scalars['Void']['output'];
-  setLastSuccessfulScrapedDate: Scalars['Void']['output'];
+  setLastSuccessfulScrapedDate: Scalars['DateTime']['output'];
   triggerScraper: ScraperJob;
   upsertScraper: Scraper;
 };

@@ -69,7 +69,7 @@ extend type Mutation {
         parameters: [ScraperParameterInput!]!
     ): Scraper!
     deleteScraper(tenantID: ID!, id: ID!): Void!
-    setLastSuccessfulScrapedDate(tenantID: ID!, scraperID: ID!, date: DateTime!): Void!
+    setLastSuccessfulScrapedDate(tenantID: ID!, scraperID: ID!, date: DateTime!): DateTime!
     triggerScraper(tenantID: ID!, id: ID!): ScraperJob!
 }
 

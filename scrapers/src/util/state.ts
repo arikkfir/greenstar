@@ -27,7 +27,7 @@ export async function getLastSuccessfulScrapedDate(): Promise<DateTime | null> {
 
     if (result.error) {
         throw new Error(
-            `Failed to create scraperrun: ${result.error.message}\n` +
+            `Failed to fetch scraper last successful scraped date: ${result.error.message}\n` +
             `- Network Error: ${JSON.stringify(result.error.networkError, null, 2)}\n` +
             `- GraphQL Errors: ${JSON.stringify(result.error.graphQLErrors, null, 2)}`,
         )
@@ -45,7 +45,7 @@ export async function setLastSuccessfulScrapedDate(date: DateTime): Promise<void
 
     if (result.error) {
         throw new Error(
-            `Failed to create scraperrun: ${result.error.message}\n` +
+            `Failed to set scraper last successful scraped date: ${result.error.message}\n` +
             `- Network Error: ${JSON.stringify(result.error.networkError, null, 2)}\n` +
             `- GraphQL Errors: ${JSON.stringify(result.error.graphQLErrors, null, 2)}`,
         )
