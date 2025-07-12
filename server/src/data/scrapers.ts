@@ -380,10 +380,8 @@ export class ScrapersDataAccessLayer {
     async fetchScraperJobLogs(
         tenantID: string,
         scraperJobID: string,
-        page: number,
-        pageSize: number): Promise<string[]> {
-
-        console.debug(`Fetching logs for scraper job ${scraperJobID} (page ${page}, pageSize ${pageSize})`)
+        page?: number,
+        pageSize?: number): Promise<string[]> {
 
         const jobPods    = await coreAPI.listNamespacedPod({
             namespace: podNamespace,
@@ -400,12 +398,18 @@ export class ScrapersDataAccessLayer {
             })
 
             allLogs.push(...podLogs.split("\n"))
-            if (allLogs.length >= page * pageSize + pageSize) {
-                break
+            if (typeof page !== "undefined" && typeof pageSize !== "undefined") {
+                if (allLogs.length >= page * pageSize + pageSize) {
+                    break
+                }
             }
         }
 
-        return allLogs.slice(page * pageSize, page * pageSize + pageSize)
+        if (typeof page !== "undefined" && typeof pageSize !== "undefined") {
+            return allLogs.slice(page * pageSize, page * pageSize + pageSize)
+        } else {
+            return allLogs
+        }
     }
 
     async triggerScraper(tenantID: Tenant["id"], scraperID: Scraper["id"]): Promise<ScraperJob> {
