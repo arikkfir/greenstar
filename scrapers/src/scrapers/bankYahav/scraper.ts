@@ -62,16 +62,15 @@ test("scrape", async ({ page }) => {
 
     const yesterday: DateTime = DateTime.now().minus({ days: 1 }).startOf("day")
     let startDate: DateTime
-    const endDate: DateTime   = yesterday.endOf("day")
-
     if (!lastSuccessfulScrapedDateResult) {
-        startDate = DateTime.now().minus({ months: 6 }).startOf("day")
+        startDate = DateTime.now().minus({ months: 6 }).plus({ day: 1 }).startOf("day")
     } else if (lastSuccessfulScrapedDateResult.startOf("day").equals(yesterday)) {
         console.info(`Already fully scraped until yesterday (inclusive), nothing to do.`)
         return
     } else {
         startDate = lastSuccessfulScrapedDateResult.plus({ days: 1 }).startOf("day")
     }
+    const endDate = startDate.endOf("month").endOf("day")
     console.info(`Scraping transactions of account ${accountID} in tenant ${tenantID} from ${startDate.toLocaleString()} to ${endDate.toLocaleString()}`)
 
     const txSummaryResult = await client.query(GetTransactionsSummary, { tenantID })
