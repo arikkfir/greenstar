@@ -12,8 +12,8 @@
     },
     "scripts": {
         "codegen": "graphql-codegen --config codegen.ts",
-        "scrape": "playwright test",
-        "upload-trace": "curl -sSL -D - -X POST -H 'content-type: application/zip' --data-binary @./test-results/${SCRAPER_TYPE_ID}-scraper.ts-scrape-chromium/trace.zip http://greenstar-server/static/${TENANT_ID}/${JOB_NAME}-trace.zip",
+        "scrape": "playwright test scrapers/${SCRAPER_TYPE_ID}/scraper.ts; npm run upload-trace",
+        "upload-trace": "curl -sSL -v -D - -X POST -F \"trace.zip=@./test-results/${SCRAPER_TYPE_ID}-scraper.ts-scrape-chromium/trace.zip\" \"${API_URL}/static/${TENANT_ID}/${SCRAPER_ID}/${JOB_NAME}\"",
         "test": "jest"
     },
     "dependencies": {

@@ -3,6 +3,7 @@
 {{- $serviceAccountName := printf "%s-%s" $prefix $componentName -}}
 {{- $scrapersServiceAccountName := printf "%s-%s" $prefix "scrapers" -}}
 {{- $serviceName := printf "%s-%s" $prefix $componentName -}}
+{{- $dataPVCName := printf "%s-%s-data" $prefix $componentName -}}
 {{- /*------------------------------------------------------------------------------------------------------------*/ -}}
 ---
 
@@ -98,6 +99,25 @@ spec:
 
 ---
 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    {{- include "greenstar.commonLabels" . | nindent 4 }}
+    app.kubernetes.io/component: {{ $componentName | quote }}
+  name: {{ $dataPVCName | quote }}
+spec:
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+    limits:
+      storage: 4Gi
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -142,6 +162,8 @@ spec:
               value: {{ "http://jaeger.observability.svc.cluster.local:4318" | quote }}
             - name: OTEL_TRACES_EXPORTER
               value: {{ "otlp" | quote }}
+            - name: DATA_PATH
+              value: "/var/lib/greenstar/data"
             - name: PORT
               value: "4000"
             - name: PGHOST
@@ -240,16 +262,23 @@ spec:
             failureThreshold: 10
             timeoutSeconds: 1
             terminationGracePeriodSeconds: 60
-          {{- if not (empty .Values.server.volumeMounts) }}
           volumeMounts:
+            - name: data
+              readOnly: false
+              mountPath: /var/lib/greenstar/data
+            {{- if not (empty .Values.server.volumeMounts) }}
             {{- toYaml .Values.server.volumeMounts | nindent 12 }}
-          {{- end }}
+            {{- end }}
       enableServiceLinks: false
       serviceAccountName: {{ $serviceAccountName | quote }}
-      {{- if not (empty .Values.server.volumes) }}
       volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ $dataPVCName | quote }}
+            readOnly: false
+        {{- if not (empty .Values.server.volumes) }}
         {{- toYaml .Values.server.volumes | nindent 8 }}
-      {{- end }}
+        {{- end }}
 
 {{- if .Values.server.ingress.enabled }}
 

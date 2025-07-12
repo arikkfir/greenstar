@@ -14,6 +14,9 @@ export const config = {
     k8s: {
         namespace: requireStringEnvVar("POD_NAMESPACE"),
     },
+    uploads: {
+        path: requireStringEnvVar("DATA_PATH") + "/uploads",
+    },
     scrapers: {
         image: {
             repository: requireStringEnvVar("SCRAPERS_IMAGE_NAME_REPOSITORY"),

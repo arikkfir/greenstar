@@ -506,11 +506,6 @@ function createScraperJob(tenantID: Tenant["id"], scraper: Scraper, trigger: "sc
                 restartPolicy: "Never",
                 containers: [
                     {
-                        args: [
-                            "-c",
-                            `npm run scrape -- scrapers/${scraper.type.id}/scraper.ts && npm run upload-trace`,
-                        ],
-                        command: [ "bash" ],
                         env: [
                             {
                                 name: "POD_NAMESPACE",
@@ -531,6 +526,7 @@ function createScraperJob(tenantID: Tenant["id"], scraper: Scraper, trigger: "sc
                                 },
                             },
                             { name: "NODE_ENV", value: process.env.NODE_ENV || "development" },
+                            { name: "API_URL", value: "http://greenstar-server" },
                             { name: "GRAPHQL_API_URL", value: "http://greenstar-server/graphql" },
                             { name: "PARAM_MOCK", value: "true" },
                             { name: "TENANT_ID", value: tenantID },

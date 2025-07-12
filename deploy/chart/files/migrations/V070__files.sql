@@ -2,7 +2,7 @@ CREATE TABLE files
 (
     id           TEXT        NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     name         TEXT        NOT NULL,
-    data         bytea       NOT NULL,
+    data_oid     oid         NOT NULL,
     size         INTEGER     NOT NULL,
     content_type TEXT        NOT NULL,
     tenant_id    VARCHAR(10) NOT NULL
