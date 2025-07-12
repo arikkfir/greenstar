@@ -31,7 +31,7 @@ export default defineConfig({
         timeout: 1000 * 15,
     },
     reportSlowTests: null,
-    timeout: 1000 * 60 * 30,
+    timeout: 1000 * 60 * 10,
     projects: [
         {
             name: "chromium",
