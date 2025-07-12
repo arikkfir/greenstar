@@ -62,6 +62,7 @@ export class DebitCardTransactionsPage {
      * Creates a filename based on the parent transaction's reference ID and saves the downloaded file
      */
     async downloadTransactionsExcel() {
+        console.debug(`Downloading debit card transactions as Excel file...`)
         const xlsDownloadPromise = this.accountTransaction.accountTransactionsPage.page.waitForEvent("download")
         await this.xlsDownloadIconLocator.click()
         const xlsDownload   = await xlsDownloadPromise
@@ -79,6 +80,7 @@ export class DebitCardTransactionsPage {
      * @returns {Promise<DebitCardTransaction[]>} Array of debit card transactions
      */
     async getTransactions(): Promise<DebitCardTransaction[]> {
+        console.debug(`Fetching debit card transactions from the debit card transactions page...`)
         const rowLocators: Locator[]               = await this.transactionRowsLocator.all()
         const transactions: DebitCardTransaction[] = []
         for (let i = rowLocators.length - 1; i >= 0; i--) {
@@ -87,6 +89,7 @@ export class DebitCardTransactionsPage {
             await tx.init()
             transactions.push(tx)
         }
+        console.debug(`Found ${transactions.length} transactions.`)
         return transactions
     }
 }

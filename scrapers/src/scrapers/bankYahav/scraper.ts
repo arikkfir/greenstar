@@ -82,20 +82,13 @@ test("scrape", async ({ page }) => {
 
     // Open the site and login
     const site = new Site(page, tenantID, accountID, username, password, pinno)
-
-    console.debug("Navigating to website...")
     await site.open()
-
-    console.debug("Logging in...")
     await site.login()
 
     // Navigate to the transactions page
     const txPage: AccountTransactionsPage = await site.openTransactionsPage()
-
-    // Move to requested date
     await txPage.setDateRange(startDate, endDate)
 
-    // Export current account transactions page as an Excel (XLS) file
     if (bankYahavConfig.downloadXLS) {
         await txPage.downloadTransactionsExcel()
     }
@@ -110,6 +103,8 @@ test("scrape", async ({ page }) => {
     // the resulting account balance, we can infer what was the account balance before that first transaction; therefore
     // we will add a balance initialization transaction first.
     if (accountTransactions.length > 0 && totalTransactions == 0) {
+        console.debug(`Found transactions for a tenant with no transactions - populating a balance initialization transaction.`)
+
         const firstTx: AccountTransaction = accountTransactions[0]
         const balanceBeforeTx: number     = await firstTx.getBalanceBeforeTransaction()
         const balanceTx                   = new BalanceTransaction(
@@ -143,6 +138,7 @@ test("scrape", async ({ page }) => {
     }
 
     // Sort transactions based on date
+    console.debug(`Sorting transactions by date...`)
     const transactionsWithDates = await Promise.all(
         transactions.map(async (tx) => ({ tx, date: await tx.getDate() })),
     )
@@ -158,7 +154,6 @@ test("scrape", async ({ page }) => {
         await saveTransaction(tenantID, accountID, sortedTransactions[i], i)
     }
 
-    // Logout
     await site.logout()
 
     await setLastSuccessfulScrapedDate(await sortedTransactions[sortedTransactions.length-1].getDate())

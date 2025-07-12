@@ -55,6 +55,7 @@ export class AccountTransactionsPage {
     }
 
     async setDateRange(startDate: DateTime, endDate: DateTime) {
+        console.debug(`Adjusting the date range to '${startDate.toFormat("yyyy-MM-dd")} - ${endDate.toFormat("yyyy-MM-dd")}`)
         await this.fromDate.setDate(startDate.year, startDate.month, startDate.day)
         await this.toDate.setDate(endDate.year, endDate.month, endDate.day)
         await this.page.waitForLoadState("networkidle")
@@ -125,6 +126,8 @@ export class AccountTransactionsPage {
      * Creates a filename based on the current date range and saves the downloaded file.
      */
     async downloadTransactionsExcel() {
+        console.debug("Downloading transactions as Excel file...")
+
         const from     = (await this.fromDate.getDate()).toFormat("yyyy-MM-dd")
         const to       = (await this.toDate.getDate()).toFormat("yyyy-MM-dd")
         const filename = `./account-transactions-${from}-${to}.xls`
@@ -143,6 +146,8 @@ export class AccountTransactionsPage {
      * @returns {Promise<AccountTransaction[]>} Array of account transactions
      */
     async getTransactions(): Promise<AccountTransaction[]> {
+        console.debug("Fetching transactions from the transactions page...")
+
         const rowLocators: Locator[]             = await this.transactionRowsLocator.all()
         const transactions: AccountTransaction[] = []
         for (let i = rowLocators.length - 1; i >= 0; i--) {
@@ -151,6 +156,8 @@ export class AccountTransactionsPage {
             await tx.init()
             transactions.push(tx)
         }
+
+        console.debug(`Found ${transactions.length} transactions.`)
         return transactions
     }
 }

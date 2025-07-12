@@ -194,6 +194,8 @@ export class AccountTransaction extends BaseTransaction implements ITransaction 
             throw new Error(`Transaction ${await this.toDebugString()} is not a debit card transaction`)
         }
 
+        console.debug(`Opening debit card transactions page for transaction: ${await this.toDebugString()}`)
+
         await this.debitCardIconLocator.click()
 
         const debitCardTransactionsPage = new DebitCardTransactionsPage(this)
