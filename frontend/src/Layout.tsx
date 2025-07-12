@@ -36,7 +36,8 @@ import { ScrapersPage } from "./pages/scrapers/ScrapersPage.tsx"
 import { AboutPage } from "./pages/About.tsx"
 import InfoIcon from "@mui/icons-material/Info"
 import CodeIcon from "@mui/icons-material/Code"
-import { ErrorPage } from "./pages/error/ErrorPage.tsx"
+import { PageNotFoundErrorPage } from "./pages/error/PageNotFoundErrorPage.tsx"
+import { LoadingErrorPage } from "./pages/error/LoadingErrorPage.tsx"
 
 function BreadcrumbsLink({ href, label, Icon }: { href?: string, label: string, Icon: ComponentType<SvgIconProps> }) {
     if (href) {
@@ -117,7 +118,7 @@ export function Layout() {
                                     <HomeBreadcrumbsLink />
                                     <BreadcrumbsLink label="Error" Icon={ErrorIcon} />
                                 </Breadcrumbs>
-                                <ErrorPage title="Loading error" subTitle="Failed loading application." error={error} />
+                                <LoadingErrorPage />
                             </>
                         )}
                         {!error && loading && <LoadingProgress />}
@@ -129,21 +130,21 @@ export function Layout() {
                                     </Breadcrumbs>
                                     <DashboardPage />
                                 </Route>
-                                <Route path="/settings">
+                                <Route path="/settings" nest>
                                     <Breadcrumbs>
                                         <HomeBreadcrumbsLink />
                                         <BreadcrumbsLink label="Settings" Icon={SettingsIcon} />
                                     </Breadcrumbs>
                                     <SettingsPage />
                                 </Route>
-                                <Route path="/transactions">
+                                <Route path="/transactions" nest>
                                     <Breadcrumbs>
                                         <HomeBreadcrumbsLink />
                                         <BreadcrumbsLink label="Transactions" Icon={ReceiptLongIcon} />
                                     </Breadcrumbs>
                                     <TransactionsPage />
                                 </Route>
-                                <Route path="/scrapers">
+                                <Route path="/scrapers" nest>
                                     <Breadcrumbs>
                                         <HomeBreadcrumbsLink />
                                         <BreadcrumbsLink label="Scrapers" Icon={CodeIcon} />
@@ -162,9 +163,7 @@ export function Layout() {
                                         <HomeBreadcrumbsLink />
                                         <BreadcrumbsLink label="Error" Icon={ErrorIcon} />
                                     </Breadcrumbs>
-                                    <ErrorPage title="Oooops!"
-                                               subTitle="We couldn't find this page!"
-                                               error={new Error("Page not found")} />
+                                    <PageNotFoundErrorPage />
                                 </Route>
                             </Switch>
                         )}
