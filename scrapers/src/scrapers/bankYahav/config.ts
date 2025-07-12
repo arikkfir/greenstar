@@ -40,8 +40,6 @@ class Config extends BaseConfig {
      */
     public readonly downloadXLS: boolean
 
-    public readonly mock: boolean
-
     /**
      * Creates a new configuration instance
      *
@@ -64,8 +62,6 @@ class Config extends BaseConfig {
         } else {
             console.info(`Downloading XLS files is disabled`)
         }
-
-        this.mock = this.booleanEnvVar("PARAM_MOCK") || false
     }
 }
 

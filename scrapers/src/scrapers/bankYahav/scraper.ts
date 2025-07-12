@@ -79,10 +79,6 @@ test("scrape", async ({ page }) => {
         throw new Error(`Failed to get transactions summary for tenant ${tenantID}: ${txSummaryResult.error.message}`)
     }
     const totalTransactions: number = txSummaryResult.data!.tenant!.totalTransactions
-    if (1 == 1) {
-        console.info(`Exiting`)
-        return
-    }
 
     // Open the site and login
     const site = new Site(page, tenantID, accountID, username, password, pinno)
@@ -92,22 +88,6 @@ test("scrape", async ({ page }) => {
 
     console.debug("Logging in...")
     await site.login()
-
-    if (bankYahavConfig.mock) {
-        console.info("Mock mode is turned ON - exiting.")
-
-        // Logout
-        await site.logout()
-
-        return
-    } else if (1 == 1) {
-        console.info("Mock mode is turned OFF - continuing.")
-
-        // Logout
-        await site.logout()
-
-        return
-    }
 
     // Navigate to the transactions page
     const txPage: AccountTransactionsPage = await site.openTransactionsPage()
