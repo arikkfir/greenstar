@@ -60,7 +60,9 @@ deploy:
         upgradeOnChange: true
         valuesFiles:
           - deploy/local/chart-local-values.yaml
-          - hack/greenstar-values.yaml
+          - hack/greenstar-frontend-values.yaml
+          - hack/greenstar-server-values.yaml
+          - hack/greenstar-tenants-values.yaml
         setValueTemplates:
           acme:
             image:
