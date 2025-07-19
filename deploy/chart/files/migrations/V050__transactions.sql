@@ -11,7 +11,6 @@ CREATE TABLE transactions
     reference_id      TEXT       NOT NULL,
     amount            NUMERIC    NOT NULL CHECK (amount > 0),
     currency          VARCHAR(5) NOT NULL
-        CONSTRAINT val_currency_not_empty CHECK (CHAR_LENGTH(currency) = 3)
         CONSTRAINT fk_transactions_currency
             REFERENCES currencies
             ON UPDATE CASCADE ON DELETE RESTRICT,
