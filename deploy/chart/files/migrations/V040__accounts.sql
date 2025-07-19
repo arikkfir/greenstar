@@ -9,7 +9,7 @@ CREATE TABLE accounts
     updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     display_name TEXT NOT NULL
         CONSTRAINT val_display_name_length CHECK (CHAR_LENGTH(display_name) > 0),
-    icon         TEXT NOT
+    icon         TEXT NOT NULL
         CONSTRAINT val_icon_length CHECK (CHAR_LENGTH(icon) > 0),
     type         TEXT,
     parent_id    TEXT,
