@@ -58,7 +58,8 @@
           <value>
             <SchemaInfo>
               <option name="name" value="Taskfile config" />
-              <option name="relativePathToSchema" value="https://taskfile.dev/schema.json" />
+              <option name="relativePathToSchema" value=".task/Taskfile-schema.json" />
+              <option name="schemaVersion" value="JSON Schema 7" />
               <option name="applicationDefined" value="true" />
               <option name="patterns">
                 <list>
@@ -71,6 +72,9 @@
                     <option name="pattern" value="true" />
                     <option name="path" value="Taskfile.yaml" />
                     <option name="mappingKind" value="Pattern" />
+                  </Item>
+                  <Item>
+                    <option name="path" value="Taskfile.yaml" />
                   </Item>
                 </list>
               </option>
