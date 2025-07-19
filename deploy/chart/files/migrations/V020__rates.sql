@@ -12,6 +12,6 @@ CREATE TABLE rates
     created_at           TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at           TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     rate                 NUMERIC NOT NULL,
-    CONSTRAINT pk_rates PRIMARY KEY (date, source_currency_code, target_currency_code)
+    CONSTRAINT uq_rates PRIMARY KEY (date, source_currency_code, target_currency_code)
 );
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE rates TO greenstar_server;
