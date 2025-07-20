@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM mcr.microsoft.com/playwright:v1.53.2-noble
+FROM mcr.microsoft.com/playwright:v1.53.2-noble AS production
 RUN apt-get update && \
     apt-get install -y postgresql-client && \
     rm -rf /var/lib/apt/lists/*
