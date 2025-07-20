@@ -28,6 +28,7 @@ import { config } from "./config.js"
 import multer from "multer"
 import fs from "fs"
 import { LargeObjectManager } from "pg-large-object"
+import { rateLimit } from "express-rate-limit"
 
 function formatError(formattedError: GraphQLFormattedError, error: unknown): GraphQLFormattedError {
     if (formattedError.extensions?.code === ApolloServerErrorCode.INTERNAL_SERVER_ERROR) {
@@ -122,6 +123,14 @@ export async function startServer() {
     const storage = multer.diskStorage({ destination: config.uploads.path })
     const upload  = multer({ storage, limits: { fileSize: 1024 * 1024 * 256 } })
 
+    expressApp.use(rateLimit({
+        windowMs: 60 * 1000,        // 15 minutes
+        limit: 100,                 // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+        standardHeaders: "draft-8", // draft-6: `RateLimit-*` headers; draft-7 & draft-8: combined `RateLimit` header
+        legacyHeaders: false,       // Disable the `X-RateLimit-*` headers.
+        ipv6Subnet: 56,             // Set to 60 or 64 to be less aggressive, or 52 or 48 to be more aggressive
+    }))
+
     expressApp.use("/graphql",
         cors<cors.CorsRequest>(),
         express.json(),
@@ -145,17 +154,17 @@ export async function startServer() {
                 if (!rs.rows.length || !rs.rows[0].data_oid) {
                     res.status(404).type("text/plain").send("Not found")
                 } else {
-                    const row             = rs.rows[0]
-                    const lom             = new LargeObjectManager({ pg: client })
+                    const row               = rs.rows[0]
+                    const lom               = new LargeObjectManager({ pg: client })
                     const [ _size, stream ] = await lom.openAndReadableStreamAsync(row.data_oid, 16384)
 
                     res.status(200).type(row.content_type)
 
                     await new Promise<void>((resolve, reject) => {
                         stream.pipe(res)
-                        stream.on('finish', resolve)
-                        stream.on('error', reject)
-                        res.on('close', () => {
+                        stream.on("finish", resolve)
+                        stream.on("error", reject)
+                        res.on("close", () => {
                             stream.destroy(new Error("Client closed connection"))
                         })
                     })
