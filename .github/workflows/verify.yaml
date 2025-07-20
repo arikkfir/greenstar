@@ -89,7 +89,7 @@ jobs:
           context: ${{ matrix.image }}
           build-args: |
             VERSION=0.0.0+${{ github.sha }}
-            VITE_GRAPHQL_API_URL=https://api.greenstar.test/graphql
+            VITE_API_URL=https://api.greenstar.test
           target: production
           push: false
           tags: ghcr.io/${{ github.repository }}/${{ matrix.image }}:${{ github.sha }}
