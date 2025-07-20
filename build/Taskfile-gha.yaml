@@ -8,7 +8,7 @@ tasks:
   kind:
     platforms: [ linux ]
     env:
-      URL: "https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64"
+      URL: "https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-amd64"
     cmds:
       - sudo curl -sSL -o /usr/local/bin/kind "${URL}" && sudo chmod +x /usr/local/bin/kind
     status:

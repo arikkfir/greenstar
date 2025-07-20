@@ -148,6 +148,8 @@ jobs:
     needs: [ verify-generated-code, build-images, build-helm-package ]
     permissions:
       contents: read
+    env:
+      KIND_NODE_IMAGE_VERSION: "1.33.1"
     steps:
 
       - name: Checkout
@@ -155,7 +157,28 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Download image artifacts
+      - name: Setup kind
+        run: task toolchain:kind
+
+      - name: Get/store kind cluster node image
+        id: kind-node-image-cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/kind-image.tar
+          key: ${{ runner.os }}-kind-node-image
+
+      - name: Download kind cluster node image
+        if: steps.kind-node-image-cache.outputs.cache-hit != 'true'
+        run: |
+          docker pull kindest/node:v${KIND_NODE_IMAGE_VERSION}
+          docker save kindest/node:v${KIND_NODE_IMAGE_VERSION} -o /tmp/kind-image.tar
+
+      - name: Load kind cluster node image
+        if: steps.kind-node-image-cache.outputs.cache-hit == 'true'
+        run: |
+          docker load -i /tmp/kind-image.tar
+
+      - name: Download application image artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: '*-image'
@@ -190,7 +213,8 @@ jobs:
 
       - name: Install Helm package
         run: |
-          task setup-sensitive-environment
+          task setup-tenant-helm-values-files setup-frontend-geopify-helm-values-files
+          touch ./hack/greenstar-server-values.yaml
           helm install greenstar ./greenstar-*.tgz \
               --create-namespace -n greenstar \
               -f deploy/local/chart-ci-values.yaml \
