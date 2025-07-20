@@ -249,7 +249,14 @@ jobs:
         id: export-cluster-state
         if: success() || steps.setup-cluster.outcome == 'failure' || steps.setup-cluster.outcome == 'success'
         run: |
-          kubectl cluster-info dump -o yaml --output-directory=./cluster-state --namespaces=ingress,greenstar
+          mkdir -p ./cluster-state
+          kubectl get pods -A -o json | jq -r '.items[] | .metadata.namespace + " " + .metadata.name + " " + .spec.containers[].name' | \
+            while read -r NAMESPACE POD_NAME CONTAINER_NAME; do
+              mkdir -p "./cluster-state/${NAMESPACE}/${POD_NAME}"
+              LOG_FILE="./cluster-state/${NAMESPACE}/${POD_NAME}/${CONTAINER_NAME}.log"
+              kubectl logs --timestamps=true "${POD_NAME}" -n "${NAMESPACE}" -c "${CONTAINER_NAME}" > "${LOG_FILE}" 2>/dev/null
+            done
+          kubectl cluster-info dump -A -o yaml --output-directory=./cluster-state
           kubectl get gateways.gateway.networking.k8s.io -o yaml -A > ./cluster-state/gateways.yaml
           kubectl get httproutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/httproutes.yaml
           kubectl get jobs -o yaml -A > ./cluster-state/jobs.yaml
