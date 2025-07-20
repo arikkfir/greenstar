@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        image: [ acme, frontend, ratesjob, server ]
+        image: [ acme, frontend, e2e, ratesjob, server ]
       fail-fast: true
     permissions:
       contents: read
@@ -157,8 +157,21 @@ jobs:
         with:
           persist-credentials: false
 
+      ### TOOLS ###
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4.2.0
+
       - name: Setup kind
         run: task toolchain:kind
+
+      ### KIND DOCKER IMAGE CACHE ###
 
       - name: Get/store kind cluster node image
         id: kind-node-image-cache
@@ -178,6 +191,8 @@ jobs:
         run: |
           docker load -i /tmp/kind-image.tar
 
+      ### DOWNLOAD APPLICATION ARTIFACTS ###
+
       - name: Download application image artifacts
         uses: actions/download-artifact@v4
         with:
@@ -191,17 +206,10 @@ jobs:
           name: helm-package
           path: .
 
-      - name: Setup Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      ### SETUP ENVIRONMENT & APPLICATION ###
 
       - name: Setup DNS
         run: task -v setup-domain-dns
-
-      - name: Setup Helm
-        uses: azure/setup-helm@v4.2.0
 
       - name: Setup Cluster
         id: setup-cluster
@@ -210,39 +218,32 @@ jobs:
       - name: Load container images
         run: |
           for f in images/*.tar; do kind load image-archive --name greenstar ${f}; done
+          docker load -i /images/e2e.tar
 
       - name: Install Helm package
         run: |
           task setup-tenant-helm-values-files setup-frontend-geopify-helm-values-files
-          touch ./hack/greenstar-server-values.yaml
           helm install greenstar ./greenstar-*.tgz \
               --create-namespace -n greenstar \
-              -f deploy/local/chart-ci-values.yaml \
-              -f hack/greenstar-values.yaml \
+              -f ./deploy/local/chart-ci-values.yaml \
+              -f ./hack/greenstar-frontend-values.yaml \
+              -f ./hack/greenstar-tenants-values.yaml \
               --wait --wait-for-jobs
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 23.x
-          cache: npm
-          cache-dependency-path: e2e/package-lock.json
-
-      - name: Setup NPM dependencies
-        env:
-          NPM_CONFIG_FUND: false
-          NPM_CONFIG_AUDIT: false
-        run: npm ci
-        working-directory: e2e
-
-      - name: Setup Playwright dependencies
-        run: npm run deps
-        working-directory: e2e
+      ### RUN TESTS ###
 
       - name: Run tests
         id: test
-        run: npm run test
+        run: |
+          for f in monocart-report playwright-report test-results; do mkdir -p $f && touch $f/.dont-delete-me; done 
+          docker run --network host \
+                     -v $(pwd)/playwright-report:/app/playwright-report \
+                     -v $(pwd)/test-results:/app/test-results \
+                     -v $(pwd)/monocart-report:/app/monocart-report \
+                     ghcr.io/${{ github.repository }}/e2e:${{ github.sha }}
         working-directory: e2e
+
+      ### TEARDOWN & UPLOAD RESULTS ###
 
       - name: Export cluster state
         id: export-cluster-state
