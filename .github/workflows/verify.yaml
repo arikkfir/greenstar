@@ -232,17 +232,40 @@ jobs:
 
       ### RUN TESTS ###
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.x
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Setup NPM dependencies
+        env:
+          NPM_CONFIG_FUND: false
+          NPM_CONFIG_AUDIT: false
+        run: npm ci
+        working-directory: e2e
+
+      - name: Setup Playwright dependencies
+        run: npm run deps
+        working-directory: e2e
+
       - name: Run tests
         id: test
-        run: |
-          for f in monocart-report playwright-report test-results; do mkdir -p $f && touch $f/.dont-delete-me; done 
-          docker run --network host \
-                     -e CI=1 \
-                     -v $(pwd)/playwright-report:/app/playwright-report \
-                     -v $(pwd)/test-results:/app/test-results \
-                     -v $(pwd)/monocart-report:/app/monocart-report \
-                     ghcr.io/${{ github.repository }}/e2e:${{ github.sha }}
+        run: npm run test
         working-directory: e2e
+
+#      - name: Run tests
+#        id: test
+#        run: |
+#          for f in monocart-report playwright-report test-results; do mkdir -p $f && touch $f/.dont-delete-me; done
+#          docker run --network host \
+#                     -e CI=1 \
+#                     -v $(pwd)/playwright-report:/app/playwright-report \
+#                     -v $(pwd)/test-results:/app/test-results \
+#                     -v $(pwd)/monocart-report:/app/monocart-report \
+#                     ghcr.io/${{ github.repository }}/e2e:${{ github.sha }}
+#        working-directory: e2e
 
       ### TEARDOWN & UPLOAD RESULTS ###
 
