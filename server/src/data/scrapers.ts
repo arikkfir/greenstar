@@ -721,13 +721,7 @@ function getScraperJobStatus(job: V1Job): ScraperJobStatus {
                     return ScraperJobStatus.Failed
                 }
             }
-
-            // If we haven't exceeded backoff limit, it might still retry
-            if (failed <= backoffLimit) {
-                return ScraperJobStatus.Pending
-            }
-
-            return ScraperJobStatus.Failed
+            return ScraperJobStatus.Pending
         }
 
         // Job is running if there are active pods

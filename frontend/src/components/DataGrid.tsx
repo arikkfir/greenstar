@@ -56,22 +56,19 @@ export function DataGrid<Row extends GridValidRowModel>(props: DataGridProps<Row
     )
 
     const renderActionsCell = useCallback(
-        (p: GridRenderCellParams<Row>) => {
-            p.row
-            return (
-                <div className="actions-cell">
-                    {props.rowActions?.map(action => (
-                        <Tooltip title={action.title} key={action.key}>
-                            <IconButton size="small"
-                                        onClick={() => createHandleAction(action, p.row)}
-                                        disabled={action.disabled}>
-                                {action.icon}
-                            </IconButton>
-                        </Tooltip>
-                    ))}
-                </div>
-            )
-        },
+        (p: GridRenderCellParams<Row>) => (
+            <div className="actions-cell">
+                {props.rowActions?.map(action => (
+                    <Tooltip title={action.title} key={action.key}>
+                        <IconButton size="small"
+                                    onClick={() => createHandleAction(action, p.row)}
+                                    disabled={action.disabled}>
+                            {action.icon}
+                        </IconButton>
+                    </Tooltip>
+                ))}
+            </div>
+        ),
         [ props.rowActions ],
     )
 

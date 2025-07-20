@@ -231,7 +231,7 @@ export async function startServer() {
                     try {
                         await fs.promises.unlink(req.file.path)
                     } catch (e) {
-                        console.error(`Error deleting temp file '${req.file.path}:`, e)
+                        console.error("Error deleting temp file: ", req.file.path, e)
                     }
                 }
                 client.release()
