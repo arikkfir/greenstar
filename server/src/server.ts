@@ -29,6 +29,8 @@ import multer from "multer"
 import fs from "fs"
 import { LargeObjectManager } from "pg-large-object"
 import { rateLimit } from "express-rate-limit"
+import path from "path"
+import * as os from "node:os"
 
 function formatError(formattedError: GraphQLFormattedError, error: unknown): GraphQLFormattedError {
     if (formattedError.extensions?.code === ApolloServerErrorCode.INTERNAL_SERVER_ERROR) {
@@ -200,9 +202,16 @@ export async function startServer() {
                     return res.status(404).type("text/plain").send("Scraper not found.")
                 }
 
+                const tempDir      = os.tmpdir()
+                const resolvedPath = path.resolve(req.file.path)
+                if (!resolvedPath.startsWith(tempDir)) {
+                    return res.status(400).type("text/plain").send("Invalid file path.")
+                }
+                const fileStream = fs.createReadStream(resolvedPath)
+
                 const lom             = new LargeObjectManager({ pg: client })
                 const [ oid, stream ] = await lom.createAndWritableStreamAsync()
-                const fileStream      = fs.createReadStream(req.file.path)
+
                 await new Promise((resolve, reject) => {
                     fileStream.pipe(stream)
                     stream.on("finish", resolve)
