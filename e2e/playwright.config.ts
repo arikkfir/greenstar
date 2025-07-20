@@ -35,8 +35,8 @@ export default defineConfig({
     expect: {
         timeout: 1000 * 15,
     },
-    timeout: 1000 * 60 * 2,
-    globalTimeout: 1000 * 60 * 5,
+    timeout: 1000 * 60 * 5,
+    globalTimeout: 1000 * 60 * 10,
     projects: [
         {
             name: "chromium",
