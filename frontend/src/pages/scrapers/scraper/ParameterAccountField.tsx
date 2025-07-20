@@ -9,13 +9,15 @@ export interface ParameterAccountFieldProps {
     parameter: ScraperParameter,
 }
 
+type AccountID = Account["id"]
+
 export function ParameterAccountField(props: ParameterAccountFieldProps) {
     const { accounts, disabled, handleChange, parameter } = props
     const labelId: ScraperTypeParameter["id"]             = parameter.parameter.id + "-account-label"
     return (
         <FormControl fullWidth key={parameter.parameter.id}>
             <InputLabel id={labelId}>{parameter.parameter.displayName}</InputLabel>
-            <Select<Account["id"]>
+            <Select<AccountID>
                 labelId={labelId}
                 disabled={disabled}
                 value={accounts?.length && parameter.value || ""}
