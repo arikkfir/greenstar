@@ -12,7 +12,7 @@ run: once
 
 includes:
   toolchain:
-    internal: true
+    internal: false
     optional: false
     taskfile: build/Taskfile-toolchain.yaml
 
