@@ -31,6 +31,7 @@ import { LargeObjectManager } from "pg-large-object"
 import { rateLimit } from "express-rate-limit"
 import path from "path"
 import * as os from "node:os"
+import sanitizeFilename from "sanitize-filename"
 
 function formatError(formattedError: GraphQLFormattedError, error: unknown): GraphQLFormattedError {
     if (formattedError.extensions?.code === ApolloServerErrorCode.INTERNAL_SERVER_ERROR) {
@@ -190,8 +191,19 @@ export async function startServer() {
             }
 
             const tenantID = req.params.tenantID
+            if (!/^[a-zA-Z0-9_-]+$/.test(tenantID)) {
+                return res.status(400).type("text/plain").send("Invalid tenant ID.")
+            }
 
-            const fileName = `${req.params.scraperJobID}-${req.file.originalname}`
+            const scraperJobID = req.params.scraperJobID
+            if (!/^[a-zA-Z0-9_-]+$/.test(scraperJobID)) {
+                return res.status(400).type("text/plain").send("Invalid scraper job ID.")
+            }
+
+            const fileName = sanitizeFilename(`${scraperJobID}-${req.file.originalname}`)
+            if (!fileName) {
+                return res.status(400).type("text/plain").send("Invalid file name.")
+            }
 
             const client = await pgPool.connect()
             await client.query("BEGIN")
@@ -236,7 +248,7 @@ export async function startServer() {
                 await client.query("COMMIT")
                 res.status(201)
                    .setHeader("x-greenstar-file-id", rs.rows[0].id)
-                   .location(`/static/${tenantID}/${fileName}`)
+                   .location(`/static/${encodeURIComponent(tenantID)}/${encodeURIComponent(fileName)}`)
                    .type("text/plain")
                    .send(`File uploaded (ID: ${rs.rows[0].id})`)
 
