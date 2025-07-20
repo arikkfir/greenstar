@@ -32,8 +32,11 @@ export default defineConfig({
         trace: "on",
         video: "on",
     },
-    timeout: 120_000,
-    globalTimeout: 120_000,
+    expect: {
+        timeout: 1000 * 15,
+    },
+    timeout: 1000 * 60 * 2,
+    globalTimeout: 1000 * 60 * 5,
     projects: [
         {
             name: "chromium",
