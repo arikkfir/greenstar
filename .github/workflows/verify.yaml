@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        image: [ acme, frontend, e2e, ratesjob, server ]
+        image: [ acme, e2e, frontend, ratesjob, scrapers, server ]
       fail-fast: true
     permissions:
       contents: read
@@ -217,8 +217,8 @@ jobs:
 
       - name: Load container images
         run: |
-          for f in images/*.tar; do kind load image-archive --name greenstar ${f}; done
-          docker load -i /images/e2e.tar
+          for f in images/*.tar; do [[ "${f}" == "images/e2e.tar" ]] || kind load image-archive --name greenstar ${f}; done
+          docker load -i images/e2e.tar
 
       - name: Install Helm package
         run: |
