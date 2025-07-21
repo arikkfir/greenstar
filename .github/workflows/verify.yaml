@@ -16,7 +16,7 @@ jobs:
 
   verify-generated-code:
     name: Verify ${{ matrix.module }} generated code
-    runs-on: large
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         module: [ acme, frontend, ratesjob, server ]
@@ -55,7 +55,7 @@ jobs:
 
   build-images:
     name: Build ${{ matrix.image }} image
-    runs-on: ubuntu-22.04
+    runs-on: large
     strategy:
       matrix:
         image: [ acme, frontend, ratesjob, server ]
@@ -144,7 +144,7 @@ jobs:
 
   test-e2e:
     name: Run End-to-End Tests
-    runs-on: ubuntu-22.04
+    runs-on: large
     needs: [ verify-generated-code, build-images, build-helm-package ]
     permissions:
       contents: read
