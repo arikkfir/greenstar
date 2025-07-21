@@ -206,7 +206,7 @@ export async function startServer() {
             }
 
             const tempDir      = os.tmpdir()
-            const resolvedPath = path.resolve(req.file.path)
+            const resolvedPath = path.resolve(req.file.path.replaceAll(/[\n\r]/g, ""))
             if (!resolvedPath.startsWith(tempDir)) {
                 return res.status(400).type("text/plain").send("Invalid file path.")
             }
