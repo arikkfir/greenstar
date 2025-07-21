@@ -89,8 +89,8 @@ spec:
             - /bin/sh
             - -c
             - |
-              {{- if .Values.cleanup.cronjobs }}kubectl delete cronjobs -n ${NS} -l ${SELECTOR} --ignore-not-found=true --wait{{- end }}
-              {{- if .Values.cleanup.jobs }}kubectl delete jobs -n ${NS} -l ${SELECTOR} --ignore-not-found=true --wait{{- end }}
+              {{ if .Values.cleanup.cronjobs }}kubectl delete cronjobs -n ${NS} -l ${SELECTOR} --ignore-not-found=true --wait{{- end }}
+              {{ if .Values.cleanup.jobs }}kubectl delete jobs -n ${NS} -l ${SELECTOR} --ignore-not-found=true --wait{{- end }}
           resources:
             limits:
               cpu: 500m
