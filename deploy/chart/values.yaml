@@ -1,3 +1,6 @@
+cleanup:
+  cronjobs: true
+  jobs: true
 ingress:
   domain: ""
 acme:
