@@ -41,12 +41,14 @@ export class TransactionsDataAccessLayer {
 
     async createTransaction(tx: CreateTransaction): Promise<Transaction> {
         const res = await this.pg.query(`
-            INSERT INTO transactions (date, reference_id, amount, currency, description, source_account_id,
+            INSERT INTO transactions (date, sequence, reference_id, amount, currency, description, source_account_id,
                                       target_account_id, tenant_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT ON CONSTRAINT uq_transactions DO UPDATE SET sequence = excluded.sequence
             RETURNING transactions.id AS id
         `, [
             tx.date.toJSDate(),
+            tx.sequence,
             tx.referenceID || "",
             tx.amount,
             tx.currency,
@@ -79,6 +81,7 @@ export class TransactionsDataAccessLayer {
                            t.created_at,
                            t.updated_at,
                            t.date,
+                           t.sequence,
                            t.reference_id,
                            t.amount,
                            t.currency,
@@ -184,6 +187,7 @@ export class TransactionsDataAccessLayer {
                            t.created_at,
                            t.updated_at,
                            t.date,
+                           t.sequence,
                            t.reference_id,
                            t.amount,
                            t.currency,
@@ -191,39 +195,35 @@ export class TransactionsDataAccessLayer {
                            t.source_account_id,
                            t.target_account_id,
                            t.tenant_id,
-                           c.code                                           AS currency_code,
-                           c.created_at                                     AS currency_created_at,
-                           c.updated_at                                     AS currency_updated_at,
-                           c.country_codes                                  AS currency_countries,
-                           c.decimal_digits                                 AS currency_decimal_digits,
-                           c.name                                           AS currency_name,
-                           c.name_plural                                    AS currency_name_plural,
-                           c.native_symbol                                  AS currency_native_symbol,
-                           c.symbol                                         AS currency_symbol,
-                           sa.id                                            AS sa_id,
-                           sa.created_at                                    AS sa_created_at,
-                           sa.updated_at                                    AS sa_updated_at,
-                           sa.display_name                                  AS sa_display_name,
-                           sa.icon                                          AS sa_icon,
-                           sa.type                                          AS sa_type,
-                           sa.parent_id                                     AS sa_parent_id,
-                           (SELECT COALESCE(COUNT(a.id), 0)
-                            FROM accounts AS a
-                            WHERE a.tenant_id = $1 AND a.parent_id = sa.id) AS sa_child_count,
-                           ta.id                                            AS ta_id,
-                           ta.created_at                                    AS ta_created_at,
-                           ta.updated_at                                    AS ta_updated_at,
-                           ta.display_name                                  AS ta_display_name,
-                           ta.icon                                          AS ta_icon,
-                           ta.type                                          AS ta_type,
-                           ta.parent_id                                     AS ta_parent_id,
-                           (SELECT COALESCE(COUNT(a.id), 0)
-                            FROM accounts AS a
-                            WHERE a.tenant_id = $1 AND a.parent_id = ta.id) AS ta_child_count
+                           c.code           AS currency_code,
+                           c.created_at     AS currency_created_at,
+                           c.updated_at     AS currency_updated_at,
+                           c.country_codes  AS currency_countries,
+                           c.decimal_digits AS currency_decimal_digits,
+                           c.name           AS currency_name,
+                           c.name_plural    AS currency_name_plural,
+                           c.native_symbol  AS currency_native_symbol,
+                           c.symbol         AS currency_symbol,
+                           sa.id            AS sa_id,
+                           sa.created_at    AS sa_created_at,
+                           sa.updated_at    AS sa_updated_at,
+                           sa.display_name  AS sa_display_name,
+                           sa.icon          AS sa_icon,
+                           sa.type          AS sa_type,
+                           sa.parent_id     AS sa_parent_id,
+                           sa.child_count   AS sa_child_count,
+                           ta.id            AS ta_id,
+                           ta.created_at    AS ta_created_at,
+                           ta.updated_at    AS ta_updated_at,
+                           ta.display_name  AS ta_display_name,
+                           ta.icon          AS ta_icon,
+                           ta.type          AS ta_type,
+                           ta.parent_id     AS ta_parent_id,
+                           ta.child_count   AS ta_child_count
                     FROM transactions t
-                             JOIN currencies c ON t.currency = c.code
-                             JOIN accounts sa ON t.tenant_id = sa.tenant_id AND t.source_account_id = sa.id
-                             JOIN accounts ta ON t.tenant_id = ta.tenant_id AND t.target_account_id = ta.id
+                             JOIN currencies AS c ON t.currency = c.code
+                             JOIN v_accounts AS sa ON t.tenant_id = sa.tenant_id AND t.source_account_id = sa.id
+                             JOIN v_accounts AS ta ON t.tenant_id = ta.tenant_id AND t.target_account_id = ta.id
                         ${args.involvingAccountID ? cteJoins : ``}
                     WHERE t.tenant_id = $1
                       AND ${directionCond}
@@ -240,8 +240,8 @@ export class TransactionsDataAccessLayer {
             SELECT COUNT(t.id) AS total_count
             FROM transactions t
                      JOIN currencies c ON t.currency = c.code
-                     JOIN accounts sa ON t.tenant_id = sa.tenant_id AND t.source_account_id = sa.id
-                     JOIN accounts ta ON t.tenant_id = ta.tenant_id AND t.target_account_id = ta.id
+                     JOIN v_accounts AS sa ON t.tenant_id = sa.tenant_id AND t.source_account_id = sa.id
+                     JOIN v_accounts AS ta ON t.tenant_id = ta.tenant_id AND t.target_account_id = ta.id
                 ${args.involvingAccountID ? cteJoins : ``}
             WHERE t.tenant_id = $1
               AND ${directionCond}

@@ -10,22 +10,22 @@ RUN npm pkg set version="${VERSION}"
 
 FROM node:24-alpine AS development
 WORKDIR /app
-ARG VITE_GRAPHQL_API_URL="https://api.greenstar.test/graphql"
+ARG VITE_API_URL
 ARG VITE_GEOAPIFY_API_KEY
 ENV NODE_ENV=development
 COPY --from=dependencies /app ./
 COPY eslint.config.js ./
 COPY index.html ./
 COPY public ./public/
-COPY src ./src/
 COPY tsconfig.app.json ./
 COPY tsconfig.json ./
 COPY tsconfig.node.json ./
 COPY vite.config.ts ./
+COPY src ./src/
 ENTRYPOINT ["npm","run","dev"]
 
 FROM development AS builder
-ARG VITE_GRAPHQL_API_URL="https://api.greenstar.finance/graphql"
+ARG VITE_API_URL="https://api.greenstar.test"
 ARG VITE_GEOAPIFY_API_KEY
 ENV NODE_ENV=production
 RUN npm run build
