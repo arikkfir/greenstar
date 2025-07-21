@@ -25,7 +25,7 @@ if [[ -z "${RUN_ID}" ]]; then
   echo "Most recent commit: ${COMMIT}" >&2
 
   echo "Finding the last run of the verify workflow for commit ${COMMIT}..." >&2
-  RUN_ID=$(gh run list --repo "${REPO_NAME}" --workflow=Verify --commit="${COMMIT}" --json databaseId --jq '.[0].databaseId')
+  RUN_ID=$(gh run list --repo "${REPO_NAME}" --workflow=Test --commit="${COMMIT}" --json databaseId --jq '.[0].databaseId')
 
   if [ -z "${RUN_ID}" ]; then
       echo "No verify workflow run found for commit ${COMMIT}" >&2
