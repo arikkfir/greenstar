@@ -72,7 +72,7 @@ metadata:
     app.kubernetes.io/component: {{ $componentName | quote }}
   name: {{ printf "%s-%s" $prefix $componentName | quote }}
 spec:
-  activeDeadlineSeconds: 60
+  activeDeadlineSeconds: 120
   template:
     metadata:
       labels:
