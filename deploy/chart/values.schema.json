@@ -3,6 +3,17 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
+        "cleanup": {
+            "type": "object",
+            "properties": {
+                "cronjobs": {
+                    "type": "boolean"
+                },
+                "jobs": {
+                    "type": "boolean"
+                }
+            }
+        },
         "ingress": {
             "type": "object",
             "additionalProperties": false,
