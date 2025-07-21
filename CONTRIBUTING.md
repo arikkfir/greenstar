@@ -143,7 +143,7 @@ at the links below if you're not sure how to open a PR.
 
 ## Submitting a pull request
 
-1. [Fork](https://github.com/arikkfir/devbot/fork) and clone the repository.
+1. [Fork](https://github.com/arikkfir-org/greenstar/fork) and clone the repository.
 2. Make sure you set up your local development environment as described above.
 3. Create a new branch: `git checkout -b my-branch-name`.
 4. Make your change, add your feature/bug specific tests, and make sure the entire tests suite passes (see above)
