@@ -7,7 +7,7 @@ acme:
   extraArgs: []
   extraEnv: {}
   image:
-    repository: ghcr.io/arikkfir/greenstar/acme
+    repository: ghcr.io/arikkfir-org/greenstar/acme
     tag: "local"
     pullPolicy: IfNotPresent
   rbac:
@@ -33,7 +33,7 @@ server:
   extraArgs: []
   extraEnv: {}
   image:
-    repository: ghcr.io/arikkfir/greenstar/server
+    repository: ghcr.io/arikkfir-org/greenstar/server
     tag: "local"
     pullPolicy: IfNotPresent
   ingress:
@@ -53,7 +53,7 @@ server:
 ratesjob:
   extraEnv: {}
   image:
-    repository: ghcr.io/arikkfir/greenstar/ratesjob
+    repository: ghcr.io/arikkfir-org/greenstar/ratesjob
     tag: "local"
     pullPolicy: IfNotPresent
   rbac:
@@ -70,7 +70,7 @@ frontend:
   extraArgs: []
   extraEnv: {}
   image:
-    repository: ghcr.io/arikkfir/greenstar/frontend
+    repository: ghcr.io/arikkfir-org/greenstar/frontend
     tag: "local"
     pullPolicy: IfNotPresent
   ingress:

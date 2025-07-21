@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-REPO_NAME="arikkfir/greenstar"
+REPO_NAME="arikkfir-org/greenstar"
 RUN_ID="${1}"
 
 set -euo pipefail
