@@ -58,7 +58,7 @@ subjects:
 
 ---
 
-{{- if .Values.cleanup.cronjobs or .Values.cleanup.jobs }}
+{{- if or.Values.cleanup.cronjobs .Values.cleanup.jobs }}
 apiVersion: batch/v1
 kind: Job
 metadata:
