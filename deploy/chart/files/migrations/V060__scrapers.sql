@@ -4,7 +4,7 @@ CREATE TABLE scraper_types
     created_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at   TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     display_name TEXT  NOT NULL
-        CONSTRAINT display_name_length CHECK (CHAR_LENGTH(display_name) > 0),
+        CONSTRAINT val_display_name_length CHECK (CHAR_LENGTH(display_name) > 0),
     parameters   jsonb NOT NULL
 );
 CREATE INDEX idx_scraper_types_parameters ON scraper_types USING gin (parameters);
