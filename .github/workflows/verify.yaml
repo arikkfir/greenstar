@@ -232,29 +232,6 @@ jobs:
 
       ### RUN TESTS ###
 
-#      - name: Setup Node.js
-#        uses: actions/setup-node@v4
-#        with:
-#          node-version: 23.x
-#          cache: npm
-#          cache-dependency-path: e2e/package-lock.json
-#
-#      - name: Setup NPM dependencies
-#        env:
-#          NPM_CONFIG_FUND: false
-#          NPM_CONFIG_AUDIT: false
-#        run: npm ci
-#        working-directory: e2e
-#
-#      - name: Setup Playwright dependencies
-#        run: npm run deps
-#        working-directory: e2e
-#
-#      - name: Run tests
-#        id: test
-#        run: npm run test
-#        working-directory: e2e
-
       - name: Run tests
         id: test
         run: |
