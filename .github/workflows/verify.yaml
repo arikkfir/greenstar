@@ -16,7 +16,7 @@ jobs:
 
   verify-generated-code:
     name: Verify ${{ matrix.module }} generated code
-    runs-on: ubuntu-22.04
+    runs-on: large
     strategy:
       matrix:
         module: [ acme, frontend, ratesjob, server ]
