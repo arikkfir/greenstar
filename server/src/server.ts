@@ -205,6 +205,12 @@ export async function startServer() {
                 return res.status(400).type("text/plain").send("Invalid file name.")
             }
 
+            const tempDir      = os.tmpdir()
+            const resolvedPath = path.resolve(req.file.path)
+            if (!resolvedPath.startsWith(tempDir)) {
+                return res.status(400).type("text/plain").send("Invalid file path.")
+            }
+
             const client = await pgPool.connect()
             await client.query("BEGIN")
             try {
@@ -214,11 +220,6 @@ export async function startServer() {
                     return res.status(404).type("text/plain").send("Scraper not found.")
                 }
 
-                const tempDir      = os.tmpdir()
-                const resolvedPath = path.resolve(req.file.path)
-                if (!resolvedPath.startsWith(tempDir)) {
-                    return res.status(400).type("text/plain").send("Invalid file path.")
-                }
                 const fileStream = fs.createReadStream(resolvedPath)
 
                 const lom             = new LargeObjectManager({ pg: client })
@@ -259,9 +260,9 @@ export async function startServer() {
             } finally {
                 if (req.file) {
                     try {
-                        await fs.promises.unlink(req.file.path)
+                        await fs.promises.unlink(resolvedPath)
                     } catch (e) {
-                        console.error("Error deleting temp file: ", req.file.path, e)
+                        console.error("Error deleting temp file: ", resolvedPath, e)
                     }
                 }
                 client.release()
