@@ -45,4 +45,4 @@ RUN npm run build
 FROM nginx:1.29 AS production
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN mkdir -p /etc/greenstar && echo "${VERSION}" > /etc/greenstar/version
-COPY --from=builder /app/dist /app/
+COPY --from=builder-production /app/dist /app/
