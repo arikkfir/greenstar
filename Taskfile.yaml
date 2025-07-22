@@ -273,8 +273,9 @@ tasks:
         kubectl delete configmap -n greenstar gcp-workload-identity-federation || true
         kubectl create configmap -n greenstar gcp-workload-identity-federation --from-file hack/credential-configuration.json
         mkdir -pv ./hack && touch ./hack/greenstar-server-values.yaml
-        yq -i '.server.volumes = [], .server.volumeMounts = []' ./hack/greenstar-server-values.yaml
-        echo ${GCP_PROJECT_ID}
+        yq -i '.server.extraEnv = (.server.extraEnv // {})' ./hack/greenstar-server-values.yaml
+        yq -i '.server.volumes = (.server.volumes // [])' ./hack/greenstar-server-values.yaml
+        yq -i '.server.volumeMounts = (.server.volumeMounts // [])' ./hack/greenstar-server-values.yaml
         cat <<EOF | yq -i ea 'select(fileIndex == 0) *+ select(fileIndex == 1)' ./hack/greenstar-server-values.yaml -
         server:
           extraEnv:

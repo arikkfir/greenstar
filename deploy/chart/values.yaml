@@ -6,6 +6,7 @@ ingress:
 acme:
   extraArgs: []
   extraEnv: {}
+  files: []
   image:
     repository: ghcr.io/arikkfir-org/greenstar/acme
     tag: "local"
