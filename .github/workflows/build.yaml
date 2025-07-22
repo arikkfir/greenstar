@@ -247,10 +247,15 @@ jobs:
         id: export-cluster-state
         if: success() || steps.setup-cluster.outcome == 'failure' || steps.setup-cluster.outcome == 'success'
         run: |
-          kubectl cluster-info dump -o yaml --output-directory=./cluster-state --namespaces=ingress,greenstar
-          kubectl get gateways.gateway.networking.k8s.io -o yaml -A > ./cluster-state/gateways.yaml
-          kubectl get httproutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/httproutes.yaml
-          kubectl get tlsroutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/tlsroutes.yaml
+          kubectl cluster-info dump -o yaml --output-directory=./cluster-state -A
+          for ns in $(kubectl get namespaces -oname | cut -d '/' -f2); do
+            mkdir -p "./cluster-state/${ns}"
+            kubectl get jobs -o yaml -A > ./cluster-state/${ns}/jobs.yaml
+            kubectl get cronjobs -o yaml -A > ./cluster-state/${ns}/cronjobs.yaml
+            kubectl get gateways.gateway.networking.k8s.io -o yaml -A > ./cluster-state/${ns}/gateways.yaml
+            kubectl get httproutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/${ns}/httproutes.yaml
+            kubectl get tlsroutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/${ns}/tlsroutes.yaml
+          done
 
       - name: Upload cluster state artifact
         uses: actions/upload-artifact@v4
