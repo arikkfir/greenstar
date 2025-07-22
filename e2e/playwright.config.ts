@@ -30,7 +30,6 @@ export default defineConfig({
         screenshot: "on",
         trace: "on",
         video: "on",
-        ignoreHTTPSErrors: true,
     },
     timeout: 120_000,
     globalTimeout: 120_000,
