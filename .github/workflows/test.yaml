@@ -34,9 +34,9 @@ jobs:
           MKCERT_SERVER_CERT_PEM: ${{ secrets.MKCERT_SERVER_CERT_PEM }}
           MKCERT_SERVER_KEY_PEM: ${{ secrets.MKCERT_SERVER_KEY_PEM }}
         run: |
-          echo -n "${MKCERT_ROOT_CA_PEM}" | sudo base64 --decode > /usr/local/share/ca-certificates/greenstar-ca.crt
-          echo -n "${MKCERT_SERVER_CERT_PEM}" | sudo base64 --decode > deploy/local/wildcard-tls.local.crt
-          echo -n "${MKCERT_SERVER_KEY_PEM}" | sudo base64 --decode > deploy/local/wildcard-tls.local.key
+          sudo echo -n "${MKCERT_ROOT_CA_PEM}" | sudo base64 --decode > /usr/local/share/ca-certificates/greenstar-ca.crt
+          echo -n "${MKCERT_SERVER_CERT_PEM}" | base64 --decode > ./deploy/local/wildcard-tls.local.crt
+          echo -n "${MKCERT_SERVER_KEY_PEM}" | base64 --decode > ./deploy/local/wildcard-tls.local.key
           sudo update-ca-certificates
 
       - name: Setup Task
