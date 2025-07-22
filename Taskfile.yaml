@@ -64,8 +64,6 @@ tasks:
   generate-certificates:
     deps: [ toolchain:mkcert ]
     cmds:
-      - mkcert -cert-file deploy/local/wildcard-tls.local.crt -key-file deploy/local/wildcard-tls.local.key "${DOMAIN}" "*.app.${DOMAIN}" "*.${DOMAIN}" "localhost" "127.0.0.1" "::1"
-      - defer: rm -fv deploy/local/wildcard-tls.local.crt deploy/local/wildcard-tls.local.key
       - kubectl create secret tls wildcard-tls --cert=deploy/local/wildcard-tls.local.crt --key=deploy/local/wildcard-tls.local.key --dry-run=client --output=yaml > deploy/local/wildcard-tls-secret.local.yaml
     status:
       - test -f deploy/local/wildcard-tls-secret.local.yaml
@@ -221,13 +219,6 @@ tasks:
           NAME="$(basename "{{ .ITEM }}")" CONTENT="$(cat "{{ .ITEM }}")" \
             yq -i '.acme.files += [{"name": env(NAME), "content": env(CONTENT)}]' ./hack/greenstar-tenants-values.yaml
 
-  setup-frontend-geopify-helm-values-files:
-    cmds:
-      - mkdir -pv ./hack && touch ./hack/greenstar-frontend-values.yaml
-      - yq -i '.frontend.extraEnv.VITE_GEOAPIFY_API_KEY.value = strenv(GEOAPIFY_API_KEY)' ./hack/greenstar-frontend-values.yaml
-    status:
-      - yq -e '.frontend.extraEnv.VITE_GEOAPIFY_API_KEY.value == strenv(GEOAPIFY_API_KEY)' ./hack/greenstar-frontend-values.yaml
-
   enable-gcp-workload-identity-federation:
     deps: [create-cluster]
     env:
@@ -318,6 +309,7 @@ tasks:
       - setup-frontend-geopify-helm-values-files
     cmds:
       - '[[ -f ./hack/greenstar-server-values.yaml ]] || (mkdir -pv hack && touch ./hack/greenstar-server-values.yaml)'
+      - '[[ -f ./hack/greenstar-frontend-values.yaml ]] || (mkdir -pv hack && touch ./hack/greenstar-frontend-values.yaml)'
       - skaffold dev --tail=false
 
   test:

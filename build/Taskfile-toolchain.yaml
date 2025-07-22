@@ -20,7 +20,7 @@ tasks:
   helm: { deps: [ brew:helm ] }
   kind: { deps: [ brew:kind, gha:kind ] }
   kubectl: { deps: [ brew:kubectl ] }
-  mkcert: { deps: [ brew:mkcert, gha:mkcert ] }
+  mkcert: { deps: [ brew:mkcert ] }
   node: { deps: [ brew:node ] }
   setup-domain-dns: { deps: [ brew:setup-domain-dns, gha:setup-domain-dns ] }
   skaffold: { deps: [ brew:skaffold ] }

@@ -26,16 +26,6 @@ Navigate to https://acme.app.greenstar.test (yes it will resolve to your local c
 you make to the backend or frontend will be reflected and reloaded automatically (backend changes could take a few
 seconds if they require a Docker image rebuild...)
 
-#### Optional
-
-If you want GreenSTAR to detect your geographic location, and infer which currency to use from it - do the following:
-
-1. Create a free account at [Geoapify](https://geoapify.com) and copy your API key
-2. Create a local `.env` file (don't worry, it's ignored by Git) with the following content:
-   ```
-   GEOAPIFY_API_KEY=...............
-   ```
-
 ### Teardown
 
 To delete your local `kind` cluster run the following:
