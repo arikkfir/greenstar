@@ -64,8 +64,6 @@ tasks:
   generate-certificates:
     deps: [ toolchain:mkcert ]
     cmds:
-      - mkcert -cert-file deploy/local/wildcard-tls.local.crt -key-file deploy/local/wildcard-tls.local.key "${DOMAIN}" "*.app.${DOMAIN}" "*.${DOMAIN}" "localhost" "127.0.0.1" "::1"
-      - defer: rm -fv deploy/local/wildcard-tls.local.crt deploy/local/wildcard-tls.local.key
       - kubectl create secret tls wildcard-tls --cert=deploy/local/wildcard-tls.local.crt --key=deploy/local/wildcard-tls.local.key --dry-run=client --output=yaml > deploy/local/wildcard-tls-secret.local.yaml
     status:
       - test -f deploy/local/wildcard-tls-secret.local.yaml

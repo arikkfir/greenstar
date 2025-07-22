@@ -24,6 +24,7 @@ tasks:
     cmds:
       - { task: brew, vars: { name: mkcert } }
       - mkcert -install
+      - mkcert -cert-file deploy/local/wildcard-tls.local.crt -key-file deploy/local/wildcard-tls.local.key "${DOMAIN}" "*.app.${DOMAIN}" "*.${DOMAIN}" "localhost" "127.0.0.1" "::1"
     status:
       - which mkcert
       - test -f "$(mkcert -CAROOT)/rootCA.pem"

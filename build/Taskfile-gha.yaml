@@ -14,23 +14,6 @@ tasks:
     status:
       - test -z "${CI}" || "$(whoami)" != "runner" || which kind
 
-  mkcert:
-    platforms: [ linux ]
-    env:
-      MKCERT_URL: "https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-amd64"
-    cmds:
-      - sudo apt install libnss3-tools
-      - sudo curl -sSL -o /usr/local/bin/mkcert "${MKCERT_URL}" && sudo chmod +x /usr/local/bin/mkcert
-      - mkcert -install
-      - sudo cp "$(mkcert -CAROOT)/rootCA.pem" /usr/local/share/ca-certificates/
-      - mkdir -p ${HOME}/.pki/nssdb
-      - certutil -d sql:${HOME}/.pki/nssdb -A -t "C,," -n greenstar.test -i "$(mkcert -CAROOT)/rootCA.pem"
-      - cat "$(mkcert -CAROOT)/rootCA.pem" | sudo tee -a /etc/ssl/certs/ca-certificates.crt
-    status:
-      - test -z "${CI}" || "$(whoami)" != "runner" || which mkcert
-      - test -z "${CI}" || "$(whoami)" != "runner" || test -f "$(mkcert -CAROOT)/rootCA.pem"
-      - test -z "${CI}" || "$(whoami)" != "runner" || test -f "$(mkcert -CAROOT)/rootCA-key.pem"
-
   setup-domain-dns:
     platforms: [ linux ]
     cmds:
