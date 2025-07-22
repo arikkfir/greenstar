@@ -219,13 +219,6 @@ tasks:
           NAME="$(basename "{{ .ITEM }}")" CONTENT="$(cat "{{ .ITEM }}")" \
             yq -i '.acme.files += [{"name": env(NAME), "content": env(CONTENT)}]' ./hack/greenstar-tenants-values.yaml
 
-  setup-frontend-geopify-helm-values-files:
-    cmds:
-      - mkdir -pv ./hack && touch ./hack/greenstar-frontend-values.yaml
-      - yq -i '.frontend.extraEnv.VITE_GEOAPIFY_API_KEY.value = strenv(GEOAPIFY_API_KEY)' ./hack/greenstar-frontend-values.yaml
-    status:
-      - yq -e '.frontend.extraEnv.VITE_GEOAPIFY_API_KEY.value == strenv(GEOAPIFY_API_KEY)' ./hack/greenstar-frontend-values.yaml
-
   enable-gcp-workload-identity-federation:
     deps: [create-cluster]
     env:
@@ -316,6 +309,7 @@ tasks:
       - setup-frontend-geopify-helm-values-files
     cmds:
       - '[[ -f ./hack/greenstar-server-values.yaml ]] || (mkdir -pv hack && touch ./hack/greenstar-server-values.yaml)'
+      - '[[ -f ./hack/greenstar-frontend-values.yaml ]] || (mkdir -pv hack && touch ./hack/greenstar-frontend-values.yaml)'
       - skaffold dev --tail=false
 
   test:

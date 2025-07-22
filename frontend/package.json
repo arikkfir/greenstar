@@ -13,6 +13,7 @@
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
+        "build:ci": "tsc && vite build --mode ci",
         "codegen": "graphql-codegen --config codegen.ts",
         "lint": "eslint .",
         "preview": "vite preview"
