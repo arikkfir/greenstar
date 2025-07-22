@@ -186,7 +186,7 @@ jobs:
         run: |
           for image in acme frontend ratesjob server; do
             while true; do
-              PACKAGE_NAME="ghcr.io/${{ github.repository }}/${ image }"
+              PACKAGE_NAME="ghcr.io/${{ github.repository }}/${image}"
               TAG="${{ github.sha }}"
               if docker manifest inspect "${PACKAGE_NAME}:${TAG}" >/dev/null 2>&1; then
                 break
