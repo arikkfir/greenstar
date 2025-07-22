@@ -139,7 +139,7 @@ jobs:
 
   test-e2e:
     name: Run End-to-End Tests
-    runs-on: large
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
       pull-requests: write
