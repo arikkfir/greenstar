@@ -158,7 +158,8 @@ jobs:
           MKCERT_SERVER_KEY_PEM: ${{ secrets.MKCERT_SERVER_KEY_PEM }}
         run: |
           sudo apt install -y libnss3-tools
-          echo -n "${MKCERT_ROOT_CA_PEM}" | base64 --decode > /usr/local/share/ca-certificates/greenstar-ca.crt
+          echo -n "${MKCERT_ROOT_CA_PEM}" | base64 --decode > ./deploy/local/greenstar-ca.crt
+          sudo mv -v ./deploy/local/greenstar-ca.crt /usr/local/share/ca-certificates/greenstar-ca.crt
           echo -n "${MKCERT_SERVER_CERT_PEM}" | base64 --decode > ./deploy/local/wildcard-tls.local.crt
           echo -n "${MKCERT_SERVER_KEY_PEM}" | base64 --decode > ./deploy/local/wildcard-tls.local.key
           mkdir -p ${HOME}/.pki/nssdb
