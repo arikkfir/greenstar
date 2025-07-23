@@ -210,7 +210,7 @@ jobs:
         env:
           VERSION: "0.0.0+${{ github.sha }}"
         run: |
-          task setup-tenant-helm-values-files
+          task setup-tenants-values-file
           helm install greenstar oci://ghcr.io/${{ github.repository_owner }}/greenstar \
               --version "${VERSION}" \
               --create-namespace -n greenstar \
