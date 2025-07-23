@@ -49,6 +49,11 @@ build:
     concurrency: 5
 deploy:
   helm:
+    flags:
+      install:
+        - --timeout=1m
+      upgrade:
+        - --timeout=1m
     releases:
       - name: greenstar
         chartPath: ./deploy/chart
