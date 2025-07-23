@@ -210,11 +210,13 @@ jobs:
         env:
           VERSION: "0.0.0+${{ github.sha }}"
         run: |
+          task setup-tenants-values-file
           helm install greenstar oci://ghcr.io/${{ github.repository_owner }}/greenstar \
               --version "${VERSION}" \
               --create-namespace -n greenstar \
-              -f deploy/local/chart-ci-values.yaml \
-              --wait --wait-for-jobs
+              -f ./deploy/local/chart-ci-values.yaml \
+              -f ./hack/greenstar-tenants-values.yaml \
+              --wait --wait-for-jobs --debug
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -245,10 +247,15 @@ jobs:
         id: export-cluster-state
         if: success() || steps.setup-cluster.outcome == 'failure' || steps.setup-cluster.outcome == 'success'
         run: |
-          kubectl cluster-info dump -o yaml --output-directory=./cluster-state --namespaces=ingress,greenstar
-          kubectl get gateways.gateway.networking.k8s.io -o yaml -A > ./cluster-state/gateways.yaml
-          kubectl get httproutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/httproutes.yaml
-          kubectl get tlsroutes.gateway.networking.k8s.io -o yaml -A > ./cluster-state/tlsroutes.yaml
+          kubectl cluster-info dump -o yaml --output-directory=./cluster-state -A
+          for ns in $(kubectl get namespaces -oname | cut -d '/' -f2); do
+            mkdir -p "./cluster-state/${ns}"
+            kubectl get jobs -o yaml -n "${ns}" > ./cluster-state/${ns}/jobs.yaml
+            kubectl get cronjobs -o yaml -n "${ns}" > ./cluster-state/${ns}/cronjobs.yaml
+            kubectl get gateways.gateway.networking.k8s.io -o yaml -n "${ns}" > ./cluster-state/${ns}/gateways.yaml
+            kubectl get httproutes.gateway.networking.k8s.io -o yaml -n "${ns}" > ./cluster-state/${ns}/httproutes.yaml
+            kubectl get tlsroutes.gateway.networking.k8s.io -o yaml -n "${ns}" > ./cluster-state/${ns}/tlsroutes.yaml
+          done
 
       - name: Upload cluster state artifact
         uses: actions/upload-artifact@v4

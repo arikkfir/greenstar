@@ -206,21 +206,24 @@ tasks:
       - setup-jaeger
       - setup-grafana
 
-  setup-tenant-helm-values-files:
+  setup-tenants-values-file:
     sources:
       - ./deploy/local/acme/*.yaml
     generates:
       - ./hack/greenstar-tenants-values.yaml
     cmds:
+      - mkdir -pv hack
+      - rm -fv ./hack/greenstar-tenants-values.yaml
+      - touch ./hack/greenstar-tenants-values.yaml
       - # noinspection YAMLSchemaValidation
         for: sources
         cmd: |
-          mkdir -pv ./hack && touch ./hack/greenstar-tenants-values.yaml
-          NAME="$(basename "{{ .ITEM }}")" CONTENT="$(cat "{{ .ITEM }}")" \
-            yq -i '.acme.files += [{"name": env(NAME), "content": env(CONTENT)}]' ./hack/greenstar-tenants-values.yaml
+          export NAME="$(basename "{{ .ITEM }}")"
+          export CONTENT="$(cat "{{ .ITEM }}")"
+          yq -i '.acme.files += [{"name": env(NAME), "content": env(CONTENT)}]' ./hack/greenstar-tenants-values.yaml
 
   enable-gcp-workload-identity-federation:
-    deps: [create-cluster]
+    deps: [ create-cluster ]
     env:
       WHOAMI:
         sh: whoami
@@ -273,8 +276,9 @@ tasks:
         kubectl delete configmap -n greenstar gcp-workload-identity-federation || true
         kubectl create configmap -n greenstar gcp-workload-identity-federation --from-file hack/credential-configuration.json
         mkdir -pv ./hack && touch ./hack/greenstar-server-values.yaml
-        yq -i '.server.volumes = [], .server.volumeMounts = []' ./hack/greenstar-server-values.yaml
-        echo ${GCP_PROJECT_ID}
+        yq -i '.server.extraEnv = (.server.extraEnv // {})' ./hack/greenstar-server-values.yaml
+        yq -i '.server.volumes = (.server.volumes // [])' ./hack/greenstar-server-values.yaml
+        yq -i '.server.volumeMounts = (.server.volumeMounts // [])' ./hack/greenstar-server-values.yaml
         cat <<EOF | yq -i ea 'select(fileIndex == 0) *+ select(fileIndex == 1)' ./hack/greenstar-server-values.yaml -
         server:
           extraEnv:
@@ -303,13 +307,10 @@ tasks:
         EOF
 
   dev:
-    deps:
-      - setup-observability
-      - setup-tenant-helm-values-files
-      - setup-frontend-geopify-helm-values-files
+    deps: [ setup-observability, setup-tenants-values-file ]
     cmds:
-      - '[[ -f ./hack/greenstar-server-values.yaml ]] || (mkdir -pv hack && touch ./hack/greenstar-server-values.yaml)'
-      - '[[ -f ./hack/greenstar-frontend-values.yaml ]] || (mkdir -pv hack && touch ./hack/greenstar-frontend-values.yaml)'
+      - touch ./hack/greenstar-frontend-values.yaml
+      - touch ./hack/greenstar-server-values.yaml
       - skaffold dev --tail=false
 
   test:
