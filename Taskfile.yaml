@@ -223,7 +223,7 @@ tasks:
           yq -i '.acme.files += [{"name": env(NAME), "content": env(CONTENT)}]' ./hack/greenstar-tenants-values.yaml
 
   enable-gcp-workload-identity-federation:
-    deps: [create-cluster]
+    deps: [ create-cluster ]
     env:
       WHOAMI:
         sh: whoami
